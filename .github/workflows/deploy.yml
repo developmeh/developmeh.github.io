@@ -1,0 +1,41 @@
+
+name: Deploy Developmeh.com
+run-name: ${{ github.actor }} will build and deploy the site 🚀
+on: [push]
+  branches: [ "main" ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  Build-with-Nix:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
+          with:
+            nix_path: nixpkgs=channel:nixos-unstable
+            github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build release
+        run: nix develop --command zola build --output-dir ./_site
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: Upload artifact
+        # Automatically uploads an artifact from the './_site' directory by default
+        uses: actions/upload-pages-artifact@v2
+  Deploy-Pages:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: Build-with-Nix
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
