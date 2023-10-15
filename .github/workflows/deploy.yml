@@ -1,8 +1,8 @@
-
 name: Deploy Developmeh.com
 run-name: ${{ github.actor }} will build and deploy the site 🚀
-on: [push]
-  branches: [ "main" ]
+on:
+  push:
+    branches: [ "main" ]
 
 permissions:
   contents: read
