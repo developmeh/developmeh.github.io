@@ -1,7 +1,7 @@
 +++
-title = "Projects"
+title = "Software Architecture"
 
-description = "WOW"
+description = "Discourse on Application Design and Architecture"
 
 # A draft section is only loaded if the `--drafts` flag is passed to `zola build`, `zola serve` or `zola check`.
 draft = false
