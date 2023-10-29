@@ -147,7 +147,8 @@ The request comes in and touches Puma, which creates a thread and populates the 
     |    |--> Convert HTTP Data to Ruby Hash
     |    |--> RACK
     |    |    |
-    |    |    |--> Rack Middleware|    |    |--> Rails Middleware
+    |    |    |--> Rack Middleware
+    |    |    |--> Rails Middleware
     |    |    |    |
     |    |    |    |--> Routing Middleware -> Create Controller Instance
     |    |    |    |    |
