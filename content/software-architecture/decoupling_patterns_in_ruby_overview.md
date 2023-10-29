@@ -91,7 +91,6 @@ RSpec.describe LazyCouple do
     let(:data_source_instance) do
 	double('DataSourceInstance', name: 'Some Name')
     end
-
     let(:mock_data_source) do
 	double('MockDataSource', find: data_source_instance)
     end
@@ -109,7 +108,15 @@ end
 </tbody>
 </table>
 
-These two look nearly identical, but can you spot the big difference? It's in the specs, which often are our best mirror on implementation. Our Spec doesn't need to reference the constant for TheDataSource; it instead provides its own mock. I hear you saying, "Big deal!" It is a BIG DEAL! Without going too far out on a limb, we have provided a space for this class to be Open/Closed; we can extend its behavior without modifying the class. Say we decided to change the data source. We may want to continue to use this behavior, but we have been developing a new data source that ActiveRecord does not support, like a network call. This class can stay the same, and our Spec will still validate this behavior in isolation. It also provided documentation of our protocol with the dependency.
+These two look nearly identical, but can you spot the big difference? It's in the specs, which often are our best mirror on implementation. Our Spec doesn't need to reference the constant for TheDataSource; it instead provides its own mock, and that mock is a double.
+
+I hear you saying, "Big deal!"
+
+It is a BIG DEAL!
+
+These little changes add up. The DI test is a little easier to read as it references more of its own constants. It is also completely isolated from the system. If you need to refactor this code between gems, this test could be transported along, and we can guarantee that our coverage and quality don't degrade.
+
+Without going too far out on a limb, we have provided a space for this class to be Open/Closed; we can extend its behavior without modifying the class. Say we decided to change the data source. We may want to continue to use this behavior, but we have been developing a new data source that ActiveRecord does not support, like a network call. This class can stay the same, and our Spec will still validate this behavior in isolation. It also provided documentation of our protocol with the dependency.
 
 It's important to recall that Ruby communicates over __Protocols__ not __Contracts__ by default. Each implementation of a new data source is backed by its integration test while the core functionality continues its life Closed.
 
@@ -153,4 +160,10 @@ The request comes in and touches Puma, which creates a thread and populates the 
     HTTP RESPONSE
 
 As you can imagine, there are many opportunities for decoupling that Rails appears to want to fight us on but, in fact, happily supports. Our first stop will be the Protocol Handler or, more commonly, the controller. In our next part, we will describe the SOLID implication of the controller and design a pattern for building the entry point for any request, be that consumed by:
-API (Application Programming Interface)
+- API (Application Programming Interface)
+- LPC (Local Procedure Call)
+- deferred worker
+- ESB (Enterprise Service Bus)
+- RPC (Remote Procedure Call)
+
+From there, we will move on to the design of our Service Layer; this will include observability concerns as well as auditing and Actors. We will, of course, always keep this in the context of enterprise production systems; we will enforce security and implement RBAC (Role Based Access Control). Our practice will also include a deeper dive into relevant programming patterns outside those introduced by SOLID.
