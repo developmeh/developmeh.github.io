@@ -47,7 +47,7 @@ end
 <td>
 
 ```ruby
-class Decoupled
+class LooseCouple
   def initialize(data_source = TheDataSource)
     @data_source = data_source
   end
@@ -64,7 +64,7 @@ end
 <td>
 
 ```ruby
-RSpec.describe Decoupled do
+RSpec.describe LazyCouple do
   describe '#perform' do
     let(:data_source_instance) do
       double('DataSourceInstance', name: 'Some Name')
@@ -87,7 +87,7 @@ end
 <td>
 
 ```ruby
-RSpec.describe LazyCouple do
+RSpec.describe LooseCouple do
   describe '#perform' do
     let(:data_source_instance) do
 	double('DataSourceInstance', name: 'Some Name')
