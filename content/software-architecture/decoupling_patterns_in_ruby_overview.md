@@ -1,6 +1,7 @@
 +++
 title = "Decoupling Patterns in Ruby: Overview"
 template = "page.html"
+weight = 0
 +++
 
 ## An Uncomplicated Picture

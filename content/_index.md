@@ -47,13 +47,13 @@ in_search_index = true
 
 # If set to "true", the section homepage is rendered.
 # Useful when the section is used to organize pages (not used directly).
-render = false
+render = true
 
 # This determines whether to redirect when a user lands on the section. Defaults to not being set.
 # Useful for the same reason as `render` but when you don't want a 404 when
 # landing on the root section page.
 # Example: redirect_to = "documentation/content/overview"
-# redirect_to =
+redirect_to = "home"
 
 # If set to "true", the section will pass its pages on to the parent section. Defaults to `false`.
 # Useful when the section shouldn't split up the parent section, like
@@ -68,7 +68,7 @@ aliases = []
 # section's root path. This is independent of the site-wide variable of the same
 # name. The section feed will only include posts from that respective feed, and
 # not from any other sections, including sub-sections under that section.
-generate_feed = false
+generate_feed = true
 
 # Your own data.
 [extra]
@@ -76,21 +76,3 @@ generate_feed = false
 
 ## Developmeh
 _Develop ¯\\_(ツ)_/¯_
-
-You know they say you have hundreds of incredible ideas each day, but they are so fleeting you don't execute them.
-> Well, I don't know what those people are talking about cause these are the hair-brained ideas I have instead...
-
-The best part of having done something like software engineering for as long as I have is you feel you can build anything
-> regardless of if it's a good idea or not.
-
-But who cares? Welcome to my workshop!
-
-This is a safe space for all ideas; the point is to have fun with it; you don't wanna write tests...suuuuure....
-> GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
-
-### Everything is on GitHub:
-- https://github.com/developmeh
-- https://github.com/ninjapanzer
-
-### Correspondence
-Please address all hate mail [here](https://github.com/orgs/developmeh/discussions/categories/general)

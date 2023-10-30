@@ -1,17 +1,17 @@
 +++
-title = "Projects"
+title = "Home"
 
-description = "WOW"
+description = "That stuff you don't get to do at work"
 
 # A draft section is only loaded if the `--drafts` flag is passed to `zola build`, `zola serve` or `zola check`.
-draft = true
+draft = false
 
 # Used to sort pages by "date", "update_date", "title", "title_bytes", "weight", "slug" or "none". See below for more information.
-sort_by = "none"
+sort_by = "weight"
 
 # Used by the parent section to order its subsections.
 # Lower values have higher priority.
-weight = 2
+weight = 0
 
 # Template to use to render this section page.
 template = "section.html"
@@ -58,7 +58,7 @@ render = true
 # If set to "true", the section will pass its pages on to the parent section. Defaults to `false`.
 # Useful when the section shouldn't split up the parent section, like
 # sections for each year under a posts section.
-transparent = false
+transparent = true
 
 # Use aliases if you are moving content but want to redirect previous URLs to the
 # current one. This takes an array of paths, not URLs.
@@ -68,8 +68,29 @@ aliases = []
 # section's root path. This is independent of the site-wide variable of the same
 # name. The section feed will only include posts from that respective feed, and
 # not from any other sections, including sub-sections under that section.
-generate_feed = false
+generate_feed = true
 
 # Your own data.
 [extra]
 +++
+
+## Developmeh
+_Develop ¯\\_(ツ)_/¯_
+
+You know they say you have hundreds of incredible ideas each day, but they are so fleeting you don't execute them.
+> Well, I don't know what those people are talking about cause these are the hair-brained ideas I have instead...
+
+The best part of having done something like software engineering for as long as I have is you feel you can build anything
+> regardless of if it's a good idea or not.
+
+But who cares? Welcome to my workshop!
+
+This is a safe space for all ideas; the point is to have fun with it; you don't wanna write tests...suuuuure....
+> GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
+
+### Everything is on GitHub:
+- https://github.com/developmeh
+- https://github.com/ninjapanzer
+
+### Correspondence
+Please address all hate mail [here](https://github.com/orgs/developmeh/discussions/categories/general)
