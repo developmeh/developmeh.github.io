@@ -15,6 +15,8 @@ As Sandi Metz kindly explains, DI isn't so scary; none of SOLID is, and as a set
 Specifically, in my lifetime working with Ruby on Rails developers, there has been a pattern I will describe as "Lazy Coupling." You will not find that pattern in the Gang of Four, and if you google it, don't get distracted by Loose Coupling. I believe Sandi Metz covered this while describing SOLID in the context of Dependency Injection with this [example](https://sandimetz.com/blog/2009/03/21/solid-design-principles#example4pain). While Sandi isn't intending to pick on the Rails world, I am not so kind. It's the world of clean code that Rails often violates. By its design, it presents a house of "broken windows" to new developers, and it takes considerable effort to break that dogma as they mature.
 
 __Lazy Coupling__ is when we directly assign a constant to the return value of an instance method of another class. It looks a little something like this:
+
+### Example
 <table style="width:100%">
 <thead>
 <tr>
