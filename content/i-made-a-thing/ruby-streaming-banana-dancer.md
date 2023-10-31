@@ -24,5 +24,5 @@ Bottom line: In the world of code, there's always room for a dance, even if it's
 
 Hope your keyboard’s ready for some dancing fun! 🍌🕺🎵
 
-![dancing-banana](dancing-banana.gif)
+![dancing-banana](../dancing-banana.gif)
 
