@@ -68,29 +68,10 @@ aliases = []
 # section's root path. This is independent of the site-wide variable of the same
 # name. The section feed will only include posts from that respective feed, and
 # not from any other sections, including sub-sections under that section.
-generate_feed = true
+generate_feeds = true
 
 # Your own data.
 [extra]
+
+force_link = "/"
 +++
-
-## Developmeh
-_Develop ¯\\_(ツ)_/¯_
-
-You know they say you have hundreds of incredible ideas each day, but they are so fleeting you don't execute them.
-> Well, I don't know what those people are talking about cause these are the hair-brained ideas I have instead...
-
-The best part of having done something like software engineering for as long as I have is you feel you can build anything
-> regardless of if it's a good idea or not.
-
-But who cares? Welcome to my workshop!
-
-This is a safe space for all ideas; the point is to have fun with it; you don't wanna write tests...suuuuure....
-> GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
-
-### Everything is on GitHub:
-- https://github.com/developmeh
-- https://github.com/ninjapanzer
-
-### Correspondence
-Please address all hate mail [here](https://github.com/orgs/developmeh/discussions/categories/general)
