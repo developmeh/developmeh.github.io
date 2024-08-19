@@ -203,6 +203,13 @@ main {
  #trees {
   overflow-y: auto;
   height: 80%;
+
+  a.tree-toggle-label {
+    color:$color;
+    &::before {
+      content:"🔗";
+    }
+  }
  }
 
  .subtree {

@@ -32,7 +32,7 @@
     {# Create variable to allow appending index.html at end of links if set in config #}
     {% if not config.extra.easydocs_uglyurls or config.mode == "serve" or config.mode == "Serve" -%}
         {% set _ugly_url = "" -%}
-    {% else %}
+    {% else %}force_link
         {% set _ugly_url = "index.html" -%}
     {% endif -%}
 
@@ -64,12 +64,21 @@
                 {% set section_ = get_section(path="_index.md") -%}
                 {% for p in section_.subsections -%}
                     {% set subsection = get_section(path=p) -%}
+                    {% if subsection.extra.force_link -%}
+                        {% set force_link = subsection.extra.force_link -%}
+                    {% else %}
+                        {% set force_link = false -%}
+                    {% endif -%}
 
-
-                    <input class="tree-toggle" type="checkbox" id="{{ subsection.title | slugify }}"
-                           {% if current_path is starting_with(subsection.path) %}checked{% endif %}/>
-                    <label class="tree-toggle-label"
-                           for="{{ subsection.title | slugify }}">{{ subsection.title }}</label>
+                    {% if not force_link -%}
+                        <input class="tree-toggle" type="checkbox" id="{{ subsection.title | slugify }}"
+                               {% if current_path is starting_with(subsection.path) %}checked{% endif %}/>
+                        <label class="tree-toggle-label"
+                               for="{{ subsection.title | slugify }}">{{ subsection.title }}</label>
+                    {% else %}
+                        <a  class="tree-toggle-label"
+                            href="{{ subsection.extra.force_link | safe }}{{ _ugly_url }}">{{ subsection.title }}</a>
+                    {% endif -%}
 
                     <ul class="subtree">
                         {% for page in subsection.pages -%}
