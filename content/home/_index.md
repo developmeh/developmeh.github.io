@@ -68,7 +68,7 @@ aliases = []
 # section's root path. This is independent of the site-wide variable of the same
 # name. The section feed will only include posts from that respective feed, and
 # not from any other sections, including sub-sections under that section.
-generate_feed = true
+generate_feeds = true
 
 # Your own data.
 [extra]
