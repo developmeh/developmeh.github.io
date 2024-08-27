@@ -123,6 +123,7 @@ nav {
   bottom: $baseline;
   padding-right: $baseline;
   width: 20rem;
+  color: $nav-top-color;
 
   img {
     width:128px;
@@ -205,7 +206,8 @@ main {
   height: 80%;
 
   a.tree-toggle-label {
-    color:$color;
+    font-weight: bold;
+    color:$nav-top-color;
     &::before {
       content:"🔗";
     }
@@ -275,7 +277,7 @@ main {
 
 
   a {
-    color:$color;
+    color:$sub-nav-color;
   }
 
   &::before {
@@ -354,6 +356,7 @@ blockquote {
   margin: 0;
   background-color: $quote-bg;
   padding: 0 20px;
+  color:$quote-color;
 }
 
 @import "fabric-icons-inline";
