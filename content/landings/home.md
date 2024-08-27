@@ -24,8 +24,8 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
 
 ### Everything is on GitHub:
-- https://github.com/developmeh
-- https://github.com/ninjapanzer
+- [https://github.com/developmeh](https://github.com/developmeh)
+- [https://github.com/ninjapanzer](https://github.com/ninjapanzer)
 
 ### Correspondence
 Please address all hate mail [here](https://github.com/orgs/developmeh/discussions/categories/general)
