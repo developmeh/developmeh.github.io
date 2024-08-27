@@ -4,7 +4,7 @@ title = "Tech Dives"
 description = "TIL"
 
 # A draft section is only loaded if the `--drafts` flag is passed to `zola build`, `zola serve` or `zola check`.
-draft = false
+draft = true
 
 # Used to sort pages by "date", "update_date", "title", "title_bytes", "weight", "slug" or "none". See below for more information.
 sort_by = "weight"
