@@ -15,6 +15,10 @@ body {
   color:$color;
 }
 
+.highlight-wrapper {
+  line-height: 1em;
+}
+
 @keyframes fade-in {
   0% {
     opacity: 0;
@@ -93,6 +97,7 @@ pre {
 
  code {
     font: $code_font;
+    line-height: 1px;
   }
 
   .copy-code-button {
