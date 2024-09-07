@@ -2,6 +2,7 @@
 title = "CI Over CD"
 template = "page.html"
 weight = 0
+updated = 2024-09-06
 +++
 
 ## You have Continuous Deployment, not Continuous Delivery
