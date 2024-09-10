@@ -1,6 +1,7 @@
 +++
 title = "Distributed Game of Life"
 template = "page.html"
+updated = 2024-09-10
 +++
 
 ## GoL
