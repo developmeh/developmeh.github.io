@@ -47,7 +47,7 @@ in_search_index = true
 
 # If set to "true", the section homepage is rendered.
 # Useful when the section is used to organize pages (not used directly).
-render = true
+render = false
 
 # This determines whether to redirect when a user lands on the section. Defaults to not being set.
 # Useful for the same reason as `render` but when you don't want a 404 when

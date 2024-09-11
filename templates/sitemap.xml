@@ -3,7 +3,9 @@
     {% for p in entries -%}
     <url>
         <loc>{{ p.permalink }}</loc>
-        <lastmod>{{ p.updated }}</lastmod>
+        {% if p.updated %}
+            <lastmod>{{ p.updated }}</lastmod>
+        {%endif %}
     </url>
     {% endfor %}
 </urlset>
