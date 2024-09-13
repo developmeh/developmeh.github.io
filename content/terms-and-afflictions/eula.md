@@ -3,6 +3,7 @@ title = "End User Languor Agreement"
 template = "page.html"
 weight = 0
 draft = false
+updated = 2024-08-10
 +++
 
 ## Equipment
