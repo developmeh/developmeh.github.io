@@ -12,16 +12,23 @@ path = "/"
 ## Developmeh
 _Develop ¯\\_(ツ)_/¯_
 
-You know they say you have hundreds of incredible ideas each day, but they are so fleeting you don't execute them.
-> Well, I don't know what those people are talking about cause these are the hair-brained ideas I have instead...
+Contained within are hairbrained ideas that have no commercial value... still here... you are one of the special ones.
 
-The best part of having done something like software engineering for as long as I have is you feel you can build anything
-> regardless of if it's a good idea or not.
+I have done a lot of software engineering in my life and after all that time I have come to appreciate an industry in constant evolution.
+> I, though, seem to stand as a fixed point, arriving to accomplish a specific task and obstinately refusing to become a tradesman.
 
-But who cares? Welcome to my workshop!
+For those of you who have a craft and participate in a creative act on the regular, I salute you. Your bravery is what I idolize. In persuite of of some kind of self-idolatry I create toys to expand my knowledge and forgive myself for being a shill.
+>But who cares? Welcome to my workshop!
 
 This is a safe space for all ideas; the point is to have fun with it; you don't wanna write tests...suuuuure....
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
+
+### Articles
+- [Distributed Game of Life](/projects/gol/)
+- [Krappy Kafka 25-12-2024 (k0s Deployment)](/i-made-a-thing/recreating-kafka-blind/#25-12-2024)
+- [Krappy Kafka 22-12-2024 (Handler Cleanup and Func Interface)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
+- [Krappy Kafka 05-11-2024 (Shared Consumer Groups)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
+- [Krappy Kafka (Recreating Kafka Devlog)](/i-made-a-thing/recreating-kafka-blind/#devlog)
 
 ### Everything is on GitHub:
 - [https://github.com/developmeh](https://github.com/developmeh)
