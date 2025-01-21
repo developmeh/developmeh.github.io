@@ -23,12 +23,17 @@ For those of you who have a craft and participate in a creative act on the regul
 This is a safe space for all ideas; the point is to have fun with it; you don't wanna write tests...suuuuure....
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
 
+### Devlogs
+- [20-01-2025 Distributed Game of Life (Stats)](/projects/gol/#20-01-2025)
+- [19-01-2025 Distributed Game of Life (Profiling)](/projects/gol/#19-01-2025)
+- [15-01-2025 Distributed Game of Life (Getting Started](/projects/gol/#15-01-2025)
+- [25-12-2024 Krappy Kafka (k0s Deployment)](/i-made-a-thing/recreating-kafka-blind/#25-12-2024)
+- [22-12-2024 Krappy Kafka (Handler Cleanup and Func Interface)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
+- [05-11-2024 Krappy Kafka (Shared Consumer Groups)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
+
 ### Articles
 - [Distributed Game of Life](/projects/gol/)
-- [Krappy Kafka 25-12-2024 (k0s Deployment)](/i-made-a-thing/recreating-kafka-blind/#25-12-2024)
-- [Krappy Kafka 22-12-2024 (Handler Cleanup and Func Interface)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
-- [Krappy Kafka 05-11-2024 (Shared Consumer Groups)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
-- [Krappy Kafka (Recreating Kafka Devlog)](/i-made-a-thing/recreating-kafka-blind/#devlog)
+- [Krappy Kafka](/i-made-a-thing/recreating-kafka-blind)
 
 ### Everything is on GitHub:
 - [https://github.com/developmeh](https://github.com/developmeh)
