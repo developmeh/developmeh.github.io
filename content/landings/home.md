@@ -7,6 +7,7 @@ description = "That stuff you don't get to do at work"
 draft = false
 
 path = "/"
+updated = 2025-01-20
 +++
 
 ## Developmeh
