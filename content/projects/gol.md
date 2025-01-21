@@ -1,7 +1,7 @@
 +++
 title = "Distributed Game of Life"
 template = "page.html"
-updated = 2024-09-10
+updated = 2025-01-20
 +++
 
 ## Go Channel Based PoC
@@ -33,7 +33,7 @@ Heredity, try and see if I can trace the lineage of a cell through this process 
 
 ## DevLog
 
-### 20 01 2024
+### 20 01 2025
 #### Stats
 
 Added channel based stats that help display how many broadcasts and the aggregate of life in the game.
