@@ -7,7 +7,7 @@ description = "That stuff you don't get to do at work"
 draft = false
 
 path = "/"
-updated = 2025-01-21
+updated = 2025-01-27
 +++
 
 ## Developmeh
@@ -25,6 +25,7 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
 
 ### Devlogs
+- [27-01-2025 Streaming Dancing Banana (Nix Build and Deploy to K8s)](/i-made-a-thing/ruby-streaming-banana-dancer/#27-01-2025)
 - [21-01-2025 Distributed Game of Life (Debugging stats)](/projects/gol/#21-01-2025)
 - [20-01-2025 Distributed Game of Life (Stats)](/projects/gol/#20-01-2025)
 - [19-01-2025 Distributed Game of Life (Profiling)](/projects/gol/#19-01-2025)
