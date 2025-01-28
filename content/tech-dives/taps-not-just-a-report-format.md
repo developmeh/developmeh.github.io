@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 slug = "test-anything-means-testing-bash"
-updated = 2025-01-27
+updated = 2025-01-28
 +++
 
 ## Test Anything Protocol
