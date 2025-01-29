@@ -7,7 +7,7 @@ description = "That stuff you don't get to do at work"
 draft = false
 
 path = "/"
-updated = 2025-01-27
+updated = 2025-01-28
 +++
 
 ## Developmeh
@@ -35,6 +35,7 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 - [05-11-2024 Krappy Kafka (Shared Consumer Groups)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
 
 ### Articles
+- [The Perfect Dev Env Part 1](/devex/the-perfect-dev-env/)
 - [Distributed Game of Life](/projects/gol/)
 - [Krappy Kafka](/i-made-a-thing/recreating-kafka-blind)
 
