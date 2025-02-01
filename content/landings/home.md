@@ -7,24 +7,25 @@ description = "That stuff you don't get to do at work"
 draft = false
 
 path = "/"
-updated = 2025-01-29
+updated = 2025-01-31
 +++
 
 ## Developmeh
 _Develop ¯\\_(ツ)_/¯_
 
-Contained within are hairbrained ideas that have no commercial value... still here... you are one of the special ones.
+Contained within are harebrained ideas that have no commercial value... still here... you are one of the special ones.
 
 I have done a lot of software engineering in my life and after all that time I have come to appreciate an industry in constant evolution.
 > I, though, seem to stand as a fixed point, arriving to accomplish a specific task and obstinately refusing to become a tradesman.
 
-For those of you who have a craft and participate in a creative act on the regular, I salute you. Your bravery is what I idolize. In persuite of of some kind of self-idolatry I create toys to expand my knowledge and forgive myself for being a shill.
+For those of you who have a craft and participate in a creative act on the regular, I salute you. Your bravery is what I idolize. In pursuit of of some kind of self-idolatry I create toys to expand my knowledge and forgive myself for being a shill.
 >But who cares? Welcome to my workshop!
 
 This is a safe space for all ideas; the point is to have fun with it; you don't wanna write tests...suuuuure....
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
 
 ### Devlogs
+- [31-01-2025 Streaming Dancing Banana (Nix Cross Platform Improvements)](/i-made-a-thing/ruby-streaming-banana-dancer/#31-01-2025)
 - [29-01-2025 The Krappy Internet (Protocol Servers)](/projects/krappy-internet/#devlog)
 - [27-01-2025 Streaming Dancing Banana (Nix Build and Deploy to K8s)](/i-made-a-thing/ruby-streaming-banana-dancer/#27-01-2025)
 - [21-01-2025 Distributed Game of Life (Debugging stats)](/projects/gol/#21-01-2025)

@@ -2,7 +2,7 @@
 title = "Ruby Dancing ANSI Banana for Curl"
 template = "page.html"
 weight = 0
-updated = 2025-01-27
+updated = 2025-01-31
 +++
 
 **Hey there, fellow coder! Ever seen a parrot dance in your terminal?** 🦜💃
@@ -28,6 +28,95 @@ Hope your keyboard’s ready for some dancing fun! 🍌🕺🎵
 ![dancing-banana](../dancing-banana.gif)
 
 ## DevLog
+
+### 31 01 2025
+#### Beating Nix
+
+In the last update I made some breaking changes to the project's cross-platform-ness which bothered me but I find nix challenging at times. Since I was starting with something that worked though migrating it to one that supports all platforms was easier.
+
+[flake.nix](https://github.com/developmeh/ruby_streaming_ansi_banana/blob/v0.2.0/flake.nix)
+
+Starting here we create a lambda that accepts the __system__ argument. Later this will inherit the supported system of that loop over __[ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ]__.
+
+```nix
+forEachSupportedSystem = f: nixpkgs.lib.genAttrs supportedSystems (system: f {
+  system = system;  # Ensure the 'system' is passed into the function
+  pkgs = import nixpkgs { inherit system; };
+});
+```
+
+Next we will define how __gems__ are created and they will inherit the supported system for the host env.
+
+This function accepts the system and builds the bundler env.
+
+```nix
+gems = system: let
+  buildpkgs = import nixpkgs { system = system; };
+in buildpkgs.bundlerEnv {
+  name = "ruby-dancing-banana";
+  ruby = buildpkgs.ruby_3_2;
+  gemfile = ./Gemfile;
+  lockfile = ./Gemfile.lock;
+  gemset = ./gemset.nix;
+};
+```
+
+Next we use that function to inherit the bundler env for our docker image. The gems function is invoked __gemEnv = gems systemAttrs.system__. Those attributes were generated in this scope using the nixpkgs.lib.genAttrs. In that block above we exposed a __system = ...__ its values were mapped to __systemAttrs__.
+
+We do the same thing to alias our package source for nix __buildpkgs__.
+
+When we do __nix build__ buildImage will be invoked.
+
+```nix
+buildImage = systemAttrs: let
+  buildpkgs = import nixpkgs { system = systemAttrs.system; };
+  gemEnv = gems systemAttrs.system;
+in buildpkgs.dockerTools.buildImage {
+  name = "ruby-dancing-banana";
+  created = "now";
+  tag = "latest";
+  copyToRoot = buildpkgs.buildEnv {
+    name = "image-root";
+    paths = [
+      gemEnv
+    ];
+    postBuild = ''
+      mkdir -p $out/app
+      cp ${./main.rb} $out/app/main.rb
+      cp -r ${./ascii_frames} $out/app/ascii_frames
+    '';
+  };
+  config = {
+    Cmd = [ "${gemEnv.wrappedRuby}/bin/ruby" "/app/main.rb" "-o" "0.0.0.0" ];
+    WorkingDir = "/app";
+    ExposedPorts = { "4567/tcp" = {}; };
+  };
+};
+```
+
+This is the same for our devShells. The difference here is we need these values in our __output__ defined at the very top so we call __forEachSupportedSystem__ and the attached block defines our default shell for the host env.
+
+I have to admit. This might be the first time I have understood what I created in nix. The rest of the time I have been trying to just guess my way through by copy-pasta'ing examples. Its not a tough syntax and provides much more than what is popular. But all this functionality comes at the cost of being understandable.
+
+__Cloudflare Streaming__
+
+The final part of todays journey was addressing streaming with __Cloudflare Tunnel__. Being its sitting inside my connection it makes its own rules and that means I have to force it to not buffer my streams otherwise the rendering is faulty.
+
+Solution:
+```ruby
+headers.delete('Content-Length')
+headers "Content-Encoding" => "identity"
+headers "Content-Type" => "text/event-stream"
+headers "Transfer-Encoding" => "chunked"
+```
+
+Removing _Content-Length_ makes sure the proxy can't anticipate the stream and wait for it.
+
+_Content-Encoding_ Identity helps to keep compression for being activated.
+
+_Content-Type_ text/event-stream is the magic bullet which hints to the proxy that we want the data streamed and to disable any caching or bursting.
+
+_Transfer-Encoding_ "chunked" makes sure we send a full block at a time. Since I flush on each image presented each write is a chunk.
 
 ### 27 01 2025
 #### Nix and planning for ruby streaming
