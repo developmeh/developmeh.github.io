@@ -21,6 +21,8 @@ So, curious? Want to dive into some fruity fun? Swing by [ruby_streaming_ansi_ba
 
 Bottom line: In the world of code, there's always room for a dance, even if it's just a banana showing off its moves. So, let's not take ourselves too seriously and enjoy the rhythm, one ASCII character at a time!
 
+Try it: $ __curl [https://dancing-banana.developmeh.com/live](https://dancing-banana.developmeh.com/live)__
+
 ---
 
 Hope your keyboard’s ready for some dancing fun! 🍌🕺🎵
