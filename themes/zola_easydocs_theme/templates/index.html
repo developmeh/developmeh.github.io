@@ -10,6 +10,17 @@
         {% endif -%}
         <link rel="icon" href="{{ _favicon | safe }}">
     {% endif -%}
+    {% if page.extra.desc -%}
+        <meta name="description" content="{{page.extra.desc}}">
+    {% else -%}
+        <meta name="description" content="{{config.extra.desc}}">
+    {% endif -%}
+    {% if page.extra.keywords -%}
+       <meta name="keywords" content="{{page.extra.keywords}}">
+    {% else -%}
+       <meta name="keywords" content="{{config.extra.keywords}}">
+    {% endif -%}
+    <meta name="author" content="{{config.author}}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
     <meta property="og:url" content="{{config.base_url | safe}}/{{current_path | safe}}" />
     <title>{% block title %}{{ config.title }}{% endblock title %}</title>
@@ -34,7 +45,7 @@
 {% endif -%}
 <main>
     {# Create variable to allow appending index.html at end of links if set in config #}
-    {% if not config.extra.easydocs_uglyurls or config.mode == "serve" or config.mode == "Serve" -%}
+    {% if not config.extra.easydocs_uglyurls or config.mode == "serve" or config.mode == "Sehttps://developmeh.com/rss.xmlrve" -%}
         {% set _ugly_url = "" -%}
     {% else %}
         {% set _ugly_url = "index.html" -%}

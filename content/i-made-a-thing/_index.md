@@ -72,6 +72,7 @@ generate_feeds = false
 
 # Your own data.
 [extra]
+keywords = "build"
 +++
 
 Just an Inventory of things I have made

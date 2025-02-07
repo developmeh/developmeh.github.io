@@ -1,6 +1,7 @@
 # The URL the site will be built for
 base_url = "https://developmeh.com"
 title = "DevelopMeh"
+author = "paul@scarrone.co"
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
 
@@ -23,3 +24,5 @@ highlight_theme = "ruby"
 # Put all your custom variables here
 force_link = false
 favicon = "favicon.ico"
+keywords = "golang, ruby, software-development, devex, software-architecture, education, editorial"
+desc = "Contained within are harebrained ideas that have no commercial value... still here... you are one of the special ones."
