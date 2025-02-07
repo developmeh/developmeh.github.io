@@ -22,3 +22,4 @@ highlight_theme = "ruby"
 [extra]
 # Put all your custom variables here
 force_link = false
+favicon = "favicon.ico"
