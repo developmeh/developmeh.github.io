@@ -3,6 +3,7 @@ title = "An Internet of Changing Morality"
 template = "page.html"
 weight = 0
 draft = false
+date = 2024-10-14
 updated = 2024-10-14
 +++
 

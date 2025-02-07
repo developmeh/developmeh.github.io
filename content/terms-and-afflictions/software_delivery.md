@@ -2,6 +2,7 @@
 title = "The Software Delivery Trap"
 template = "page.html"
 weight = 0
+date = 2024-09-13
 updated = 2024-09-13
 +++
 

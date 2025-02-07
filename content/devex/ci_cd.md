@@ -2,6 +2,7 @@
 title = "CI Over CD"
 template = "page.html"
 weight = 0
+date = 2024-08-08
 updated = 2024-09-06
 +++
 

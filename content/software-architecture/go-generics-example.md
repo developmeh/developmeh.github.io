@@ -3,6 +3,7 @@ title = "Go Generics Example"
 template = "page.html"
 weight = 0
 draft = false
+date = 2025-01-22
 updated = 2025-01-22
 +++
 

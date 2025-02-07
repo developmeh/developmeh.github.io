@@ -3,6 +3,7 @@ title = "We Do Delivery Now Eh?"
 template = "page.html"
 weight = 0
 draft = false
+date = 2024-09-10
 updated = 2024-09-10
 +++
 

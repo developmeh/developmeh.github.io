@@ -1,6 +1,7 @@
 +++
 title = "Distributed Game of Life"
 template = "page.html"
+date = 2025-01-21
 updated = 2025-01-21
 +++
 

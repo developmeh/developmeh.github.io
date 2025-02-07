@@ -1,7 +1,8 @@
 +++
 title = "The Krappy Internet"
 template = "page.html"
-updated = 2025-01-29
+date = 2025-01-29
+updated = 2025-02-06
 +++
 
 ## What if the internet stopped being shit and was instead Krappy?
@@ -18,6 +19,12 @@ A persistent connection multiplexing TCP protocol server library. Since everythi
 - [ ] Figure out how to test connection management is working as expected.
 
 ## DevLog
+
+### 06 02 2025
+#### Getting over the Browser
+So recently I came to this understanding of the nature of the Modern OS, which includes the web browser. So there are really two ways to go. Create a new browser using an open source project or build a side-channel daemon.
+
+I rather like the daemon concept because getting something integrated and deployed into a bespoke browser build is going to be an unlikely way to get someone to use something.
 
 ### 29 01 2025
 #### Building a TCP server Library

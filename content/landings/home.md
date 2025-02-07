@@ -7,6 +7,7 @@ description = "That stuff you don't get to do at work"
 draft = false
 
 path = "/"
+date = 2025-06-06
 updated = 2025-01-31
 +++
 

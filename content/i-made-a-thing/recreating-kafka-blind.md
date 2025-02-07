@@ -3,6 +3,7 @@ title = "Learn Event Streaming by Recreating Kafka"
 template = "page.html"
 weight = 1
 draft = false
+date = 2024-09-10
 updated = 2025-01-03
 +++
 

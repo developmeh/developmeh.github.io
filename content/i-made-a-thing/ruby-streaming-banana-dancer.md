@@ -2,6 +2,7 @@
 title = "Ruby Dancing ANSI Banana for Curl"
 template = "page.html"
 weight = 0
+date = 2024-01-27
 updated = 2025-01-31
 +++
 

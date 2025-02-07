@@ -11,7 +11,11 @@
         <link rel="icon" href="{{ _favicon | safe }}">
     {% endif -%}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta property="og:url" content="{{config.base_url | safe}}/{{current_path | safe}}" />
     <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+    {% block rss %}
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ get_url(path="rss.xml", trailing_slash=false) }}">
+    {% endblock %}
 </head>
 <body>
 
@@ -52,7 +56,7 @@
                 {% endif -%}
 
             {% else -%}
-                <h1><a href="{{ config.base_url }}{{ _ugly_url }}">{{ config.title }}</a></h1>
+                <!-- <h1><a href="{{ config.base_url }}{{ _ugly_url }}">{{ config.title }}</a></h1> --!>
             {% endif -%}
 
             {% if config.extra.release -%}

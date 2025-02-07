@@ -2,6 +2,8 @@
 title = "Decoupling Patterns in Ruby: Overview"
 template = "page.html"
 weight = 0
+date = 2024-08-30
+updated = 2024-08-30
 +++
 
 ## An Uncomplicated Picture

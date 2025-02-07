@@ -3,6 +3,7 @@ title = "Am I the Crazy One?"
 template = "page.html"
 weight = 0
 draft = false
+date = 2024-10-10
 updated = 2024-10-10
 +++
 

@@ -4,6 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 slug = "test-anything-means-testing-bash"
+date = 2025-01-28
 updated = 2025-01-28
 +++
 

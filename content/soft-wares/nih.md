@@ -3,6 +3,7 @@ title = "Not Invented Here"
 template = "page.html"
 weight = 0
 draft = false
+date = 2024-09-30
 updated = 2024-09-30
 +++
 
