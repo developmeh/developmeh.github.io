@@ -26,6 +26,7 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
 
 ### Devlogs
+- [11-02-2025 Krappy Internet (An Ideal World)](/projects/krappy-internet/#11-02-2025)
 - [31-01-2025 Streaming Dancing Banana (Nix Cross Platform Improvements)](/i-made-a-thing/ruby-streaming-banana-dancer/#31-01-2025)
 - [29-01-2025 The Krappy Internet (Protocol Servers)](/projects/krappy-internet/#devlog)
 - [27-01-2025 Streaming Dancing Banana (Nix Build and Deploy to K8s)](/i-made-a-thing/ruby-streaming-banana-dancer/#27-01-2025)

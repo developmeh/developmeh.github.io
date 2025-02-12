@@ -2,7 +2,7 @@
 title = "The Krappy Internet"
 template = "page.html"
 date = 2025-01-29
-updated = 2025-02-06
+updated = 2025-02-11
 +++
 
 ## What if the internet stopped being shit and was instead Krappy?
@@ -19,6 +19,18 @@ A persistent connection multiplexing TCP protocol server library. Since everythi
 - [ ] Figure out how to test connection management is working as expected.
 
 ## DevLog
+
+### 11 02 2025
+#### An Ideal World
+I see the internet as a great library archive, while I haven't done the math, I expect the rate at which we create material is roughly at the same rate we improve storage density. At least I can account for that in my own life.
+
+So here is a random vision for the internet. I pay for connection to the network. In deference to the world I live in today, that used to mean something a little different in my youth. Something that drives me to view myself a more of a producer/consumer than just a consumer. I am sure I am not alone.
+
+We pay a provider and I get some simple addressable hardware from them, now I get a public IP address but moreover a dynamic DNS built into my hardware. My provider acts a kind of lookup service which allows me to host applications within my infrastructure and make them available to the greater internet. When I share an image, I share it from my network. My provider also acts as a cache so allow my devices and services to be offline without interruption.
+
+It's not an X or Y kind of situation, personally hosted lives alongside the giants. Services like Vercel or Hetzner still exist for hosting. But when I share text to comment on Bluesky I own that text and it is hosted on my device and cached by Bluesky. When I revoke access to my post, its not gone, but its removed from the cache in the same way we handle DNS propagation. It would be a wild and noisy place and the problem to solve is how to find the things you wanna read. The ecosystem for applications changes as well. Everything is a server, I mean it already is except you don't know what its serving and to who...
+
+An idealistic view of a future state that still requires a lot of work.
 
 ### 06 02 2025
 #### Getting over the Browser
