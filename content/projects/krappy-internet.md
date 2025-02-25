@@ -2,7 +2,7 @@
 title = "The Krappy Internet"
 template = "page.html"
 date = 2025-01-29
-updated = 2025-02-11
+updated = 2025-02-24
 +++
 
 ## What if the internet stopped being shit and was instead Krappy?
@@ -19,6 +19,18 @@ A persistent connection multiplexing TCP protocol server library. Since everythi
 - [ ] Figure out how to test connection management is working as expected.
 
 ## DevLog
+
+### 24 02 2025
+#### Working around the browser
+So one of the challenges of making a side-channel connection to the krappy internet is through a proxy. I don't really see the need to try and forklift the world of current browsers. The plan for this is to create an extension that loads a WASM module wrapping a webrtc data channel. This way I can maintain a socket like stream to another client that is not restricted by the rules of the browser. I can then establish a TCP or QUIC connection to the content tree.
+
+The long road here is probably going to end up being the short one in reality. Browsers are quite irritating and intrusive. I think about how ToR works and how its challenging to link around to things on it. Some of that is due to the impermenance of those servers and the lack of an index. Something like this could act as a generalized bridge between those and other platforms. In the same way that gemini capsules and gopher sites will deploy an http proxy. This proxy is local to the machine so creators can pick any protocol for their site and they could be linked together. I rather like the idea of going to the wallstreet journal and having a tor link to a gemini capsule with the pages content behind the paywall.
+
+It will also be much harder to destroy content as any page that changes can be relinked to something like the internet archive. The control side of this is important, and I wonder if users should opt into other users links. So the defacto nature is we provide our own content and only we can see it, there would need to be some opt in model. I keep seeing it as if the world was one big logseq where content from various location is joined without ownership of any of the sources. Even if it isn't useful its rather cool to think about annotating the internet and building a webring around content that can have a deployed algo track updates.
+
+Dreaming dreams.
+
+For now I am planning on building a PoC from https://github.com/pion/webrtc which will then be compile to WASM and connected to a proxy server.
 
 ### 11 02 2025
 #### An Ideal World
