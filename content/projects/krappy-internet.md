@@ -2,7 +2,7 @@
 title = "The Krappy Internet"
 template = "page.html"
 date = 2025-01-29
-updated = 2025-02-24
+updated = 2025-03-02
 +++
 
 ## What if the internet stopped being shit and was instead Krappy?
@@ -12,6 +12,50 @@ The Krappy Internet is an attempt to re-envision how we trust data from the inte
 Krappy Utils (In Progress) -> https://git.sr.ht/~ninjapanzer/krappy
 Krappy Content Linker (In Progress) -> https://git.sr.ht/~ninjapanzer/krappy_internet
 Krappy Navigator (Planned)
+
+### Mircocosoms
+In the beginning content lived on distinct domains which declared their purpose clearly in their domain name or the commonality of the content they maintained. Much like an address to a folder on a huge distributed computer hyperlinks created the connective tissue
+between the content storage and meaningful reference. Even search engines only acted to provide a searchable inventory of those same links. In the early 2000s this modus changed in the drive to reduce barriers for users to publish their thoughts to the internet.
+I don't know who to blame first but lets just say my earliest memory related to something like "Global Consciousness" a rather ugly site, appropriate for th time, where you could post a few worlds and it would show up for everyone. Kind of mind boggling the scale
+of something like that back then. This wasn't the first though, as email was the first "social media" through usenets and before that bulleten board systems. The biggest difference between those early examples and what we have now is the nature of the silos created.
+Content is restricted to a domain and distribution is controlled by the domain owners marketing budget at best, and at worst by the nefarious moderation of maddmen. The flow of information is best modulated at the consumer and not in the ivory towers of the board rooms.
+
+When a content silo is generally healthy we will see an even discourse of thoughts and an opportunity to learn. The opposite is a self-reinforcing place where we can avoid the conflict of new ideas and further ambiguate reality. The need for critical thinking is personal
+obligation of a democratic society.
+
+### Nefarious Moderation
+
+If I was to correlate discovery of knowledge with my youth some 30 years ago the challenge would be finding my way to he library and then finding the right book. The process very much aligns with the manner we extract data today but the moderation is opaque. I had
+the choice of either using the "card catalog" or speaking to a "research librarian" to identify my resources. Both are somewhat expensive in terms of human expenditure but rely heavily curation and expertise. These two avenuse are aligned with search engines and wikipedia as
+direct analogs a decade later. The value position of that system is a direct proportion to its speed and the agency of the curators to treat knowledge as uniform expression. This of course is the ideal and not all libraries were neutral, none could be free of inherant bias, and
+thus are another form of imperfection. If we instead try to observe the form of the library and the librarian the intent is to act as a free store of knowledge, organized by consistent means and discoverable by the average human.
+
+Moderation is at its core a kind of applied bias, one that slides towards societal norms. The locality of those norms is mediated by the range of human contact; in a town that was limited to hundreds and on the internet thats limited by language and discoverability.
+Because a card in the catalog at the library has a fixed dimension there is also a limited topical granulatirty it can describe about an entry. Someone also has to use interpretation to categorize and prioritize those classifiers, another layer of invisible bias.
+I want to believe that those involved take the role seriously but honestly, but I also know that this cannot be true, but I do believe that the default nature of people is to do good and those that do ill are a smaller portion of the whole. I expect that libraries
+have been crowd sourcing classification for as long as they have existed. At some point the number of texts exceeds the capacity of the librarian to verify and we have to rely on publishers and other libraries to do the bulk work.
+
+The same is true for content on the internet, but the value and classification has to benefit humans and not reinforce the dopamine factories. When we are rewarded for the sensational or rhetorical we assume a bias towards these topics and the value repeats instead
+of grows. If we were to view "content" independent of "platform" and interacted with it as we would in a library, what would that card catalog look like? Who would fill out the cards? Who curates the summer reading list? The publisher or the librarian?
+
+### Identity and Emergence
+
+I adhere that you should put your name on things. I am American, and I with the mythology of figures like John Hancock, who's apocryphal heroism is laid out by signing his name large enough on the Decaration of Independence such that the landord could read it unassited.
+Regardless of the veracity and accuracly of this take its influence what it means to "have a position" and "to express ones thoughts" where there is no place for anonymity. Its a bias allowed by my privilege, also I don't spend a lot of time in proximity to the emergence
+of fact. So there is clearly a place for strong assumption of consistent identity and the emergence of information without a clear owner. The value is weighed by its validation, when giving credence to a statement it must have proof. Proof is well established through
+consistency of action by a trusted identity, or by the expression of evidence. I wanna believe there is a place for investigative journalism's protected informants, for whistle-blowers, and for those fighting oppression to communicate. When the platforms are not aligned
+with protecting the actors, which if you look at the long history of centralized platforms is under constant violation by state run organizations, hackers, and corporate greed I agrue no one is anonymous.
+
+A person should be able to own whatever they publish, not by license but by attribution, you can prove you said it. You can also say it anonymously, since an identity is really analogous with trust an identity doesn't need to be a "person" but it should be "consistent".
+Naturally, this means an identity can be an organization or a person, and content is aligned with that instead of their domain. Domains don't own identity they only hold content and act as addessable geographies. Many libraries carry the same books and in some cases
+they trade those books with each other with decentralized ownership. But what can't change is the authors, the editors, and publishers, they are fixed and they act as the identities we assign or reject the proof of over time.
+
+The value of identity is we can account for its duality, both the bad and the good are relatable and the only moderation will be self-moderation. Honestly, this is a really tricky subject, the lines were drawn long ago where accountability is a double edged sword. It
+protects the mass from victimization and at the sametime subjects the part to possible ostracisation or harm. For now I like to think of identities as properties or assets. They are idempotent and addressable but not individual, an actor may have multiple identities. How
+those identities assume trust and proof is based on the system that passively assigns it its trust.
+
+While identities publish, it is the published material itself that is graded and the author doesn't receive immediate feedback about its reception. There are other networks and processes to be placed that help users collect and consume those publications wholly owned by
+them.
 
 ### Krappy Utils
 A persistent connection multiplexing TCP protocol server library. Since everything is going to eventually have a binary protocol it makes sense to hoist that from Krappy Kafka and speed up how fast I can spin up a new protocol processor.
