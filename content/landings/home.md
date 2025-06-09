@@ -26,6 +26,7 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
 
 ### Devlogs
+- [08-06-2025 This Week's Crazy Idea (Decentralized DynamicDns Krappy-DynDns)](/i-made-a-thing/this-weeks-crazy#08-06-2025)
 - [24-02-2025 Krappy Internet (Working around the browser)](/projects/krappy-internet/#24-02-2025)
 - [11-02-2025 Krappy Internet (An Ideal World)](/projects/krappy-internet/#11-02-2025)
 - [31-01-2025 Streaming Dancing Banana (Nix Cross Platform Improvements)](/i-made-a-thing/ruby-streaming-banana-dancer/#31-01-2025)
