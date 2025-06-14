@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2025-06-08
-updated = 2025-06-08
+updated = 2025-06-14
 +++
 
 # This Week's Crazy Idea
@@ -16,6 +16,19 @@ A price we pay for giving everyone a voice is not everyone has something interes
 Thats what this is all about, the creative act. It's not doing things because they are profitable or even relevant, but because they are interesting or fun.
 
 ## DevLog
+
+### 14 06 2025
+#### WebRTC, NAT Traversals, and American Manufacturing
+
+So my new view of the architecture required to handle something like dynamic home hosting still requires a method for establishing a p2p connection. While this isn't that big of a deal it does require a consistent connection to be publicly accessible somewhere that is not behind a firewall. Which is rather annoying when trying to make this whole thing work on a phone. It is possible to run a webrtc signaling server phones tend to use "Carrier Grade NAT" CGN means there is no port-forwarding so the phone cannot respond to the signaling request to establish a NAT bypass. I think in this case its still possible but I am uncertain how the signaling server will connect the phone to the browser client when its not expecting to make a connection since it might be asleep.
+
+The next pass would be that this isn't really the best solution for the phone. But general processing would be. Since the point of the phones interaction is to allow the owner of the site to have content interactions follow them it might be appropriate to produce a secure append only log and require the sites submission features require an _Always On_ host to handle requests but this is also a good case for a serverless function. While its still on a cloud provider it could also be handled by a DHT. In that case the easy path would be a function which can accept data requests and append them to a signed log on the same site. The phone of course can then poll the log and prompt the user for activity. Since the polling trivial and we don't actually care about _Real Time_ for these interactions its fine.
+
+Probably the reason its a crazy idea in fact is everything about this rolls back a decades worth of nonsense on the internet from realtime streaming connections to dumping things to files and processing them when its convenient. Its more like reading your email, there isn't really a dopamine hit and the only content that grows is those engaged. The final content is text and permanent. The reason for a lot of real-time communications was to give a faithful response to online transactions, but I see that is one of the ways retailers have complicated buying. They want to allocate inventory but if I am selling maguffins from my garage, inventory is really just a nuance. This isn't a solution for the Amazons of the world, its focus is to create a simpler experience for both a business owner or a blogger. I see the time of complicated sites which have sales funnels is more providing the same value it once did. Deep down we wanna find a thing, buy a thing, and know its gunna show up at some point.
+
+__Simpler__, is probably very subjective but I can see a mechanism around this course work in this project that makes this all a daemon.
+
+In some way this has become a diatribe on why we can't build anything in America. Its because we assume that all items need to be produced at a scale to buy at a Lowes. I think consumer expectations for products is they should be complicated but I think we should start looking back to the items we find at thrift stores. The modality should start to wander towards, "I want to make a good X" not so much "I need a new solutions for X". But thats just my opinion in reality.
 
 ### 08 06 2025
 #### Krappy Internet Dynamic Dns and Hosting at Home
