@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2025-06-08
-updated = 2025-06-14
+updated = 2025-06-15
 +++
 
 # This Week's Crazy Idea
@@ -15,7 +15,30 @@ A price we pay for giving everyone a voice is not everyone has something interes
 
 Thats what this is all about, the creative act. It's not doing things because they are profitable or even relevant, but because they are interesting or fun.
 
+Though in some ways I am talking about giving every internet connected person a voice but one that they control and not one that promotes clout. There is clearly a value to a central platform for discovery and in some past world that was the responsibility of the search engine. Now I think this is more about append histories instead of sitemaps and some very clever automation for a federation that provides an index of the internet.
+
 ## DevLog
+
+### 15 06 2025
+#### WebRTC and what not to ask AI to do
+
+So to my great surprise I figured that the LLMs would be the right place to funnel my learnings about WebRTC. A technology that has been just outside my vision since I started my career. Why shouldn't I assume that building a trivial implementation with it with LLM support would save me a lot of cognitive overhead, given the long context of such a technology. I was wrong, it seems that as I delve into the underbelly of network topologies away from the chrome of NextJS and CLI tools the bottom falls our of the LLM as well. Its been a consistent thing on my radar that LLMs are only good at the tasks that push products to market but not the work that makes the products work.
+
+Here is an enumeration of things that the LLMs tend to struggle with:
+
+- Maintaining complex conditional states -- when logical nesting is needed it tends to get confused and will cycle back and forth breaking, fixing, and re-breaking sequences of operations
+- Understanding anything about internet topology including TLDs, eTLDs, eTLD+1, and private registries -- while working on the [Passkey Origin Validator](https://github.com/developmeh/passkey-origin-validator) I was amazed that when I presented these concepts it generally couldn't maintain coherence about the meaning of those terms even though they are rather central to how domains work.
+- Establishing well documented network handshakes -- Something of a combination of the previous two. There is often a kind of ballet that happens establishing standard and p2p network connections. Since its a set of nested conditionals and requires an understanding of how time works, it struggles.
+- Dealing with dependency version changes -- My favorite class of failure, if the library changes the name of a package or a constant the LLM will just assume that the library is broken and remove it. What I find the most awkward is since the LLM is interacting with my computer and my project it has access to my dependencies and could search it to try and resolve the change.
+
+On the other hand a few items I think it nails every time:
+- CI/CD pipelines -- Every time I need to run tests on a branch or release on a tag. The LLM handles it in one go.
+- CLI Frameworks -- Cobra nad Viper, for example an LLM sets up a fantastic set of arguments, config files and considers a lot of the edge cases for comfortable CLI use by humans.
+- Sequence Diagrams -- When I wanna learn a new technology finding a "basic" diagram for how it works is rather annoying. Theres always lots of specs to read but all the pictures are build dependent on a use-case. For example this one it built for my exploration [WebRTC](https://github.com/developmeh/webrtc-poc/blob/master/WEBRTC_CONNECTION_DETAILS.md#mermaid-sequence-diagram)
+
+So in the end I got some joy from the LLM with WebRTC but I kinda had to treat it like a slow version of myself that is also blind and doesn't like to do a web search. I had it explain in a doc how it should work for itself and then asked it to make a boiler plate project with lots of debugging messages. It struggled a lot even with this guidance and I am sure I could have done the same work myself and gained a deeper understanding if I hadn't asked it to do the work.
+
+As this is part of the bigger [Krappy-Internet](https://sr.ht/~ninjapanzer/krappy_internet/) project I then used this poc to try and fix its previous failed implementation. But clearly there is a conceptual block for how the LLM deals with network debugging that it couldn't take a working version and use it to fix a broken version. I did learn something in the process but if this was an actual work activity I would have been stressed, instead of just killing time between blog posts on a rainy Sunday.
 
 ### 14 06 2025
 #### WebRTC, NAT Traversals, and American Manufacturing
