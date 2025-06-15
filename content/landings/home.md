@@ -8,7 +8,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2025-02-24
+updated = 2025-06-15
 +++
 
 ## Developmeh
