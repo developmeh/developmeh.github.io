@@ -30,3 +30,23 @@ desc = "Contained within are harebrained ideas that have no commercial value... 
 default_og_image = "favicon.ico"
 # Logo for structured data
 logo = ""
+# Author information
+author_url = "https://developmeh.com/about"
+author_image = "favicon.ico"
+author_job_title = "Developer"
+# Social profiles for sameAs in structured data
+social_profiles = [
+  "https://github.com/developmeh",
+  "https://twitter.com/developmeh"
+]
+# Business information (uncomment and fill if applicable)
+# business_info = true
+# business_type = "Organization" # or other schema.org business types like LocalBusiness, etc.
+# business_email = "contact@example.com"
+# business_telephone = "+1234567890"
+# [extra.business_address]
+# street = "123 Main St"
+# city = "Anytown"
+# region = "State"
+# postal_code = "12345"
+# country = "US"

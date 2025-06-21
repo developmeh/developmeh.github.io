@@ -1,0 +1,199 @@
+{% if page is defined %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "{% if page.extra and page.extra.schema_type %}{{ page.extra.schema_type }}{% else %}WebPage{% endif %}",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{config.base_url | safe}}/{{current_path | safe}}"
+  },
+  "headline": "{% if page.title %}{{ page.title }}{% else %}{{ config.title }}{% endif %}",
+  {% if (page.extra and page.extra.desc) or config.extra.desc %}
+  "description": "{% if page.extra and page.extra.desc %}{{ page.extra.desc }}{% else %}{{ config.extra.desc }}{% endif %}",
+  {% endif %}
+  {% if (page.extra and page.extra.image) or config.extra.default_og_image %}
+  "image": "{% if page.extra and page.extra.image %}{{ get_url(path=page.extra.image) | safe }}{% elif config.extra.default_og_image %}{{ get_url(path=config.extra.default_og_image) | safe }}{% endif %}",
+  {% endif %}
+  "datePublished": "{% if page.date %}{{ page.date }}{% else %}{{ now() | date(format="%Y-%m-%d") }}{% endif %}",
+  "dateModified": "{% if page.updated %}{{ page.updated }}{% elif page.date %}{{ page.date }}{% else %}{{ now() | date(format="%Y-%m-%d") }}{% endif %}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ config.author }}",
+    {% if config.extra.author_url %}
+    "url": "{{ config.extra.author_url }}",
+    {% endif %}
+    {% if config.extra.author_image %}
+    "image": "{{ get_url(path=config.extra.author_image) | safe }}",
+    {% endif %}
+    "jobTitle": "{% if config.extra.author_job_title %}{{ config.extra.author_job_title }}{% else %}Author{% endif %}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "{{ config.title }}",
+    {% if config.extra.logo %}
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ get_url(path=config.extra.logo) | safe }}"
+    },
+    {% endif %}
+    "url": "{{ config.base_url | safe }}"
+  },
+  {% if (page.extra and page.extra.keywords) or config.extra.keywords %}
+  "keywords": "{% if page.extra and page.extra.keywords %}{{ page.extra.keywords }}{% else %}{{ config.extra.keywords }}{% endif %}",
+  {% endif %}
+  "inLanguage": "en-US",
+  {% if page.extra and page.extra.schema_type and (page.extra.schema_type == "BlogPosting" or page.extra.schema_type == "Article") %}
+  "wordCount": "{{ page.word_count }}",
+  {% if page.extra.categories %}
+  "articleSection": "{{ page.extra.categories }}",
+  {% endif %}
+  {% endif %}
+  "potentialAction": {
+    "@type": "ReadAction",
+    "target": ["{{config.base_url | safe}}/{{current_path | safe}}"]
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "url": "{{ config.base_url | safe }}",
+    "name": "{{ config.title }}",
+    "description": "{{ config.extra.desc }}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ config.base_url | safe }}?search={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+}
+</script>
+
+{% if page.extra and page.extra.schema_type and (page.extra.schema_type == "BlogPosting" or page.extra.schema_type == "Article") %}
+<!-- Additional BreadcrumbList schema for articles -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ config.base_url | safe }}"
+    },
+    {% if section and section.title %}
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ section.title }}",
+      "item": "{{ section.permalink | safe }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ page.title }}",
+      "item": "{{ page.permalink | safe }}"
+    }
+    {% else %}
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ page.title }}",
+      "item": "{{ page.permalink | safe }}"
+    }
+    {% endif %}
+  ]
+}
+</script>
+{% endif %}
+{% else %}
+<!-- Section structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{config.base_url | safe}}/{{current_path | safe}}"
+  },
+  "headline": "{% if section and section.title %}{{ section.title }}{% else %}{{ config.title }}{% endif %}",
+  {% if (section and section.description) or config.extra.desc %}
+  "description": "{% if section and section.description %}{{ section.description }}{% else %}{{ config.extra.desc }}{% endif %}",
+  {% endif %}
+  "dateModified": "{{ now() | date(format="%Y-%m-%d") }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ config.author }}",
+    {% if config.extra.author_url %}
+    "url": "{{ config.extra.author_url }}",
+    {% endif %}
+    {% if config.extra.author_image %}
+    "image": "{{ get_url(path=config.extra.author_image) | safe }}",
+    {% endif %}
+    "jobTitle": "{% if config.extra.author_job_title %}{{ config.extra.author_job_title }}{% else %}Author{% endif %}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "{{ config.title }}",
+    {% if config.extra.logo %}
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ get_url(path=config.extra.logo) | safe }}"
+    },
+    {% endif %}
+    "url": "{{ config.base_url | safe }}"
+  },
+  "inLanguage": "en-US",
+  "potentialAction": {
+    "@type": "ReadAction",
+    "target": ["{{config.base_url | safe}}/{{current_path | safe}}"]
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "url": "{{ config.base_url | safe }}",
+    "name": "{{ config.title }}",
+    "description": "{{ config.extra.desc }}"
+  }
+}
+</script>
+{% endif %}
+
+{% if config.extra.business_info %}
+<!-- Local Business schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "{% if config.extra.business_type %}{{ config.extra.business_type }}{% else %}Organization{% endif %}",
+  "name": "{{ config.title }}",
+  "url": "{{ config.base_url | safe }}",
+  {% if config.extra.logo %}
+  "logo": "{{ get_url(path=config.extra.logo) | safe }}",
+  "image": "{{ get_url(path=config.extra.logo) | safe }}",
+  {% endif %}
+  {% if config.extra.business_email %}
+  "email": "{{ config.extra.business_email }}",
+  {% endif %}
+  {% if config.extra.business_telephone %}
+  "telephone": "{{ config.extra.business_telephone }}",
+  {% endif %}
+  {% if config.extra.business_address %}
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ config.extra.business_address.street }}",
+    "addressLocality": "{{ config.extra.business_address.city }}",
+    "addressRegion": "{{ config.extra.business_address.region }}",
+    "postalCode": "{{ config.extra.business_address.postal_code }}",
+    "addressCountry": "{{ config.extra.business_address.country }}"
+  },
+  {% endif %}
+  "sameAs": [
+    {% if config.extra.social_profiles %}
+    {% for profile in config.extra.social_profiles %}
+    "{{ profile }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+    {% endif %}
+  ]
+}
+</script>
+{% endif %}

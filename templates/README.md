@@ -18,10 +18,19 @@ This directory contains templates that enhance the SEO capabilities of the site.
 - Adds Twitter Card metadata for better Twitter sharing
 - Uses page-specific metadata when available, falls back to site-wide metadata
 
-### 4. Structured Data/Schema.org Markup (structured_data.html)
-- Adds basic WebPage schema for better search engine understanding
-- Supports custom schema types via frontmatter
-- Includes author and publisher information
+### 4. Additional Meta Tags (additional_meta.html)
+- Canonical URL to prevent duplicate content issues
+- Language declaration
+- Mobile-specific meta tags
+- Preconnect links for performance optimization
+- Web App Manifest link
+
+### 5. Enhanced Structured Data/Schema.org Markup (enhanced_structured_data.html)
+- Comprehensive WebPage/Article schema with additional properties
+- BreadcrumbList schema for articles
+- WebSite schema with SearchAction
+- Organization/LocalBusiness schema with contact information
+- Support for social profiles via sameAs property
 
 ## How to Use
 
@@ -43,7 +52,8 @@ sitemap_priority = "0.8"  # Value between 0.0 and 1.0
 sitemap_changefreq = "monthly"  # Options: always, hourly, daily, weekly, monthly, yearly, never
 
 # Schema.org
-schema_type = "BlogPosting"  # Default is WebPage
+schema_type = "BlogPosting"  # Options: WebPage (default), BlogPosting, Article, Product, etc.
+categories = "Category Name"  # For articleSection in BlogPosting/Article schema
 ```
 
 ### In config.toml
@@ -52,10 +62,39 @@ The following settings have been added to config.toml:
 
 ```toml
 [extra]
-# Default image for Open Graph and Twitter cards if not specified in page frontmatter
+# Basic SEO
+desc = "Site description"
+keywords = "keyword1, keyword2, keyword3"
+
+# Open Graph / Twitter Card
 default_og_image = "path/to/image.jpg"
-# Logo for structured data
+
+# Structured Data
 logo = "path/to/logo.jpg"
+
+# Author Information
+author_url = "https://example.com/about"
+author_image = "path/to/author.jpg"
+author_job_title = "Developer"
+
+# Social Profiles for sameAs in structured data
+social_profiles = [
+  "https://github.com/username",
+  "https://twitter.com/username"
+]
+
+# Business Information (optional)
+business_info = true
+business_type = "Organization"  # or LocalBusiness, etc.
+business_email = "contact@example.com"
+business_telephone = "+1234567890"
+
+[extra.business_address]
+street = "123 Main St"
+city = "Anytown"
+region = "State"
+postal_code = "12345"
+country = "US"
 ```
 
 ## Template Structure
@@ -63,6 +102,7 @@ logo = "path/to/logo.jpg"
 - `page.html` - Extends the theme's page.html template and adds SEO features
 - `section.html` - Extends the theme's section.html template and adds SEO features
 - `head_meta.html` - Contains Open Graph and Twitter Card metadata
-- `structured_data.html` - Contains structured data/schema.org markup
+- `additional_meta.html` - Contains additional meta tags for SEO
+- `enhanced_structured_data.html` - Contains enhanced structured data/schema.org markup
 - `sitemap.xml` - Enhanced sitemap template
 - `robots.txt` - Standard robots.txt template
