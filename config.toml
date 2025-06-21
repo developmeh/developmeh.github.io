@@ -37,8 +37,12 @@ author_job_title = "Developer"
 # Social profiles for sameAs in structured data
 social_profiles = [
   "https://github.com/developmeh",
-  "https://twitter.com/developmeh"
+  "https://twitter.com/developmeh",
+  "https://bsky.app/profile/developmeh.com"
 ]
+# Bluesky configuration
+bluesky_handle = "developmeh.com"
+bluesky_default_image = "favicon.ico"
 # Business information (uncomment and fill if applicable)
 # business_info = true
 # business_type = "Organization" # or other schema.org business types like LocalBusiness, etc.

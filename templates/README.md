@@ -32,6 +32,13 @@ This directory contains templates that enhance the SEO capabilities of the site.
 - Organization/LocalBusiness schema with contact information
 - Support for social profiles via sameAs property
 
+### 6. Bluesky Metadata Support (bluesky_meta.html)
+- Support for sharing content on the Bluesky social network
+- Uses Open Graph metadata as a base for link previews
+- Adds AT Protocol specific metadata when available
+- Provides fallback image specifically for Bluesky if needed
+- Support for Bluesky-specific tags
+
 ## How to Use
 
 ### In Frontmatter
@@ -54,6 +61,9 @@ sitemap_changefreq = "monthly"  # Options: always, hourly, daily, weekly, monthl
 # Schema.org
 schema_type = "BlogPosting"  # Options: WebPage (default), BlogPosting, Article, Product, etc.
 categories = "Category Name"  # For articleSection in BlogPosting/Article schema
+
+# Bluesky
+bluesky_tags = "tag1, tag2, tag3"  # Tags for Bluesky sharing
 ```
 
 ### In config.toml
@@ -80,8 +90,13 @@ author_job_title = "Developer"
 # Social Profiles for sameAs in structured data
 social_profiles = [
   "https://github.com/username",
-  "https://twitter.com/username"
+  "https://twitter.com/username",
+  "https://bsky.app/profile/username.com"
 ]
+
+# Bluesky Configuration
+bluesky_handle = "username.com"  # Your Bluesky handle
+bluesky_default_image = "path/to/image.jpg"  # Default image for Bluesky sharing
 
 # Business Information (optional)
 business_info = true
@@ -103,6 +118,7 @@ country = "US"
 - `section.html` - Extends the theme's section.html template and adds SEO features
 - `head_meta.html` - Contains Open Graph and Twitter Card metadata
 - `additional_meta.html` - Contains additional meta tags for SEO
+- `bluesky_meta.html` - Contains Bluesky-specific metadata
 - `enhanced_structured_data.html` - Contains enhanced structured data/schema.org markup
 - `sitemap.xml` - Enhanced sitemap template
 - `robots.txt` - Standard robots.txt template

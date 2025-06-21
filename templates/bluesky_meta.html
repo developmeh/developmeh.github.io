@@ -1,0 +1,22 @@
+<!-- Bluesky Metadata -->
+<!-- Bluesky primarily uses Open Graph metadata for link previews -->
+<!-- This template includes any additional metadata that might be useful for Bluesky -->
+
+<!-- AT Protocol specific metadata (if/when supported) -->
+{% if config.extra.bluesky_handle %}
+<meta property="atproto:handle" content="{{ config.extra.bluesky_handle }}" />
+{% endif %}
+
+<!-- Ensure essential Open Graph tags are present for Bluesky -->
+<!-- These are already included in head_meta.html, but we ensure they're optimized for Bluesky -->
+{% if config.extra.bluesky_default_image %}
+<!-- If no image is specified in page or default OG image, use Bluesky-specific default -->
+{% if not page.extra.image and not config.extra.default_og_image %}
+<meta property="og:image" content="{{ get_url(path=config.extra.bluesky_default_image) | safe }}" />
+{% endif %}
+{% endif %}
+
+<!-- Additional metadata that might be useful for Bluesky in the future -->
+{% if page.extra.bluesky_tags %}
+<meta property="atproto:tags" content="{{ page.extra.bluesky_tags }}" />
+{% endif %}
