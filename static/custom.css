@@ -1,0 +1,5 @@
+/* Hide logo on homepage */
+.home-page nav > img,
+.home-page nav > a > img {
+    display: none !important;
+}

@@ -1,0 +1,7 @@
+{% extends "index.html" %}
+
+{% block rss %}
+    {{ super() }}
+    {% include "head_meta.html" %}
+    {% include "structured_data.html" %}
+{% endblock rss %}

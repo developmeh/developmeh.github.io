@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Block access to admin or private areas if needed
+# Disallow: /admin/
+# Disallow: /private/
+
+# Allow access to assets
+Allow: /static/
+Allow: /images/
+Allow: /css/
+Allow: /js/
+
+# Point to sitemap
+Sitemap: {{ config.base_url | safe }}/sitemap.xml
