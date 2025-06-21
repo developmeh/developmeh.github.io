@@ -6,6 +6,9 @@ draft = false
 slug = "test-anything-means-testing-bash"
 date = 2025-01-28
 updated = 2025-01-28
+[extra]
+desc = "Exploring the Test Anything Protocol (TAP) and using BATS to effectively test Bash scripts with practical examples and mocking techniques"
+keywords = "TAP, Test Anything Protocol, BATS, Bash testing, shell scripting, test automation, mocking, bash assertions, command line testing, DevOps testing"
 +++
 
 ## Test Anything Protocol

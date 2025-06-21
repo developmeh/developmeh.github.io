@@ -72,4 +72,6 @@ generate_feeds = false
 
 # Your own data.
 [extra]
+desc = "In-depth technical explorations and insights on programming languages, protocols, and development practices"
+keywords = "technical deep dives, programming insights, software development, coding techniques, tech tutorials, developer knowledge, software engineering, programming languages"
 +++

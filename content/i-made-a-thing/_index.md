@@ -72,7 +72,8 @@ generate_feeds = false
 
 # Your own data.
 [extra]
-keywords = "build"
+desc = "A collection of creative coding projects, technical experiments, and innovative solutions built by a passionate developer"
+keywords = "coding projects, software development, technical experiments, open source, creative coding, developer projects, programming innovations"
 +++
 
 Just an Inventory of things I have made

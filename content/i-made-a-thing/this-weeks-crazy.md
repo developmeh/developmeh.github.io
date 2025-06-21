@@ -5,6 +5,9 @@ weight = 1
 draft = false
 date = 2025-06-08
 updated = 2025-06-15
+[extra]
+desc = "Exploring unconventional ideas about self-hosted content, WebRTC, and reimagining internet technologies for a more personal and less centralized web experience"
+keywords = "WebRTC, self-hosting, decentralized internet, NAT traversal, dynamic DNS, personal web hosting, p2p connections, Krappy Internet, home hosting"
 +++
 
 # This Week's Crazy Idea
