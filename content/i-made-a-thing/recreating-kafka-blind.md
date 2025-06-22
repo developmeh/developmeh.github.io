@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2024-09-10
-updated = 2025-01-03
+updated = 2025-06-21
 [extra]
 desc = "A developer's journey recreating Kafka from scratch to understand event streaming, including implementation details, challenges, and lessons learned"
 keywords = "Kafka, event streaming, Go, Golang, distributed systems, message broker, log-structured merge, pebble DB, TCP protocol, consumer groups"
@@ -49,14 +49,14 @@ packet-beta
 
 ## DevLog
 
-### 25 12 2024
+## 25 12 2024
 Having now deployed this to k8s through k0s on a local but remote server I have noticed there are throughput issues. While, on the same machine it is possible for a high velocity producer to continuously send events at raw go runtime speed while the server consumes them. But the server is a little more limited and we are finding that either due to disk access speed introduced by containerd or that systems slower architecture we can easily exceed the available threads and crash the app.
 
 I have a couple of ideas of how to handle this:
 1. Right now I allocate and write to both a log file and pebbled db on each message received. I might be better batching writes and feeding them into pebble through a channel.
 2. The condition seems to be limited to producer events and possibly there is a bug related to how connections are closed. Possibly, they are not closing immediately on client close and are waiting 5 seconds, effectively backlogging.
 
-### 22 12 2024
+## 22 12 2024
 There has been some work setting up k0s and learning the toolchains involved. I also integrated a build pipeline using Nix. Allows this project to now produce a 40mb image that is easy to deploy to my local k0s. Intentionally, this k8s instance is on a remote machine so I have at least a small non-localhost network effect when testing. I refactored how event handlers are declared under a specific interface for handlers.
 
 ```go
@@ -100,7 +100,7 @@ The variance the aforementioned interface provided is related to if the handler 
 
 At this point I decided that a 5s context timeout might not account for long running connection and on each message publish we extend the timeout. Generally, my opinion is that if you are actively sending we should keep you alive and allow timely termination if you pause. One concern is that each time context timeout is extended we deepend the context object. I assume this causes it to increase in size. I need to do some research to assure if a connection was kept alive for days it wouldn't prove a memory leak.
 
-### 05 11 2024
+## 05 11 2024
 Consumer groups
 
 Having implemented a polling mechanism it came to mind that I might have multiple concurrent consumers polling for messages. So I need to maintain a shared offset of the all the consumers registered in a consumer group. So I modified my consumer contract.
@@ -135,7 +135,7 @@ func declareConsumer(consumerName string, store *EventStore) (string, error) {
 
 While a little hacky and providing an arbitrary limit of 1000 consumers per group per server but we generate a sequential consumername for our event store. This will find the first open gap in the list of 0-1000. I have wondered if I can have a range like coroutine that retains the global sequence but I wanted to ensure the list was not exhausted after 1000 but that only 1000 could exist concurrently.
 
-### 11 09 2024
+## 11 09 2024
 Addressing handshake I decided with some trepidation to use the go ctx object to hold state while a handler is looping. The sequence is a little something like this
 
 <span style="" class="mermaid">
@@ -159,7 +159,7 @@ During thisconnection loop we retain a context stack with a timeout of 5 seconds
 
 The same process happens with the consumer registration. I did want the connection to be a reusable as possible though so once producer is registered that connection could be reused to register a different producer. I don't know if there is a usecase for that but without more reasons to want to isolate a context I followed this process.
 
-### 10 09 2024
+## 10 09 2024
 The first real learning here was about how kafka deals with compacted topics. So this project is blind of the formal implementation so I looked for an algorithm that was designed to collapse a stream of events to its final value. I looked at a number of tree like patterns that would allow me to collect all the events out of sync and then be able to refer to only the latest but I stopped with the LSM (Log-Structued Merge) [Wikipedia](https://en.wikipedia.org/wiki/Log-structured_merge-tree) which I discovered was similar to the rocksdb implementation that kafka uses. I selected pebbleDB as it was based on the original LevelDB implementation I had used in a previous Erlang project. So turns out getting a compacted topic is pretty easy and as long as I can guarantee the write of the produced message I can guarantee that I can have a top value.
 
 The two reasons I selected go for this project was to give me a strong toolchain for concurrency and speed. Golang has great libs for handling network connections and building servers but that still left me to understand how best to build something that could handle massive throughput. I will set my benchmarks running on k8s on an x86-64 linux env.

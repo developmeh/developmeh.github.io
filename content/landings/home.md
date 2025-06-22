@@ -1,14 +1,14 @@
 +++
 title = "Home"
 
-description = "That stuff you don't get to do at work"
+description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 
 # A draft section is only loaded if the `--drafts` flag is passed to `zola build`, `zola serve` or `zola check`.
 draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2025-06-15
+updated = 2025-06-21
 +++
 
 ## Developmeh
@@ -26,6 +26,7 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
 
 ### Devlogs
+- [21-06-2025 This Week's Crazy Idea (OpenTelemetry and the question of ditching logs)](/i-made-a-thing/this-weeks-crazy#21-06-2025)
 - [15-06-2025 This Week's Crazy Idea (WebRTC and what not to ask AI to do)](/i-made-a-thing/this-weeks-crazy#15-06-2025)
 - [14-06-2025 This Week's Crazy Idea (WebRTC, NAT Traversals, and American Manufacturing)](/i-made-a-thing/this-weeks-crazy#14-06-2025)
 - [08-06-2025 This Week's Crazy Idea (Decentralized DynamicDns Krappy-DynDns)](/i-made-a-thing/this-weeks-crazy#08-06-2025)

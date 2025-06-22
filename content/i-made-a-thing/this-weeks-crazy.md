@@ -4,10 +4,10 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2025-06-08
-updated = 2025-06-15
+updated = 2025-06-21
 [extra]
-desc = "Exploring unconventional ideas about self-hosted content, WebRTC, and reimagining internet technologies for a more personal and less centralized web experience"
-keywords = "WebRTC, self-hosting, decentralized internet, NAT traversal, dynamic DNS, personal web hosting, p2p connections, Krappy Internet, home hosting"
+desc = "Exploring unconventional ideas about OpenTelemetry, debugging tools, WebRTC, and reimagining internet technologies for a more personal and less centralized web experience"
+keywords = "OpenTelemetry, tracing, debugging, GDB, WebRTC, self-hosting, decentralized internet, NAT traversal, dynamic DNS, personal web hosting, p2p connections, Krappy Internet, home hosting"
 +++
 
 # This Week's Crazy Idea
@@ -22,8 +22,23 @@ Though in some ways I am talking about giving every internet connected person a 
 
 ## DevLog
 
-### 15 06 2025
-#### WebRTC and what not to ask AI to do
+## 21 06 2025
+### OpenTelemetry and the question of ditching logs
+
+This morning I had this thought that maybe one of the reasons tracing and Open Telemetry are kind of after thoughts in about 99% of the enterprise projects I work on may be the developer tools gap. Consider this, as a developer many of us only experience tracing "In Production" and only through a rather expensive platform. Is there really a place where tracing is the new debugging. See also those same 99% of enterprise projects also moved to structured logging a while back and to me, the structured log is a trace done poorly. That's an opinion of course but its informed by the fact that most of the time I need distributed correlation more than I need information about the state of the request. When I think of selective logging, I find that I am often making the choice of what not to log where with tracing the only thing I am missing is the context.
+
+Anyways, the point isn't to try an convince anyone to go one way or the other, but the utilization would be greater if more of the tools were used during development. Here is where my ultimately crazy idea comes in. Jager and ZipKin are great but I don't really want to run an ELK (Elasticsearch/Logstash/Kibana) stack on my dev machine. Its a lot of extra setup and its a bit fiddly. I like to think of developer tools as just the basics of a production system. It also makes me think of how we just GDB and other debuggers. We execute them are runtime and use them to debug a specific process, often around a test. When I observe myself and other developers we tend to drop a lot of breakpoints on and around the flaw to identify the code flow that leads to the failing condition. I think of step into and step through functionality of GDB and I want a way to also get detailed trace info at the same time.
+
+Guess what, its not just a crazy idea, its kind of a dumb one. Here is what I learned from the experience. Firstly, I tried to write my own OTEL collector in golang. Not so bad, but processing and visualizing all the traces as a waterfall was a little challenging. My work in progress on [Github](https://github.com/ninjapanzer/otel-tracer). So after I learned a whole lot about tracing and Open Telemetry I cam back to the drawing board and though how would this look if it was part of GDB already. The fun fact is that its kinda already there, not in this irrelevant auto instrumented way that I am proposing but in the nature of whats called a "tracepoint". Check it out I put together a sample you can try yourself as long as you have Go installed. [Debug Tracing](https://github.com/developmeh/debug-tracing).
+
+So the short answer, yes there should be something easier than Jaeger and ELK locally to explore OTEL, but if you wanna enhance your own development process. Time to get comfortable with some more of the debugger tools that already have valuabl tracing and frame logging built in.
+
+When you are in a tool like Goland or IntelliJ, you can have it add something more akin to logs at tracepoints so you don't have to stop on those or modify your code. Where GDB is powerful is it works on your binaries but language level tools work on the runtime code.
+
+Expect more about a lightweight OTEL tracer for exploring traces locally too.
+
+## 15 06 2025
+### WebRTC and what not to ask AI to do
 
 So to my great surprise I figured that the LLMs would be the right place to funnel my learnings about WebRTC. A technology that has been just outside my vision since I started my career. Why shouldn't I assume that building a trivial implementation with it with LLM support would save me a lot of cognitive overhead, given the long context of such a technology. I was wrong, it seems that as I delve into the underbelly of network topologies away from the chrome of NextJS and CLI tools the bottom falls our of the LLM as well. Its been a consistent thing on my radar that LLMs are only good at the tasks that push products to market but not the work that makes the products work.
 
@@ -43,8 +58,8 @@ So in the end I got some joy from the LLM with WebRTC but I kinda had to treat i
 
 As this is part of the bigger [Krappy-Internet](https://sr.ht/~ninjapanzer/krappy_internet/) project I then used this poc to try and fix its previous failed implementation. But clearly there is a conceptual block for how the LLM deals with network debugging that it couldn't take a working version and use it to fix a broken version. I did learn something in the process but if this was an actual work activity I would have been stressed, instead of just killing time between blog posts on a rainy Sunday.
 
-### 14 06 2025
-#### WebRTC, NAT Traversals, and American Manufacturing
+## 14 06 2025
+### WebRTC, NAT Traversals, and American Manufacturing
 
 So my new view of the architecture required to handle something like dynamic home hosting still requires a method for establishing a p2p connection. While this isn't that big of a deal it does require a consistent connection to be publicly accessible somewhere that is not behind a firewall. Which is rather annoying when trying to make this whole thing work on a phone. It is possible to run a webrtc signaling server phones tend to use "Carrier Grade NAT" CGN means there is no port-forwarding so the phone cannot respond to the signaling request to establish a NAT bypass. I think in this case its still possible but I am uncertain how the signaling server will connect the phone to the browser client when its not expecting to make a connection since it might be asleep.
 
@@ -56,8 +71,8 @@ __Simpler__, is probably very subjective but I can see a mechanism around this c
 
 In some way this has become a diatribe on why we can't build anything in America. Its because we assume that all items need to be produced at a scale to buy at a Lowes. I think consumer expectations for products is they should be complicated but I think we should start looking back to the items we find at thrift stores. The modality should start to wander towards, "I want to make a good X" not so much "I need a new solutions for X". But thats just my opinion in reality.
 
-### 08 06 2025
-#### Krappy Internet Dynamic Dns and Hosting at Home
+## 08 06 2025
+### Krappy Internet Dynamic Dns and Hosting at Home
 
 I heard recently that the future of the internet is AI. 🤣 ok ok ok... yes if I was investing a bunch of other peoples money in a technology startup that sold AI I would say a lot of crazy things too. I am not so sure the internet is a "thing" anymore that can go away. Its the substrate for communication and while the way we consume the internet may change there will always need to be a source of personal expression. For the age I come from that would have been the blog, the forum, and the comments section. I was there when Twitter started but it wasn't my thing. I am from the days of GeoCities and Anglefire, shared hosting where a hand-full of webpages was enough to give you a voice. All the backgrounds were tessellated poorly, the text was an odd color but the vibes were true. Frequenting final-fantasy fan sites and reading conspiracies about aliens.
 
