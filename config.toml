@@ -41,7 +41,7 @@ social_profiles = [
   "https://bsky.app/profile/developmeh.com"
 ]
 # Bluesky configuration
-bluesky_handle = "developmeh.com"
+bluesky_handle = "developmeh"
 bluesky_default_image = "favicon.ico"
 # Business information (uncomment and fill if applicable)
 # business_info = true

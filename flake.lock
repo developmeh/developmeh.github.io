@@ -5,15 +5,14 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-eUUfb0C+6oT+m9wTUTZxzu8i8W32LqvHfEdFndVrqG8=",
         "path": "./deploy",
         "type": "path"
       },
       "original": {
         "path": "./deploy",
         "type": "path"
-      }
+      },
+      "parent": []
     },
     "nixpkgs": {
       "locked": {
