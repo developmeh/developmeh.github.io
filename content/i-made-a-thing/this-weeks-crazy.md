@@ -18,7 +18,7 @@ A price we pay for giving everyone a voice is not everyone has something interes
 
 Thats what this is all about, the creative act. It's not doing things because they are profitable or even relevant, but because they are interesting or fun.
 
-Though in some ways I am talking about giving every internet connected person a voice but one that they control and not one that promotes clout. There is clearly a value to a central platform for discovery and in some past world that was the responsibility of the search engine. Now I think this is more about append histories instead of sitemaps and some very clever automation for a federation that provides an index of the internet.
+Though in some ways I am talking about giving every internet connected person a voice but one that they control and not one that promotes clout. There is clearly a value to a central platform for discovery, and in some past world that was the responsibility of the search engine. Now I think this is more about append histories instead of sitemaps and some very clever automation for a federation that provides an index of the internet.
 
 ## DevLog
 
