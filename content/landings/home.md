@@ -1,14 +1,14 @@
 +++
 title = "Home"
 
-description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
-
 # A draft section is only loaded if the `--drafts` flag is passed to `zola build`, `zola serve` or `zola check`.
 draft = false
 
 path = "/"
 date = 2025-06-06
 updated = 2025-06-25
+[extra]
+description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 +++
 
 ## Developmeh
@@ -44,6 +44,8 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 - [05-11-2024 Krappy Kafka (Shared Consumer Groups)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
 
 ### Articles
+- [Do Devs Really Do DevOps in your Org?](/soft-wares/do-devs-really-do-devops)
+- [The Good Sergeant](/soft-wares/the-good-sergeant)
 - [Creative Impostor Syndrome](/soft-wares/creative-impostor-syndrome)
 - [The Perfect Dev Env Part 1](/devex/the-perfect-dev-env/)
 - [Distributed Game of Life](/projects/gol/)
