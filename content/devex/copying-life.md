@@ -3,8 +3,8 @@ title = "Copying Life"
 template = "page.html"
 weight = 1
 draft = false
-date = 2025-13-07
-updated = 2025-13-07
+date = 2025-07-13
+updated = 2025-07-13
 +++
 
 ## Copying life
