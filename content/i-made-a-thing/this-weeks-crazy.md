@@ -22,6 +22,18 @@ Though in some ways I am talking about giving every internet connected person a 
 
 ## DevLog
 
+## 13 07 2025
+### Everything is a stream
+
+With ths shutdown of Pocket I started thinking about the Krappy Internet project and what kind of noise that would have made. Would anyone read the stream of content? Is streaming the right answer? Probably, not. Tech has grown to a point where it tries to consume our focus and at some level is really just documents over the interent. Some of this is the issue with being fixed to a protocol like HTTP, the rest is sunk cost. I know the concept of a search engine is rather the core interaction process for any library. But that index is on a pull model, I could see a world where that is only a push. I wonder what kind of architecture we would need to build an index for the internet in real time. I think about how this site is built. I complete some written nonsense and then push that to a repository. The result is to render that to a CDN. Thats a majority of the useful content that the internet used to provide. Alternatively, if the content of twitter was much bigger and we treated comments as a natural part of the original article each update would be more meaningful. The validation of spam would of course have to shift to the content provider which is likely going to be a failure but if something like that had a consistent identity then like email we would know what sub content to automatically exclude.
+
+At some level every idea distills back to persistent identity and that then conflicts with the need for anonyminity. There is probably a simple problem here, we don't generally index items without identity. Those naturally become live streams and maybe grouping by event and time like timeseries data like a human telemetry platform is interesting.
+
+<!-- ## 06 07 2025
+### Decentralized advertising
+
+So one of the things I find frustrating where I live is the amount of effort it takes to find interesting activities to attend. So it got me thinking how we could have something like a marketplace without having a central marketplace. Recently I have been playing with LoRa and meshtastic which is an interesting platform that I expect could be extended for things like this. When I think of centralization I think of history but that doesn't mean there is some special ownership. With commodity hardward its would be possible to hand off information about activities and offers. Assuming a critical mass of devices there is no reason to believe that a buisness would be unable to effictively distribute info to its customer base. Clearly, this is about shrinking the userbase while providing a similar level of visibility. When I think back to something similar -->
+
 ## 21 06 2025
 ### OpenTelemetry and the question of ditching logs
 
