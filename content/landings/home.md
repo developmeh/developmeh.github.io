@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2025-07-13
+updated = 2025-07-14
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 +++
@@ -26,6 +26,7 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 > GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
 
 ### Devlogs
+- [14-07-2025 This Week's Crazy Idea (Just build binaries)](/i-made-a-thing/this-weeks-crazy#14-07-2025)
 - [13-07-2025 This Week's Crazy Idea (Everything is a Stream)](/i-made-a-thing/this-weeks-crazy#13-07-2025)
 - [21-06-2025 This Week's Crazy Idea (OpenTelemetry and the question of ditching logs)](/i-made-a-thing/this-weeks-crazy#21-06-2025)
 - [15-06-2025 This Week's Crazy Idea (WebRTC and what not to ask AI to do)](/i-made-a-thing/this-weeks-crazy#15-06-2025)

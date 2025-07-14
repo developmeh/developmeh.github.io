@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2025-06-08
-updated = 2025-06-21
+updated = 2025-07-14
 [extra]
 desc = "Exploring unconventional ideas about OpenTelemetry, debugging tools, WebRTC, and reimagining internet technologies for a more personal and less centralized web experience"
 keywords = "OpenTelemetry, tracing, debugging, GDB, WebRTC, self-hosting, decentralized internet, NAT traversal, dynamic DNS, personal web hosting, p2p connections, Krappy Internet, home hosting"
@@ -21,6 +21,21 @@ Thats what this is all about, the creative act. It's not doing things because th
 Though in some ways I am talking about giving every internet connected person a voice but one that they control and not one that promotes clout. There is clearly a value to a central platform for discovery, and in some past world that was the responsibility of the search engine. Now I think this is more about append histories instead of sitemaps and some very clever automation for a federation that provides an index of the internet.
 
 ## DevLog
+
+## 14 07 2025
+### Just build binaries
+
+The more time I spend with LLM Coding Assistance I become aware of how bad the tool is at any significant planning regarding a complete feature. What it does well though is create human interfaces be that actual UI, or CLI / API, they are pretty good. Better than even I might build on my own. Those interfaces are also build with incredible speed in one go. So this brings me to a consideration in how I should build shared tooling. At one point my goal would be to build a PoC in my language of choice the expose a common set of features and wait for others to copy the project into their language of choice. Now this seems foolish since I will, with or without, the LLM have to spend my effort on the actual problem and can nearly divorce myself from the interface I think a project should be focused on defining an interface specification in a language agnostic way that expresses the usage intent and doesn't bother with the implementation details.
+
+The core behavior then can be written in something that exposes an interface through ABI / FFI essentially, compiles to a shared lib. This really isn't anything new and generally the way everything goes is once its gunna be shared someone starts to build a generalized library and a series of wrappers. What I am conjecturing is maybe we should just start there. Build our tool and immediately expose it as a binary interface. This even opens the door for tool using LLMs to directy open and call symbols from our libraries. This is kind of LLMs in the kernel where they can control the underlying operating system. Instead of working on top of it. I mean nothing sounds worse to me than a non-deterministic operating system. But, one that can generalize a command from the underlying C building blocks then means that someone has to build the building blocks.
+
+I have experienced that LLMs break down when dealing with anything that has a clock attached, specifically in my case related to networking. If a process needs to wait for collaborators to connect it can't seem to figure that part of the sequence out.
+
+The result of this idea is something like a CLI framework. Not one that helps layout the commands and flags but that provides CLI features. Like network tools and storage. The real crazy idea relates to k8s. Which I often have exec access to a pod but often don't have enough tools. Debugging some issues in the past I learned I can write files to a pod through my connection and my next thought is why not build a tool that can inject an agent on demand into my pod and then act as a proxy for diagnostics. Copying binaries, building tools and extracting logs into time series dbs by polling log files. All of this without having to monkey with the container image :) then clean up on exit.
+
+Well thats the nature of the project and I want it to be plug-able. Injecting things even using embedded runtimes and binary quines. It feels like a hackers toolkit but dealing with containers are time consuming and given your exec perms let you write to the fs and exec chmod which is clearly in the scope of the container maintainer its just a feature set.
+
+So keep an eye out for that.
 
 ## 13 07 2025
 ### Everything is a stream
