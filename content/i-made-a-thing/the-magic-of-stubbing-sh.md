@@ -112,7 +112,7 @@ teardown() {
 
 @test 'test intermediate files' {
 	local second_tempfile_expected="WOW"
-  run sh ./.tests/temp.sh
+  run bash ./.tests/temp.sh
 
   # note the captured
   local second_tempfile_actual="$(cat ${TEST_DIRECTORY_RUNNING}/tmp/bats.2.captured)"
@@ -170,7 +170,7 @@ Now lets review the test, first we can do traditional expectation with the asser
 	local second_tempfile_expected="WOW"
 
   # When
-  run sh ./.tests/temp.sh
+  run bash ./.tests/temp.sh
 
   # Then
   local second_tempfile_actual="$(cat ${TEST_DIRECTORY_RUNNING}/tmp/bats.2.captured)"
@@ -188,3 +188,12 @@ Now lets review the test, first we can do traditional expectation with the asser
 
 ## Just Test Things and Be Happy
 This is just one dumb example of how to think about your testing and how to build up useful tooling that caters to your work. Now go write some bash and make sure you test it, trust me orchestrating a call to `git` is 10 times easier than screwing around with some git integration for your language of choice. These tools were meant to work together in the shell and you will be happier just getting things done. Double happy when you can prove it works with a test.
+
+## Errata
+### sh is not bash and vice versa
+While not functionally errors, the title of this work should be focused on bash. Since a lot of the sample code are bash-isms especially _exported functions_.
+
+### the sh alias and CI
+> run sh ./.tests/temp.sh
+
+`sh` is often an alias on modern systems and this can have a huge impact when you scripts run in CI or more namely a non-interactive or non-login session. Where you CI might offer an Ubuntu or Alpine Linux image that provides `bash` as an alias for `sh` it may use a lighter weight implementation like `dash` when running your tests. Because we are using features that are explicitly bash we should have our test suite `run bash ./.tests/temp.sh` as such I have altered the above example accordingly.
