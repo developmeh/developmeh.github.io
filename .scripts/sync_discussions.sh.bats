@@ -27,6 +27,7 @@ setup() {
   export DISCUSSIONS_JSON="$TEST_DATA_DIR/discussions.json"
   export GITHUB_API="https://api.github.com/graphql"
   export DISCUSSION_CATEGORY="Blog Posts"
+  export USE_ORG_DISCUSSIONS="false"
 
   # Stub curl BEFORE sourcing script
   stub_curl_github_api

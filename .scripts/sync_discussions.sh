@@ -8,6 +8,7 @@ DATA_DIR="${DATA_DIR:-data}"
 COMMENTS_DIR="${COMMENTS_DIR:-$DATA_DIR/discussion_comments}"
 DISCUSSIONS_JSON="${DISCUSSIONS_JSON:-$DATA_DIR/discussions.json}"
 CONTENT_DIR="${CONTENT_DIR:-content}"
+USE_ORG_DISCUSSIONS="${USE_ORG_DISCUSSIONS:-true}"
 
 # Ensure output directories exist
 mkdir -p "$COMMENTS_DIR"
@@ -44,118 +45,217 @@ graphql_query() {
     -d "$payload"
 }
 
-# Get repository ID and category ID
+# Get repository or organization ID and category ID
 get_repo_info() {
-  local query='query GetRepositoryInfo($owner: String!, $name: String!) {
-    repository(owner: $owner, name: $name) {
-      id
-      discussionCategories(first: 20) {
-        nodes {
-          id
-          name
-          slug
+  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
+    # Use organization discussions
+    local query='query GetOrganizationInfo($login: String!) {
+      organization(login: $login) {
+        id
+        discussionCategories(first: 20) {
+          nodes {
+            id
+            name
+            slug
+          }
         }
       }
-    }
-  }'
+    }'
 
-  local variables=$(jq -nc \
-    --arg owner "$REPO_OWNER" \
-    --arg name "$REPO_NAME" \
-    '{owner: $owner, name: $name}')
+    local variables=$(jq -nc \
+      --arg login "$REPO_OWNER" \
+      '{login: $login}')
 
-  graphql_query "$query" "$variables"
+    graphql_query "$query" "$variables"
+  else
+    # Use repository discussions
+    local query='query GetRepositoryInfo($owner: String!, $name: String!) {
+      repository(owner: $owner, name: $name) {
+        id
+        discussionCategories(first: 20) {
+          nodes {
+            id
+            name
+            slug
+          }
+        }
+      }
+    }'
+
+    local variables=$(jq -nc \
+      --arg owner "$REPO_OWNER" \
+      --arg name "$REPO_NAME" \
+      '{owner: $owner, name: $name}')
+
+    graphql_query "$query" "$variables"
+  fi
 }
 
 # Create discussion
 create_discussion() {
   local title="$1"
   local body="$2"
-  local repo_id="$3"
+  local owner_id="$3"
   local category_id="$4"
 
-  local query='mutation CreateDiscussion($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
-    createDiscussion(input: {
-      repositoryId: $repositoryId,
-      categoryId: $categoryId,
-      title: $title,
-      body: $body
-    }) {
-      discussion {
-        id
-        number
-        url
-        createdAt
-        updatedAt
+  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
+    # Create organization discussion - no repositoryId needed for org discussions
+    local query='mutation CreateDiscussion($categoryId: ID!, $title: String!, $body: String!) {
+      createDiscussion(input: {
+        categoryId: $categoryId,
+        title: $title,
+        body: $body
+      }) {
+        discussion {
+          id
+          number
+          url
+          createdAt
+          updatedAt
+        }
       }
-    }
-  }'
+    }'
 
-  local variables=$(jq -nc \
-    --arg repositoryId "$repo_id" \
-    --arg categoryId "$category_id" \
-    --arg title "$title" \
-    --arg body "$body" \
-    '{repositoryId: $repositoryId, categoryId: $categoryId, title: $title, body: $body}')
+    local variables=$(jq -nc \
+      --arg categoryId "$category_id" \
+      --arg title "$title" \
+      --arg body "$body" \
+      '{categoryId: $categoryId, title: $title, body: $body}')
 
-  graphql_query "$query" "$variables"
+    graphql_query "$query" "$variables"
+  else
+    # Create repository discussion
+    local query='mutation CreateDiscussion($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
+      createDiscussion(input: {
+        repositoryId: $repositoryId,
+        categoryId: $categoryId,
+        title: $title,
+        body: $body
+      }) {
+        discussion {
+          id
+          number
+          url
+          createdAt
+          updatedAt
+        }
+      }
+    }'
+
+    local variables=$(jq -nc \
+      --arg repositoryId "$owner_id" \
+      --arg categoryId "$category_id" \
+      --arg title "$title" \
+      --arg body "$body" \
+      '{repositoryId: $repositoryId, categoryId: $categoryId, title: $title, body: $body}')
+
+    graphql_query "$query" "$variables"
+  fi
 }
 
 # Fetch discussion comments
 fetch_discussion() {
   local number="$1"
 
-  local query='query GetDiscussion($owner: String!, $name: String!, $number: Int!) {
-    repository(owner: $owner, name: $name) {
-      discussion(number: $number) {
-        id
-        url
-        updatedAt
-        comments(first: 100) {
-          totalCount
-          nodes {
-            id
-            author {
-              login
-              url
-              avatarUrl
-            }
-            bodyHTML
-            createdAt
-            updatedAt
-            replies(first: 100) {
-              nodes {
-                id
-                author {
-                  login
-                  url
-                  avatarUrl
+  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
+    # Fetch organization discussion
+    local query='query GetDiscussion($login: String!, $number: Int!) {
+      organization(login: $login) {
+        discussion(number: $number) {
+          id
+          url
+          updatedAt
+          comments(first: 100) {
+            totalCount
+            nodes {
+              id
+              author {
+                login
+                url
+                avatarUrl
+              }
+              bodyHTML
+              createdAt
+              updatedAt
+              replies(first: 100) {
+                nodes {
+                  id
+                  author {
+                    login
+                    url
+                    avatarUrl
+                  }
+                  bodyHTML
+                  createdAt
+                  updatedAt
                 }
-                bodyHTML
-                createdAt
-                updatedAt
               }
             }
           }
         }
       }
-    }
-  }'
+    }'
 
-  local variables=$(jq -nc \
-    --arg owner "$REPO_OWNER" \
-    --arg name "$REPO_NAME" \
-    --argjson number "$number" \
-    '{owner: $owner, name: $name, number: $number}')
+    local variables=$(jq -nc \
+      --arg login "$REPO_OWNER" \
+      --argjson number "$number" \
+      '{login: $login, number: $number}')
 
-  graphql_query "$query" "$variables"
+    graphql_query "$query" "$variables"
+  else
+    # Fetch repository discussion
+    local query='query GetDiscussion($owner: String!, $name: String!, $number: Int!) {
+      repository(owner: $owner, name: $name) {
+        discussion(number: $number) {
+          id
+          url
+          updatedAt
+          comments(first: 100) {
+            totalCount
+            nodes {
+              id
+              author {
+                login
+                url
+                avatarUrl
+              }
+              bodyHTML
+              createdAt
+              updatedAt
+              replies(first: 100) {
+                nodes {
+                  id
+                  author {
+                    login
+                    url
+                    avatarUrl
+                  }
+                  bodyHTML
+                  createdAt
+                  updatedAt
+                }
+              }
+            }
+          }
+        }
+      }
+    }'
+
+    local variables=$(jq -nc \
+      --arg owner "$REPO_OWNER" \
+      --arg name "$REPO_NAME" \
+      --argjson number "$number" \
+      '{owner: $owner, name: $name, number: $number}')
+
+    graphql_query "$query" "$variables"
+  fi
 }
 
 # Search for existing discussion by article URL in body
 search_discussion_by_url() {
   local article_url="$1"
 
-  local query='query SearchDiscussions($owner: String!, $name: String!, $query: String!) {
+  local query='query SearchDiscussions($query: String!) {
     search(query: $query, type: DISCUSSION, first: 10) {
       nodes {
         ... on Discussion {
@@ -172,13 +272,16 @@ search_discussion_by_url() {
   }'
 
   # Build search query to find discussions containing the article URL
-  local search_query="repo:$REPO_OWNER/$REPO_NAME $article_url"
+  local search_query
+  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
+    search_query="org:$REPO_OWNER $article_url"
+  else
+    search_query="repo:$REPO_OWNER/$REPO_NAME $article_url"
+  fi
 
   local variables=$(jq -nc \
-    --arg owner "$REPO_OWNER" \
-    --arg name "$REPO_NAME" \
     --arg query "$search_query" \
-    '{owner: $owner, name: $name, query: $query}')
+    '{query: $query}')
 
   graphql_query "$query" "$variables"
 }
@@ -187,7 +290,7 @@ search_discussion_by_url() {
 search_discussion_by_title() {
   local title="$1"
 
-  local query='query SearchDiscussions($owner: String!, $name: String!, $query: String!) {
+  local query='query SearchDiscussions($query: String!) {
     search(query: $query, type: DISCUSSION, first: 10) {
       nodes {
         ... on Discussion {
@@ -203,14 +306,17 @@ search_discussion_by_title() {
     }
   }'
 
-  # Build search query: "repo:owner/name in:title {title}"
-  local search_query="repo:$REPO_OWNER/$REPO_NAME in:title \"$title\""
+  # Build search query: "org:owner in:title {title}" or "repo:owner/name in:title {title}"
+  local search_query
+  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
+    search_query="org:$REPO_OWNER in:title \"$title\""
+  else
+    search_query="repo:$REPO_OWNER/$REPO_NAME in:title \"$title\""
+  fi
 
   local variables=$(jq -nc \
-    --arg owner "$REPO_OWNER" \
-    --arg name "$REPO_NAME" \
     --arg query "$search_query" \
-    '{owner: $owner, name: $name, query: $query}')
+    '{query: $query}')
 
   graphql_query "$query" "$variables"
 }
@@ -399,21 +505,41 @@ process_markdown_file() {
 
   # Extract and save comment data
   local comment_file="$COMMENTS_DIR/${existing_number}.json"
-  echo "$discussion_json" | jq '{
-    discussion: {
-      id: .data.repository.discussion.id,
-      number: '"$existing_number"',
-      url: .data.repository.discussion.url,
-      updated_at: .data.repository.discussion.updatedAt
-    },
-    comments: .data.repository.discussion.comments.nodes
-  }' > "$comment_file"
 
-  # Update discussions map with current data
-  local comment_count=$(echo "$discussion_json" | jq '.data.repository.discussion.comments.totalCount')
-  local discussion_url=$(echo "$discussion_json" | jq -r '.data.repository.discussion.url')
-  local discussion_id=$(echo "$discussion_json" | jq -r '.data.repository.discussion.id')
-  local updated_at=$(echo "$discussion_json" | jq -r '.data.repository.discussion.updatedAt')
+  # Build the correct jq command based on discussion type
+  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
+    echo "$discussion_json" | jq '{
+      discussion: {
+        id: .data.organization.discussion.id,
+        number: '"$existing_number"',
+        url: .data.organization.discussion.url,
+        updated_at: .data.organization.discussion.updatedAt
+      },
+      comments: .data.organization.discussion.comments.nodes
+    }' > "$comment_file"
+
+    # Update discussions map with current data
+    local comment_count=$(echo "$discussion_json" | jq '.data.organization.discussion.comments.totalCount')
+    local discussion_url=$(echo "$discussion_json" | jq -r '.data.organization.discussion.url')
+    local discussion_id=$(echo "$discussion_json" | jq -r '.data.organization.discussion.id')
+    local updated_at=$(echo "$discussion_json" | jq -r '.data.organization.discussion.updatedAt')
+  else
+    echo "$discussion_json" | jq '{
+      discussion: {
+        id: .data.repository.discussion.id,
+        number: '"$existing_number"',
+        url: .data.repository.discussion.url,
+        updated_at: .data.repository.discussion.updatedAt
+      },
+      comments: .data.repository.discussion.comments.nodes
+    }' > "$comment_file"
+
+    # Update discussions map with current data
+    local comment_count=$(echo "$discussion_json" | jq '.data.repository.discussion.comments.totalCount')
+    local discussion_url=$(echo "$discussion_json" | jq -r '.data.repository.discussion.url')
+    local discussion_id=$(echo "$discussion_json" | jq -r '.data.repository.discussion.id')
+    local updated_at=$(echo "$discussion_json" | jq -r '.data.repository.discussion.updatedAt')
+  fi
 
   if [[ -n "${discussions_map+x}" ]]; then
     discussions_map[$page_path]=$(jq -n \
@@ -451,8 +577,13 @@ main() {
     exit 1
   fi
 
-  # Get repo info
-  log_info "Fetching repository information..."
+  # Get repo or org info
+  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
+    log_info "Fetching organization information..."
+  else
+    log_info "Fetching repository information..."
+  fi
+
   REPO_INFO=$(get_repo_info)
 
   if echo "$REPO_INFO" | jq -e '.errors' > /dev/null; then
@@ -460,18 +591,33 @@ main() {
     exit 1
   fi
 
-  REPO_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.id')
-  CATEGORY_ID=$(echo "$REPO_INFO" | jq -r --arg cat "$DISCUSSION_CATEGORY" \
-    '.data.repository.discussionCategories.nodes[] | select(.name == $cat) | .id')
+  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
+    REPO_ID=$(echo "$REPO_INFO" | jq -r '.data.organization.id')
+    CATEGORY_ID=$(echo "$REPO_INFO" | jq -r --arg cat "$DISCUSSION_CATEGORY" \
+      '.data.organization.discussionCategories.nodes[] | select(.name == $cat) | .id')
 
-  if [[ -z "$CATEGORY_ID" ]]; then
-    log_error "Category '$DISCUSSION_CATEGORY' not found"
-    echo "$REPO_INFO" | jq -r '.data.repository.discussionCategories.nodes[] | "  - \(.name)"'
-    exit 1
+    if [[ -z "$CATEGORY_ID" ]]; then
+      log_error "Category '$DISCUSSION_CATEGORY' not found"
+      echo "$REPO_INFO" | jq -r '.data.organization.discussionCategories.nodes[] | "  - \(.name)"'
+      exit 1
+    fi
+
+    log_info "Organization ID: $REPO_ID"
+    log_info "Category ID: $CATEGORY_ID"
+  else
+    REPO_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.id')
+    CATEGORY_ID=$(echo "$REPO_INFO" | jq -r --arg cat "$DISCUSSION_CATEGORY" \
+      '.data.repository.discussionCategories.nodes[] | select(.name == $cat) | .id')
+
+    if [[ -z "$CATEGORY_ID" ]]; then
+      log_error "Category '$DISCUSSION_CATEGORY' not found"
+      echo "$REPO_INFO" | jq -r '.data.repository.discussionCategories.nodes[] | "  - \(.name)"'
+      exit 1
+    fi
+
+    log_info "Repository ID: $REPO_ID"
+    log_info "Category ID: $CATEGORY_ID"
   fi
-
-  log_info "Repository ID: $REPO_ID"
-  log_info "Category ID: $CATEGORY_ID"
 
   # Initialize discussions map
   declare -A discussions_map
