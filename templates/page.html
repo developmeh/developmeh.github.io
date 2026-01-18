@@ -5,17 +5,15 @@
 {% block content %}
     {{ page.content | safe }}
 
-    {# Include discussion footer if enabled #}
-    {% if page.extra.enable_discussions %}
-        {% set page_path = page.path | trim_end_matches(pat="/") %}
+    {# Include discussion footer if enabled and discussion exists #}
+    {% if page.extra.enable_discussions and page.discussion_number %}
+        {% set discussion_number = page.discussion_number %}
+        {% set comment_file = "data/discussion_comments/" ~ discussion_number ~ ".json" %}
         {% set discussions = load_data(path="data/discussions.json") %}
+        {% set page_path = page.path | trim_end_matches(pat="/") %}
         {% set discussion_meta = discussions[page_path] %}
-
-        {% if discussion_meta %}
-            {% set comment_file = "data/discussion_comments/" ~ discussion_meta.number ~ ".json" %}
-            {% set discussion_data = load_data(path=comment_file) %}
-            {% include "discussion_footer.html" %}
-        {% endif %}
+        {% set discussion_data = load_data(path=comment_file) %}
+        {% include "discussion_footer.html" %}
     {% endif %}
 {% endblock content %}
 

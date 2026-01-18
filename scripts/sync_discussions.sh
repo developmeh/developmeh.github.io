@@ -141,7 +141,7 @@ fetch_discussion() {
   graphql_query "$query" "$variables"
 }
 
-# Extract frontmatter value using dasel
+# Extract frontmatter value using awk and dasel
 get_frontmatter_value() {
   local file="$1"
   local key="$2"
@@ -150,6 +150,49 @@ get_frontmatter_value() {
   awk '/^\+\+\+$/,/^\+\+\+$/' "$file" | \
     grep -v '^\+\+\+$' | \
     dasel -r toml -w plain "$key" 2>/dev/null || echo ""
+}
+
+# Update frontmatter with discussion number
+update_frontmatter_discussion() {
+  local file="$1"
+  local discussion_number="$2"
+  local discussion_url="$3"
+
+  log_info "  Updating frontmatter with discussion #$discussion_number"
+
+  # Create a temporary file
+  local temp_file="${file}.tmp"
+
+  # Extract frontmatter and content
+  awk '
+    BEGIN { in_fm = 0; fm_count = 0; }
+    /^\+\+\+$/ {
+      in_fm = !in_fm;
+      fm_count++;
+      if (fm_count == 2) {
+        # Before closing +++, add discussion fields if not present
+        if (!has_discussion_number) {
+          print "discussion_number = '"$discussion_number"'"
+          print "discussion_url = \"'"$discussion_url"'\""
+        }
+      }
+      print;
+      next;
+    }
+    in_fm && /^discussion_number = / {
+      has_discussion_number = 1;
+      print "discussion_number = '"$discussion_number"'";
+      next;
+    }
+    in_fm && /^discussion_url = / {
+      print "discussion_url = \"'"$discussion_url"'\"";
+      next;
+    }
+    { print }
+  ' "$file" > "$temp_file"
+
+  # Replace original file
+  mv "$temp_file" "$file"
 }
 
 # Process markdown file
@@ -169,6 +212,7 @@ process_markdown_file() {
   # Extract metadata
   local title=$(get_frontmatter_value "$file" ".title")
   local draft=$(get_frontmatter_value "$file" ".draft")
+  local existing_number=$(get_frontmatter_value "$file" ".discussion_number")
 
   # Skip drafts
   if [[ "$draft" == "true" ]]; then
@@ -179,12 +223,6 @@ process_markdown_file() {
   # Get page path (relative to content/)
   local page_path="${file#$CONTENT_DIR/}"
   page_path="${page_path%.md}"
-
-  # Check if discussion already exists in map
-  local existing_number=""
-  if [[ -n "${discussions_map[$page_path]:-}" ]]; then
-    existing_number=$(echo "${discussions_map[$page_path]}" | jq -r '.number')
-  fi
 
   # Create discussion if needed
   if [[ -z "$existing_number" ]]; then
@@ -202,6 +240,10 @@ process_markdown_file() {
 
     local discussion_data=$(echo "$result" | jq '.data.createDiscussion.discussion')
     existing_number=$(echo "$discussion_data" | jq -r '.number')
+    local discussion_url=$(echo "$discussion_data" | jq -r '.url')
+
+    # Update frontmatter with discussion number
+    update_frontmatter_discussion "$file" "$existing_number" "$discussion_url"
 
     # Add to map
     discussions_map[$page_path]=$(echo "$discussion_data" | jq '{
@@ -241,10 +283,27 @@ process_markdown_file() {
     comments: .data.repository.discussion.comments.nodes
   }' > "$comment_file"
 
-  # Update discussions map with comment count
+  # Update discussions map with current data
   local comment_count=$(echo "$discussion_json" | jq '.data.repository.discussion.comments.totalCount')
-  discussions_map[$page_path]=$(echo "${discussions_map[$page_path]}" | \
-    jq --argjson count "$comment_count" '.comment_count = $count')
+  local discussion_url=$(echo "$discussion_json" | jq -r '.data.repository.discussion.url')
+  local discussion_id=$(echo "$discussion_json" | jq -r '.data.repository.discussion.id')
+  local updated_at=$(echo "$discussion_json" | jq -r '.data.repository.discussion.updatedAt')
+
+  discussions_map[$page_path]=$(jq -n \
+    --arg id "$discussion_id" \
+    --argjson number "$existing_number" \
+    --arg url "$discussion_url" \
+    --arg category "$DISCUSSION_CATEGORY" \
+    --arg updated_at "$updated_at" \
+    --argjson comment_count "$comment_count" \
+    '{
+      id: $id,
+      number: $number,
+      url: $url,
+      category: $category,
+      updated_at: $updated_at,
+      comment_count: $comment_count
+    }')
 
   log_info "  Saved $comment_count comments to $comment_file"
 }
@@ -286,13 +345,8 @@ main() {
   log_info "Repository ID: $REPO_ID"
   log_info "Category ID: $CATEGORY_ID"
 
-  # Load existing discussions map
+  # Initialize discussions map
   declare -A discussions_map
-  if [[ -f "$DISCUSSIONS_JSON" ]]; then
-    while IFS="=" read -r key value; do
-      discussions_map[$key]="$value"
-    done < <(jq -r 'to_entries | .[] | "\(.key)=\(.value | @json)"' "$DISCUSSIONS_JSON")
-  fi
 
   # Process all markdown files
   log_info "Scanning markdown files..."

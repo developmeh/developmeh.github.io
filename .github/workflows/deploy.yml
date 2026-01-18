@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
   discussions: write
@@ -36,6 +36,17 @@ jobs:
             chmod +x scripts/sync_discussions.sh
             ./scripts/sync_discussions.sh
           '
+      - name: Commit discussion metadata updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add content/**/*.md
+          if git diff --staged --quiet; then
+            echo "No frontmatter changes to commit"
+          else
+            git commit -m "chore: update discussion metadata [skip ci]"
+            git push
+          fi
       - name: Build release
         run: nix develop ./deploy --command zola build --output-dir ./_site
       - run: echo "🍏 This job's status is ${{ job.status }}."
