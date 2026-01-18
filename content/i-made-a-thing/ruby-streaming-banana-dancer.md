@@ -7,6 +7,7 @@ updated = 2025-01-31
 [extra]
 desc = "In celebration of Curl's 25th, a copy of the dancing parot live curl, a dancing bananna written in ruby"
 keywords = "ruby, curl, streaming, command-line"
+enable_discussions = true
 +++
 
 **Hey there, fellow coder! Ever seen a parrot dance in your terminal?** 🦜💃

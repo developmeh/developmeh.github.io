@@ -1,0 +1,2 @@
+# This directory contains generated discussion data
+# Files are created during CI build and consumed by Zola templates

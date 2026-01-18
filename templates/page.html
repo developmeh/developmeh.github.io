@@ -4,6 +4,17 @@
 
 {% block content %}
     {{ page.content | safe }}
+
+    {# Include discussion footer if enabled and discussion exists #}
+    {% if page.extra.enable_discussions and page.discussion_number %}
+        {% set discussion_number = page.discussion_number %}
+        {% set comment_file = "data/discussion_comments/" ~ discussion_number ~ ".json" %}
+        {% set discussions = load_data(path="data/discussions.json") %}
+        {% set page_path = page.path | trim_end_matches(pat="/") %}
+        {% set discussion_meta = discussions[page_path] %}
+        {% set discussion_data = load_data(path=comment_file) %}
+        {% include "discussion_footer.html" %}
+    {% endif %}
 {% endblock content %}
 
 {% block rss %}
