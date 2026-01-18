@@ -8,6 +8,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  discussions: write
 
 jobs:
   Build-with-Nix:
@@ -25,6 +26,16 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Sync GitHub Discussions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          nix develop --command bash -c '
+            chmod +x scripts/sync_discussions.sh
+            ./scripts/sync_discussions.sh
+          '
       - name: Build release
         run: nix develop ./deploy --command zola build --output-dir ./_site
       - run: echo "🍏 This job's status is ${{ job.status }}."

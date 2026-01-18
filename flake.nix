@@ -17,7 +17,12 @@ inputs = {
     {
       devShells = forEachSupportedSystem ({ pkgs, deployShell }: {
         default = pkgs.mkShell {
-          packages = with pkgs; [ marksman typos-lsp ];
+          packages = with pkgs; [
+            marksman
+            typos-lsp
+            dasel  # TOML/JSON/YAML manipulation for discussion sync
+            jq     # JSON parsing for GitHub GraphQL API
+          ];
 
           inputsFrom = [
             deployShell

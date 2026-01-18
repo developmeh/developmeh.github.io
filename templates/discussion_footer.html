@@ -1,0 +1,47 @@
+<div class="discussion-footer">
+  <h3>Discussion</h3>
+  <p class="discussion-cta">
+    Join the conversation on
+    <a href="{{ discussion_meta.url }}" target="_blank" rel="noopener">GitHub Discussions</a>
+    ({{ discussion_meta.comment_count }} {% if discussion_meta.comment_count == 1 %}comment{% else %}comments{% endif %})
+  </p>
+
+  {% if discussion_data.comments %}
+    <div class="discussion-comments">
+      {% for comment in discussion_data.comments %}
+        {{ macros::render_comment(comment=comment, depth=0) }}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="no-comments">No comments yet. Be the first to share your thoughts!</p>
+  {% endif %}
+</div>
+
+{% macro render_comment(comment, depth) %}
+  <div class="discussion-comment" style="margin-left: {{ depth * 20 }}px;">
+    <div class="comment-meta">
+      <a href="{{ comment.author.url }}" class="comment-author">
+        <img src="{{ comment.author.avatarUrl }}"
+             alt="{{ comment.author.login }}"
+             class="avatar"
+             width="24"
+             height="24"
+             loading="lazy">
+        {{ comment.author.login }}
+      </a>
+      <span class="comment-separator">·</span>
+      <time datetime="{{ comment.createdAt }}">
+        {{ comment.createdAt | date(format="%B %d, %Y") }}
+      </time>
+    </div>
+    <div class="comment-body">
+      {{ comment.bodyHTML | safe }}
+    </div>
+
+    {% if comment.replies %}
+      {% for reply in comment.replies %}
+        {{ macros::render_comment(comment=reply, depth=depth + 1) }}
+      {% endfor %}
+    {% endif %}
+  </div>
+{% endmacro %}
