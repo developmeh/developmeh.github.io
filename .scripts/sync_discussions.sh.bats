@@ -96,14 +96,108 @@ EOF
   }
 }
 EOF
+    elif [[ "$payload" == *"SearchDiscussions"* ]]; then
+      # Extract the search query from the variables.query field
+      local search_query=$(echo "$payload" | jq -r '.variables.query')
+
+      # Check if searching by URL (contains "developmeh.com")
+      if [[ "$search_query" == *"developmeh.com/test-article"* ]]; then
+        # Return existing discussion for test-article URL
+        cat <<'EOF'
+{
+  "data": {
+    "search": {
+      "nodes": [
+        {
+          "id": "D_kwDOKgpTas4AZnHQ",
+          "number": 42,
+          "url": "https://github.com/testowner/testrepo/discussions/42",
+          "title": "Test Article",
+          "body": "Discuss this article: https://developmeh.com/test-article",
+          "createdAt": "2025-01-17T10:00:00Z",
+          "updatedAt": "2025-01-18T10:00:00Z"
+        }
+      ]
+    }
+  }
+}
+EOF
+      elif [[ "$search_query" == *"developmeh.com/multiple-match-article"* ]]; then
+        # Return multiple discussions for testing warning
+        cat <<'EOF'
+{
+  "data": {
+    "search": {
+      "nodes": [
+        {
+          "id": "D_kwDOKgpTas4AZnHQ",
+          "number": 50,
+          "url": "https://github.com/testowner/testrepo/discussions/50",
+          "title": "Multiple Match Article",
+          "body": "Discuss this article: https://developmeh.com/multiple-match-article",
+          "createdAt": "2025-01-17T10:00:00Z",
+          "updatedAt": "2025-01-18T10:00:00Z"
+        },
+        {
+          "id": "D_kwDOKgpTas4AZnHR",
+          "number": 51,
+          "url": "https://github.com/testowner/testrepo/discussions/51",
+          "title": "Multiple Match Article - Duplicate",
+          "body": "Discuss this article: https://developmeh.com/multiple-match-article",
+          "createdAt": "2025-01-17T11:00:00Z",
+          "updatedAt": "2025-01-18T11:00:00Z"
+        }
+      ]
+    }
+  }
+}
+EOF
+      elif [[ "$search_query" == 'repo:testowner/testrepo in:title "Test Article"' ]]; then
+        # Return existing discussion for "Test Article" title search (fallback)
+        cat <<'EOF'
+{
+  "data": {
+    "search": {
+      "nodes": [
+        {
+          "id": "D_kwDOKgpTas4AZnHQ",
+          "number": 42,
+          "url": "https://github.com/testowner/testrepo/discussions/42",
+          "title": "Test Article",
+          "body": "Discuss this article: https://developmeh.com/test-article",
+          "createdAt": "2025-01-17T10:00:00Z",
+          "updatedAt": "2025-01-18T10:00:00Z"
+        }
+      ]
+    }
+  }
+}
+EOF
+      else
+        # No results for other searches
+        cat <<'EOF'
+{
+  "data": {
+    "search": {
+      "nodes": []
+    }
+  }
+}
+EOF
+      fi
     elif [[ "$payload" == *"GetDiscussion"* ]]; then
-      cat <<'EOF'
+      # Extract discussion number from the payload
+      local discussion_num=$(echo "$payload" | jq -r '.variables.number')
+
+      # Return different data based on discussion number
+      if [[ "$discussion_num" == "42" ]] || [[ "$discussion_num" == "50" ]]; then
+        cat <<EOF
 {
   "data": {
     "repository": {
       "discussion": {
         "id": "D_kwDOKgpTas4AZnHQ",
-        "url": "https://github.com/testowner/testrepo/discussions/1",
+        "url": "https://github.com/testowner/testrepo/discussions/$discussion_num",
         "updatedAt": "2025-01-18T12:00:00Z",
         "comments": {
           "totalCount": 2,
@@ -155,6 +249,67 @@ EOF
   }
 }
 EOF
+      else
+        # Default response for other discussion numbers
+        cat <<EOF
+{
+  "data": {
+    "repository": {
+      "discussion": {
+        "id": "D_kwDOKgpTas4AZnHQ",
+        "url": "https://github.com/testowner/testrepo/discussions/$discussion_num",
+        "updatedAt": "2025-01-18T12:00:00Z",
+        "comments": {
+          "totalCount": 2,
+          "nodes": [
+            {
+              "id": "DC_kwDOKgpTas4AAABa",
+              "author": {
+                "login": "testuser1",
+                "url": "https://github.com/testuser1",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/123?v=4"
+              },
+              "bodyHTML": "<p>Great article!</p>",
+              "createdAt": "2025-01-18T11:00:00Z",
+              "updatedAt": "2025-01-18T11:00:00Z",
+              "replies": {
+                "nodes": [
+                  {
+                    "id": "DC_kwDOKgpTas4AAABb",
+                    "author": {
+                      "login": "testuser2",
+                      "url": "https://github.com/testuser2",
+                      "avatarUrl": "https://avatars.githubusercontent.com/u/456?v=4"
+                    },
+                    "bodyHTML": "<p>Thanks for reading!</p>",
+                    "createdAt": "2025-01-18T11:30:00Z",
+                    "updatedAt": "2025-01-18T11:30:00Z"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "DC_kwDOKgpTas4AAABc",
+              "author": {
+                "login": "testuser3",
+                "url": "https://github.com/testuser3",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/789?v=4"
+              },
+              "bodyHTML": "<p>Very informative!</p>",
+              "createdAt": "2025-01-18T12:00:00Z",
+              "updatedAt": "2025-01-18T12:00:00Z",
+              "replies": {
+                "nodes": []
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+EOF
+      fi
     else
       echo '{"data": null}'
     fi
@@ -168,13 +323,14 @@ create_test_page() {
   local enable_discussions="${2:-true}"
   local has_discussion_number="${3:-false}"
   local discussion_number="${4:-}"
+  local title="${5:-Test Article}"
 
   local file="$TEST_CONTENT_DIR/$filename"
 
   if [[ "$has_discussion_number" == "true" ]]; then
     cat > "$file" <<EOF
 +++
-title = "Test Article"
+title = "$title"
 date = 2025-01-18
 draft = false
 discussion_number = $discussion_number
@@ -189,7 +345,7 @@ EOF
   else
     cat > "$file" <<EOF
 +++
-title = "Test Article"
+title = "$title"
 date = 2025-01-18
 draft = false
 [extra]
@@ -224,7 +380,8 @@ EOF
 
 # Test: Script creates discussion for new page
 @test "process_markdown_file creates discussion for page without discussion_number" {
-  local test_file=$(create_test_page "new-article.md" "true" "false")
+  # Use a different title to avoid matching existing "Test Article" in search
+  local test_file=$(create_test_page "new-article.md" "true" "false" "" "Brand New Article")
 
   export REPO_ID="R_kgDOKgpTas"
   export CATEGORY_ID="DIC_kwDOKgpTas4CXYZ"
@@ -238,6 +395,7 @@ EOF
   echo "Output: $output" >&3
 
   [ "$status" -eq 0 ]
+  [[ "$output" == *"Searching for existing discussion"* ]]
   [[ "$output" == *"Creating discussion"* ]]
   [[ "$output" == *"Created: #1"* ]]
 
@@ -255,7 +413,7 @@ EOF
 
 # Test: Script fetches existing discussion
 @test "process_markdown_file fetches existing discussion when discussion_number exists" {
-  local test_file=$(create_test_page "existing-article.md" "true" "true" "1")
+  local test_file=$(create_test_page "existing-article.md" "true" "true" "1" "Existing Article")
 
   declare -A discussions_map
 
@@ -280,7 +438,7 @@ EOF
 
 # Test: Script skips pages without enable_discussions
 @test "process_markdown_file skips page with enable_discussions=false" {
-  local test_file=$(create_test_page "disabled-article.md" "false" "false")
+  local test_file=$(create_test_page "disabled-article.md" "false" "false" "" "Disabled Article")
 
   declare -A discussions_map
 
@@ -317,7 +475,8 @@ EOF
 
 # Test: Full integration - page without discussion gets one created
 @test "integration: full workflow creates discussion and generates data files" {
-  local test_file=$(create_test_page "integration-test.md" "true" "false")
+  # Use a different title to avoid matching existing "Test Article" in search
+  local test_file=$(create_test_page "integration-test.md" "true" "false" "" "Integration Test Article")
 
   # Simulate get_repo_info call
   local repo_info=$(get_repo_info)
@@ -328,6 +487,10 @@ EOF
 
   # Process the file
   run process_markdown_file "$test_file" discussions_map
+
+  # Debug output
+  echo "Status: $status" >&3
+  echo "Output: $output" >&3
 
   [ "$status" -eq 0 ]
 
@@ -359,4 +522,109 @@ EOF
   # Verify comment count
   local total=$(echo "$output" | jq '.data.repository.discussion.comments.totalCount')
   [ "$total" = "2" ]
+}
+
+# Test: search_discussion_by_title finds existing discussion
+@test "search_discussion_by_title finds existing discussion by title" {
+  run search_discussion_by_title "Test Article"
+
+  [ "$status" -eq 0 ]
+
+  # Verify we got a discussion back
+  local discussion_number=$(echo "$output" | jq -r '.data.search.nodes[0].number')
+  [ "$discussion_number" = "42" ]
+
+  local discussion_title=$(echo "$output" | jq -r '.data.search.nodes[0].title')
+  [ "$discussion_title" = "Test Article" ]
+}
+
+# Test: search_discussion_by_title returns empty when no discussion exists
+@test "search_discussion_by_title returns empty array when no discussion found" {
+  run search_discussion_by_title "Nonexistent Article"
+
+  [ "$status" -eq 0 ]
+
+  # Verify empty results
+  local node_count=$(echo "$output" | jq '.data.search.nodes | length')
+  [ "$node_count" = "0" ]
+}
+
+# Test: process_markdown_file finds and links existing discussion when frontmatter missing
+@test "process_markdown_file links existing discussion when discussion_number missing from frontmatter" {
+  # Create a page without discussion_number in frontmatter
+  local test_file=$(create_test_page "test-article.md" "true" "false")
+
+  export REPO_ID="R_kgDOKgpTas"
+  export CATEGORY_ID="DIC_kwDOKgpTas4CXYZ"
+
+  declare -A discussions_map
+
+  run process_markdown_file "$test_file" discussions_map
+
+  # Debug output
+  echo "Status: $status" >&3
+  echo "Output: $output" >&3
+
+  [ "$status" -eq 0 ]
+
+  # Should have found existing discussion #42 instead of creating a new one
+  [[ "$output" == *"Searching for existing discussion by URL"* ]]
+  [[ "$output" == *"Found existing discussion #42"* ]]
+  [[ "$output" != *"Creating discussion"* ]]
+
+  # Verify frontmatter was updated with found discussion
+  grep -q 'discussion_number = 42' "$test_file"
+  grep -q 'discussion_url = "https://github.com/testowner/testrepo/discussions/42"' "$test_file"
+}
+
+# Test: search_discussion_by_url finds existing discussion
+@test "search_discussion_by_url finds existing discussion by article URL" {
+  run search_discussion_by_url "https://developmeh.com/test-article"
+
+  [ "$status" -eq 0 ]
+
+  # Verify we got a discussion back
+  local discussion_number=$(echo "$output" | jq -r '.data.search.nodes[0].number')
+  [ "$discussion_number" = "42" ]
+
+  local discussion_body=$(echo "$output" | jq -r '.data.search.nodes[0].body')
+  [[ "$discussion_body" == *"https://developmeh.com/test-article"* ]]
+}
+
+# Test: search_discussion_by_url returns empty when no discussion exists
+@test "search_discussion_by_url returns empty array when no discussion found" {
+  run search_discussion_by_url "https://developmeh.com/nonexistent-article"
+
+  [ "$status" -eq 0 ]
+
+  # Verify empty results
+  local node_count=$(echo "$output" | jq '.data.search.nodes | length')
+  [ "$node_count" = "0" ]
+}
+
+# Test: process_markdown_file warns on multiple matches
+@test "process_markdown_file warns when multiple discussions match the same URL" {
+  # Create a page that will match multiple discussions
+  local test_file=$(create_test_page "multiple-match-article.md" "true" "false" "" "Multiple Match Article")
+
+  export REPO_ID="R_kgDOKgpTas"
+  export CATEGORY_ID="DIC_kwDOKgpTas4CXYZ"
+
+  declare -A discussions_map
+
+  run process_markdown_file "$test_file" discussions_map
+
+  # Debug output
+  echo "Status: $status" >&3
+  echo "Output: $output" >&3
+
+  [ "$status" -eq 0 ]
+
+  # Should warn about multiple matches
+  [[ "$output" == *"Found 2 discussions matching URL"* ]]
+  [[ "$output" == *"Discussion numbers: 50 51"* ]]
+  [[ "$output" == *"Using the first match"* ]]
+
+  # Should use the first match (discussion #50)
+  grep -q 'discussion_number = 50' "$test_file"
 }

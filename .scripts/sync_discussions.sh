@@ -151,6 +151,70 @@ fetch_discussion() {
   graphql_query "$query" "$variables"
 }
 
+# Search for existing discussion by article URL in body
+search_discussion_by_url() {
+  local article_url="$1"
+
+  local query='query SearchDiscussions($owner: String!, $name: String!, $query: String!) {
+    search(query: $query, type: DISCUSSION, first: 10) {
+      nodes {
+        ... on Discussion {
+          id
+          number
+          url
+          title
+          body
+          createdAt
+          updatedAt
+        }
+      }
+    }
+  }'
+
+  # Build search query to find discussions containing the article URL
+  local search_query="repo:$REPO_OWNER/$REPO_NAME $article_url"
+
+  local variables=$(jq -nc \
+    --arg owner "$REPO_OWNER" \
+    --arg name "$REPO_NAME" \
+    --arg query "$search_query" \
+    '{owner: $owner, name: $name, query: $query}')
+
+  graphql_query "$query" "$variables"
+}
+
+# Search for existing discussion by title (fallback)
+search_discussion_by_title() {
+  local title="$1"
+
+  local query='query SearchDiscussions($owner: String!, $name: String!, $query: String!) {
+    search(query: $query, type: DISCUSSION, first: 10) {
+      nodes {
+        ... on Discussion {
+          id
+          number
+          url
+          title
+          body
+          createdAt
+          updatedAt
+        }
+      }
+    }
+  }'
+
+  # Build search query: "repo:owner/name in:title {title}"
+  local search_query="repo:$REPO_OWNER/$REPO_NAME in:title \"$title\""
+
+  local variables=$(jq -nc \
+    --arg owner "$REPO_OWNER" \
+    --arg name "$REPO_NAME" \
+    --arg query "$search_query" \
+    '{owner: $owner, name: $name, query: $query}')
+
+  graphql_query "$query" "$variables"
+}
+
 # Extract frontmatter value using awk and dasel
 get_frontmatter_value() {
   local file="$1"
@@ -239,42 +303,86 @@ process_markdown_file() {
   # Get page path (relative to content/)
   local page_path="${file#$CONTENT_DIR/}"
   page_path="${page_path%.md}"
+  local page_url="https://developmeh.com/$page_path"
 
   # Create discussion if needed
   if [[ -z "$existing_number" ]]; then
-    log_info "  Creating discussion for: $title"
+    # First, search for existing discussion by article URL in body
+    log_info "  Searching for existing discussion by URL: $page_url"
+    local search_result=$(search_discussion_by_url "$page_url")
 
-    local page_url="https://developmeh.com/$page_path"
-    local body="Discuss this article: $page_url"
-    local result=$(create_discussion "$title" "$body" "$REPO_ID" "$CATEGORY_ID")
+    # Count how many discussions were found
+    local match_count=$(echo "$search_result" | jq '.data.search.nodes | length')
 
-    # Check for errors
-    if echo "$result" | jq -e '.errors' > /dev/null; then
-      log_error "  Failed: $(echo "$result" | jq -r '.errors[0].message')"
-      return
+    if [[ "$match_count" -gt 1 ]]; then
+      log_warn "  Found $match_count discussions matching URL!"
+      log_warn "  Discussion numbers: $(echo "$search_result" | jq -r '.data.search.nodes[].number' | tr '\n' ' ')"
+      log_warn "  Using the first match. Please review and update frontmatter if incorrect."
     fi
 
-    local discussion_data=$(echo "$result" | jq '.data.createDiscussion.discussion')
-    existing_number=$(echo "$discussion_data" | jq -r '.number')
-    local discussion_url=$(echo "$discussion_data" | jq -r '.url')
+    # Check if we found an existing discussion
+    local found_discussion=$(echo "$search_result" | jq -r '.data.search.nodes[0] // empty')
 
-    # Update frontmatter with discussion number
-    update_frontmatter_discussion "$file" "$existing_number" "$discussion_url"
+    if [[ -z "$found_discussion" ]]; then
+      # No URL match, try searching by title as fallback
+      log_info "  No URL match found, searching by title: $title"
+      search_result=$(search_discussion_by_title "$title")
 
-    # Add to map if it exists
-    if [[ -n "${discussions_map+x}" ]]; then
-      discussions_map[$page_path]=$(echo "$discussion_data" | jq '{
-        id: .id,
-        number: .number,
-        url: .url,
-        category: "'"$DISCUSSION_CATEGORY"'",
-        created_at: .createdAt,
-        updated_at: .updatedAt,
-        comment_count: 0
-      }')
+      match_count=$(echo "$search_result" | jq '.data.search.nodes | length')
+
+      if [[ "$match_count" -gt 1 ]]; then
+        log_warn "  Found $match_count discussions matching title!"
+        log_warn "  Discussion numbers: $(echo "$search_result" | jq -r '.data.search.nodes[].number' | tr '\n' ' ')"
+        log_warn "  Using the first match. Please review and update frontmatter if incorrect."
+      fi
+
+      found_discussion=$(echo "$search_result" | jq -r '.data.search.nodes[0] // empty')
     fi
 
-    log_info "  Created: #$existing_number"
+    if [[ -n "$found_discussion" ]]; then
+      # Found existing discussion, extract its details
+      existing_number=$(echo "$found_discussion" | jq -r '.number')
+      local discussion_url=$(echo "$found_discussion" | jq -r '.url')
+
+      log_warn "  Found existing discussion #$existing_number, updating frontmatter"
+
+      # Update frontmatter with the found discussion
+      update_frontmatter_discussion "$file" "$existing_number" "$discussion_url"
+    else
+      # No existing discussion found, create a new one
+      log_info "  Creating discussion for: $title"
+
+      local body="Discuss this article: $page_url"
+      local result=$(create_discussion "$title" "$body" "$REPO_ID" "$CATEGORY_ID")
+
+      # Check for errors
+      if echo "$result" | jq -e '.errors' > /dev/null; then
+        log_error "  Failed: $(echo "$result" | jq -r '.errors[0].message')"
+        return
+      fi
+
+      local discussion_data=$(echo "$result" | jq '.data.createDiscussion.discussion')
+      existing_number=$(echo "$discussion_data" | jq -r '.number')
+      local discussion_url=$(echo "$discussion_data" | jq -r '.url')
+
+      # Update frontmatter with discussion number
+      update_frontmatter_discussion "$file" "$existing_number" "$discussion_url"
+
+      # Add to map if it exists
+      if [[ -n "${discussions_map+x}" ]]; then
+        discussions_map[$page_path]=$(echo "$discussion_data" | jq '{
+          id: .id,
+          number: .number,
+          url: .url,
+          category: "'"$DISCUSSION_CATEGORY"'",
+          created_at: .createdAt,
+          updated_at: .updatedAt,
+          comment_count: 0
+        }')
+      fi
+
+      log_info "  Created: #$existing_number"
+    fi
   else
     log_info "  Discussion exists: #$existing_number"
   fi
