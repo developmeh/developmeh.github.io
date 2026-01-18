@@ -8,6 +8,8 @@ updated = 2025-01-31
 desc = "In celebration of Curl's 25th, a copy of the dancing parot live curl, a dancing bananna written in ruby"
 keywords = "ruby, curl, streaming, command-line"
 enable_discussions = true
+discussion_number = 15
+discussion_url = "https://github.com/orgs/developmeh/discussions/15"
 +++
 
 **Hey there, fellow coder! Ever seen a parrot dance in your terminal?** 🦜💃
