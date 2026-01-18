@@ -6,6 +6,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Zola-based static site for developmeh.com, a personal blog about software development, devex, software architecture, and technical topics. The site uses the `zola_easydocs_theme` theme with extensive SEO customizations and is deployed to GitHub Pages via Nix-based CI/CD.
 
+## Project Guidelines
+
+### Core Principles
+
+1. **Lightweight & Progressive Enhancement**
+   - The site must be as light as possible and load fast
+   - JavaScript is acceptable but the site must operate fully without JS
+   - Use progressive enhancement: core functionality works without JS, enhancements are optional
+   - JavaScript for code decoration/syntax highlighting is fine and expected
+
+2. **Content Integrity**
+   - **NEVER edit or reword the author's content** in `content/` directory unless explicitly directed
+   - The author's voice, style, and wording are intentional
+   - Content includes both conversational devlogs and more formal essays, often mixed together
+   - Only assist with technical aspects: layout, structure, metadata, and presentation
+
+3. **Performance & Assets**
+   - **Avoid large images** - optimize for fast loading
+   - **SVG and vector graphics are preferred** for decoration and visual elements
+   - Keep bundle sizes minimal
+   - Leverage Zola's built-in optimization features
+
+4. **What to Work On**
+   - **Layout improvements**: Page structure, navigation, accessibility
+   - **Page metadata**: SEO, Open Graph, structured data, social sharing
+   - **Professional presentation**: Clean design, consistent styling, responsive layout
+   - **Templates and styling**: Enhance without breaking progressive enhancement
+   - **Build/deployment**: Optimize build process, CI/CD improvements
+
+5. **Community & Discussion**
+   - Site discussion happens in GitHub Discussions
+   - Issues are tracked in GitHub Issues
+   - Keep documentation focused on development, not community guidelines
+
 ## Development Commands
 
 ### Local Development
