@@ -35,8 +35,8 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           nix develop --command bash -c '
-            chmod +x scripts/sync_discussions.sh
-            ./scripts/sync_discussions.sh
+            chmod +x .scripts/sync_discussions.sh
+            ./.scripts/sync_discussions.sh
           '
       - name: Commit discussion metadata updates
         run: |

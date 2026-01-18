@@ -2,12 +2,12 @@
 set -euo pipefail
 
 # Configuration
-GITHUB_API="https://api.github.com/graphql"
-DISCUSSION_CATEGORY="Blog Posts"
-DATA_DIR="data"
-COMMENTS_DIR="$DATA_DIR/discussion_comments"
-DISCUSSIONS_JSON="$DATA_DIR/discussions.json"
-CONTENT_DIR="content"
+GITHUB_API="${GITHUB_API:-https://api.github.com/graphql}"
+DISCUSSION_CATEGORY="${DISCUSSION_CATEGORY:-Blog Posts}"
+DATA_DIR="${DATA_DIR:-data}"
+COMMENTS_DIR="${COMMENTS_DIR:-$DATA_DIR/discussion_comments}"
+DISCUSSIONS_JSON="${DISCUSSIONS_JSON:-$DATA_DIR/discussions.json}"
+CONTENT_DIR="${CONTENT_DIR:-content}"
 
 # Ensure output directories exist
 mkdir -p "$COMMENTS_DIR"
@@ -25,13 +25,23 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # GraphQL query helper
 graphql_query() {
   local query="$1"
-  local variables="${2:-{}}"
+  local variables="$2"
+
+  # Use default empty object if variables not provided
+  if [[ -z "$variables" ]]; then
+    variables="{}"
+  fi
+
+  # Properly escape and construct JSON payload
+  local payload=$(jq -n \
+    --arg q "$query" \
+    --argjson v "$variables" \
+    '{query: $q, variables: $v}')
 
   curl -s -X POST "$GITHUB_API" \
     -H "Authorization: bearer $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$(jq -n --arg query "$query" --argjson variables "$variables" \
-      '{query: $query, variables: $variables}')"
+    -d "$payload"
 }
 
 # Get repository ID and category ID
@@ -49,7 +59,7 @@ get_repo_info() {
     }
   }'
 
-  local variables=$(jq -n \
+  local variables=$(jq -nc \
     --arg owner "$REPO_OWNER" \
     --arg name "$REPO_NAME" \
     '{owner: $owner, name: $name}')
@@ -81,7 +91,7 @@ create_discussion() {
     }
   }'
 
-  local variables=$(jq -n \
+  local variables=$(jq -nc \
     --arg repositoryId "$repo_id" \
     --arg categoryId "$category_id" \
     --arg title "$title" \
@@ -132,7 +142,7 @@ fetch_discussion() {
     }
   }'
 
-  local variables=$(jq -n \
+  local variables=$(jq -nc \
     --arg owner "$REPO_OWNER" \
     --arg name "$REPO_NAME" \
     --argjson number "$number" \
@@ -146,10 +156,11 @@ get_frontmatter_value() {
   local file="$1"
   local key="$2"
 
-  # Extract TOML frontmatter between +++
-  awk '/^\+\+\+$/,/^\+\+\+$/' "$file" | \
-    grep -v '^\+\+\+$' | \
-    dasel -r toml -w plain "$key" 2>/dev/null || echo ""
+  # Extract TOML frontmatter between +++ markers
+  local frontmatter=$(awk '/^\+\+\+$/{flag=!flag;next}flag' "$file")
+
+  # Use dasel to query the TOML
+  echo "$frontmatter" | dasel -r toml -w plain "$key" 2>/dev/null || echo ""
 }
 
 # Update frontmatter with discussion number
@@ -198,7 +209,12 @@ update_frontmatter_discussion() {
 # Process markdown file
 process_markdown_file() {
   local file="$1"
-  local -n discussions_map=$2
+  local discussions_map_name="$2"
+
+  # Create nameref only if discussions_map parameter is provided and valid
+  if [[ -n "$discussions_map_name" ]] && declare -p "$discussions_map_name" &>/dev/null; then
+    local -n discussions_map="$discussions_map_name"
+  fi
 
   log_info "Processing: $file"
 
@@ -245,16 +261,18 @@ process_markdown_file() {
     # Update frontmatter with discussion number
     update_frontmatter_discussion "$file" "$existing_number" "$discussion_url"
 
-    # Add to map
-    discussions_map[$page_path]=$(echo "$discussion_data" | jq '{
-      id: .id,
-      number: .number,
-      url: .url,
-      category: "'"$DISCUSSION_CATEGORY"'",
-      created_at: .createdAt,
-      updated_at: .updatedAt,
-      comment_count: 0
-    }')
+    # Add to map if it exists
+    if [[ -n "${discussions_map+x}" ]]; then
+      discussions_map[$page_path]=$(echo "$discussion_data" | jq '{
+        id: .id,
+        number: .number,
+        url: .url,
+        category: "'"$DISCUSSION_CATEGORY"'",
+        created_at: .createdAt,
+        updated_at: .updatedAt,
+        comment_count: 0
+      }')
+    fi
 
     log_info "  Created: #$existing_number"
   else
@@ -289,21 +307,23 @@ process_markdown_file() {
   local discussion_id=$(echo "$discussion_json" | jq -r '.data.repository.discussion.id')
   local updated_at=$(echo "$discussion_json" | jq -r '.data.repository.discussion.updatedAt')
 
-  discussions_map[$page_path]=$(jq -n \
-    --arg id "$discussion_id" \
-    --argjson number "$existing_number" \
-    --arg url "$discussion_url" \
-    --arg category "$DISCUSSION_CATEGORY" \
-    --arg updated_at "$updated_at" \
-    --argjson comment_count "$comment_count" \
-    '{
-      id: $id,
-      number: $number,
-      url: $url,
-      category: $category,
-      updated_at: $updated_at,
-      comment_count: $comment_count
-    }')
+  if [[ -n "${discussions_map+x}" ]]; then
+    discussions_map[$page_path]=$(jq -n \
+      --arg id "$discussion_id" \
+      --argjson number "$existing_number" \
+      --arg url "$discussion_url" \
+      --arg category "$DISCUSSION_CATEGORY" \
+      --arg updated_at "$updated_at" \
+      --argjson comment_count "$comment_count" \
+      '{
+        id: $id,
+        number: $number,
+        url: $url,
+        category: $category,
+        updated_at: $updated_at,
+        comment_count: $comment_count
+      }')
+  fi
 
   log_info "  Saved $comment_count comments to $comment_file"
 }

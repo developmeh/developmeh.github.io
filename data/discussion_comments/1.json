@@ -1,0 +1,50 @@
+{
+  "discussion": {
+    "id": "D_kwDOKgpTas4AZnHQ",
+    "number": 1,
+    "url": "https://github.com/testowner/testrepo/discussions/1",
+    "updated_at": "2025-01-18T12:00:00Z"
+  },
+  "comments": [
+    {
+      "id": "DC_kwDOKgpTas4AAABa",
+      "author": {
+        "login": "testuser1",
+        "url": "https://github.com/testuser1",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/123?v=4"
+      },
+      "bodyHTML": "<p>Great article!</p>",
+      "createdAt": "2025-01-18T11:00:00Z",
+      "updatedAt": "2025-01-18T11:00:00Z",
+      "replies": {
+        "nodes": [
+          {
+            "id": "DC_kwDOKgpTas4AAABb",
+            "author": {
+              "login": "testuser2",
+              "url": "https://github.com/testuser2",
+              "avatarUrl": "https://avatars.githubusercontent.com/u/456?v=4"
+            },
+            "bodyHTML": "<p>Thanks for reading!</p>",
+            "createdAt": "2025-01-18T11:30:00Z",
+            "updatedAt": "2025-01-18T11:30:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "DC_kwDOKgpTas4AAABc",
+      "author": {
+        "login": "testuser3",
+        "url": "https://github.com/testuser3",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/789?v=4"
+      },
+      "bodyHTML": "<p>Very informative!</p>",
+      "createdAt": "2025-01-18T12:00:00Z",
+      "updatedAt": "2025-01-18T12:00:00Z",
+      "replies": {
+        "nodes": []
+      }
+    }
+  ]
+}
