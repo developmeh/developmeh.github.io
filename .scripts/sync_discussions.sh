@@ -162,7 +162,6 @@ fetch_discussion() {
           totalCount
           nodes {
             id
-            url
             author {
               login
               url
@@ -171,6 +170,7 @@ fetch_discussion() {
             bodyHTML
             createdAt
             updatedAt
+            url
             replies(first: 100) {
               nodes {
                 id
@@ -183,6 +183,7 @@ fetch_discussion() {
                 bodyHTML
                 createdAt
                 updatedAt
+                url
               }
             }
           }
@@ -463,7 +464,24 @@ process_markdown_file() {
       url: .data.repository.discussion.url,
       updated_at: .data.repository.discussion.updatedAt
     },
-    comments: .data.repository.discussion.comments.nodes
+    comments: [.data.repository.discussion.comments.nodes[] | {
+      id: .id,
+      author: .author,
+      bodyHTML: .bodyHTML,
+      createdAt: .createdAt,
+      updatedAt: .updatedAt,
+      url: .url,
+      replies: {
+        nodes: [.replies.nodes[] | {
+          id: .id,
+          author: .author,
+          bodyHTML: .bodyHTML,
+          createdAt: .createdAt,
+          updatedAt: .updatedAt,
+          url: .url
+        }]
+      }
+    }]
   }' > "$comment_file"
 
   # Update discussions map with current data
