@@ -48,10 +48,16 @@ graphql_query() {
 # Get repository or organization ID and category ID
 get_repo_info() {
   if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
-    # Use organization discussions
-    local query='query GetOrganizationInfo($login: String!) {
-      organization(login: $login) {
+    # For organization discussions, we still need to query through a repository
+    # to get discussion categories, since Organization type doesn't expose them
+    local query='query GetRepositoryInfo($owner: String!, $name: String!) {
+      repository(owner: $owner, name: $name) {
         id
+        owner {
+          ... on Organization {
+            id
+          }
+        }
         discussionCategories(first: 20) {
           nodes {
             id
@@ -63,8 +69,9 @@ get_repo_info() {
     }'
 
     local variables=$(jq -nc \
-      --arg login "$REPO_OWNER" \
-      '{login: $login}')
+      --arg owner "$REPO_OWNER" \
+      --arg name "$REPO_NAME" \
+      '{owner: $owner, name: $name}')
 
     graphql_query "$query" "$variables"
   else
@@ -95,62 +102,35 @@ get_repo_info() {
 create_discussion() {
   local title="$1"
   local body="$2"
-  local owner_id="$3"
+  local repo_id="$3"
   local category_id="$4"
 
-  if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
-    # Create organization discussion - no repositoryId needed for org discussions
-    local query='mutation CreateDiscussion($categoryId: ID!, $title: String!, $body: String!) {
-      createDiscussion(input: {
-        categoryId: $categoryId,
-        title: $title,
-        body: $body
-      }) {
-        discussion {
-          id
-          number
-          url
-          createdAt
-          updatedAt
-        }
+  # Both org and repo discussions use the same mutation with repositoryId
+  local query='mutation CreateDiscussion($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
+    createDiscussion(input: {
+      repositoryId: $repositoryId,
+      categoryId: $categoryId,
+      title: $title,
+      body: $body
+    }) {
+      discussion {
+        id
+        number
+        url
+        createdAt
+        updatedAt
       }
-    }'
+    }
+  }'
 
-    local variables=$(jq -nc \
-      --arg categoryId "$category_id" \
-      --arg title "$title" \
-      --arg body "$body" \
-      '{categoryId: $categoryId, title: $title, body: $body}')
+  local variables=$(jq -nc \
+    --arg repositoryId "$repo_id" \
+    --arg categoryId "$category_id" \
+    --arg title "$title" \
+    --arg body "$body" \
+    '{repositoryId: $repositoryId, categoryId: $categoryId, title: $title, body: $body}')
 
-    graphql_query "$query" "$variables"
-  else
-    # Create repository discussion
-    local query='mutation CreateDiscussion($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
-      createDiscussion(input: {
-        repositoryId: $repositoryId,
-        categoryId: $categoryId,
-        title: $title,
-        body: $body
-      }) {
-        discussion {
-          id
-          number
-          url
-          createdAt
-          updatedAt
-        }
-      }
-    }'
-
-    local variables=$(jq -nc \
-      --arg repositoryId "$owner_id" \
-      --arg categoryId "$category_id" \
-      --arg title "$title" \
-      --arg body "$body" \
-      '{repositoryId: $repositoryId, categoryId: $categoryId, title: $title, body: $body}')
-
-    graphql_query "$query" "$variables"
-  fi
+  graphql_query "$query" "$variables"
 }
 
 # Fetch discussion comments
@@ -591,30 +571,26 @@ main() {
     exit 1
   fi
 
+  # Get repository ID (always needed for creating discussions)
+  REPO_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.id')
+
+  # Get discussion categories from repository
+  CATEGORY_ID=$(echo "$REPO_INFO" | jq -r --arg cat "$DISCUSSION_CATEGORY" \
+    '.data.repository.discussionCategories.nodes[] | select(.name == $cat) | .id')
+
+  if [[ -z "$CATEGORY_ID" ]]; then
+    log_error "Category '$DISCUSSION_CATEGORY' not found"
+    echo "$REPO_INFO" | jq -r '.data.repository.discussionCategories.nodes[] | "  - \(.name)"'
+    exit 1
+  fi
+
   if [[ "$USE_ORG_DISCUSSIONS" == "true" ]]; then
-    REPO_ID=$(echo "$REPO_INFO" | jq -r '.data.organization.id')
-    CATEGORY_ID=$(echo "$REPO_INFO" | jq -r --arg cat "$DISCUSSION_CATEGORY" \
-      '.data.organization.discussionCategories.nodes[] | select(.name == $cat) | .id')
-
-    if [[ -z "$CATEGORY_ID" ]]; then
-      log_error "Category '$DISCUSSION_CATEGORY' not found"
-      echo "$REPO_INFO" | jq -r '.data.organization.discussionCategories.nodes[] | "  - \(.name)"'
-      exit 1
-    fi
-
-    log_info "Organization ID: $REPO_ID"
+    # Get the organization ID for fetching discussions
+    ORG_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.owner.id')
+    log_info "Repository ID: $REPO_ID"
+    log_info "Organization ID: $ORG_ID"
     log_info "Category ID: $CATEGORY_ID"
   else
-    REPO_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.id')
-    CATEGORY_ID=$(echo "$REPO_INFO" | jq -r --arg cat "$DISCUSSION_CATEGORY" \
-      '.data.repository.discussionCategories.nodes[] | select(.name == $cat) | .id')
-
-    if [[ -z "$CATEGORY_ID" ]]; then
-      log_error "Category '$DISCUSSION_CATEGORY' not found"
-      echo "$REPO_INFO" | jq -r '.data.repository.discussionCategories.nodes[] | "  - \(.name)"'
-      exit 1
-    fi
-
     log_info "Repository ID: $REPO_ID"
     log_info "Category ID: $CATEGORY_ID"
   fi
