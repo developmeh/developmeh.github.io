@@ -7,6 +7,8 @@ date = 2025-06-26
 [extra]
 updated = 2025-06-27
 description = "A critical look at how DevOps is implemented in organizations, examining the gap between the promise of shift-left practices and the reality of developers' access to infrastructure"
+discussion_number = 39
+discussion_url = "https://github.com/orgs/developmeh/discussions/39"
 +++
 
 ## Do Devs Really Do DevOps in your Org?

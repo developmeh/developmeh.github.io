@@ -7,6 +7,8 @@ date = 2021-12-15
 updated = 2025-06-26
 [extra]
 description = "Exploring the concept of servant leadership in software development and how authority is earned through trust and influence rather than formal titles"
+discussion_number = 40
+discussion_url = "https://github.com/orgs/developmeh/discussions/40"
 +++
 
 ## The Good Sergeant

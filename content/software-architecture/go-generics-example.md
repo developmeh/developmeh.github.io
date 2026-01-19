@@ -5,6 +5,8 @@ weight = 0
 draft = false
 date = 2025-01-22
 updated = 2025-01-22
+discussion_number = 24
+discussion_url = "https://github.com/orgs/developmeh/discussions/24"
 +++
 
 ## Go Generics an Example

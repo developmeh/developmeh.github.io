@@ -5,6 +5,8 @@ weight = 0
 draft = false
 date = 2024-10-10
 updated = 2024-10-10
+discussion_number = 36
+discussion_url = "https://github.com/orgs/developmeh/discussions/36"
 +++
 
 The feeling of AITA or "Am I just Crazy" happens to me a lot. I think it might be the core weakness when trying to manifest confidence in my work.

@@ -5,6 +5,8 @@ weight = 0
 draft = false
 date = 2024-08-10
 updated = 2024-08-10
+discussion_number = 28
+discussion_url = "https://github.com/orgs/developmeh/discussions/28"
 +++
 
 ## Equipment

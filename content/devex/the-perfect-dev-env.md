@@ -5,6 +5,8 @@ date = 2025-01-28
 updated = 2025-01-28
 weight = 0
 draft = false
+discussion_number = 31
+discussion_url = "https://github.com/orgs/developmeh/discussions/31"
 +++
 
 ## The Perfect Development Environment

@@ -3,6 +3,8 @@ title = "The Krappy Internet"
 template = "page.html"
 date = 2025-01-29
 updated = 2025-03-02
+discussion_number = 22
+discussion_url = "https://github.com/orgs/developmeh/discussions/22"
 +++
 
 ## What if the internet stopped being shit and was instead Krappy?

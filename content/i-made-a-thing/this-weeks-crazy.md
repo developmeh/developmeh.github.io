@@ -8,6 +8,8 @@ updated = 2025-07-14
 [extra]
 desc = "Exploring unconventional ideas about OpenTelemetry, debugging tools, WebRTC, and reimagining internet technologies for a more personal and less centralized web experience"
 keywords = "OpenTelemetry, tracing, debugging, GDB, WebRTC, self-hosting, decentralized internet, NAT traversal, dynamic DNS, personal web hosting, p2p connections, Krappy Internet, home hosting"
+discussion_number = 33
+discussion_url = "https://github.com/orgs/developmeh/discussions/33"
 +++
 
 # This Week's Crazy Idea

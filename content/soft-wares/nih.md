@@ -5,6 +5,8 @@ weight = 0
 draft = false
 date = 2024-09-30
 updated = 2024-09-30
+discussion_number = 37
+discussion_url = "https://github.com/orgs/developmeh/discussions/37"
 +++
 
 Not Invented Here Syndrome is something that has been entering my world a lot lately.

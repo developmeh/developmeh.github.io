@@ -8,6 +8,8 @@ updated = 2025-10-09
 [extra]
 desc = "Testing sh is as easy as anything else, if testing is about side-effects its easy"
 keywords = "BATS, TAPS, sh, bash, testing, mocking, stubbing, shell script, Bash Automated Testing System"
+discussion_number = 35
+discussion_url = "https://github.com/orgs/developmeh/discussions/35"
 +++
 
 ## The Magic of Stubbing sh

@@ -4,6 +4,8 @@ template = "page.html"
 weight = 0
 date = 2024-08-08
 updated = 2024-09-06
+discussion_number = 32
+discussion_url = "https://github.com/orgs/developmeh/discussions/32"
 +++
 
 ## You have Continuous Deployment, not Continuous Delivery

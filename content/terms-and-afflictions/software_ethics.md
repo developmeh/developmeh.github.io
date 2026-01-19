@@ -5,6 +5,8 @@ weight = 0
 draft = false
 date = 2024-10-14
 updated = 2024-10-14
+discussion_number = 29
+discussion_url = "https://github.com/orgs/developmeh/discussions/29"
 +++
 
 ![dancing-banana](../dune_slave.jpg)

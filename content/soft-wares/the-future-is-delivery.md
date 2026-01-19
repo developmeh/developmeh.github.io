@@ -5,6 +5,8 @@ weight = 0
 draft = false
 date = 2024-09-10
 updated = 2024-09-10
+discussion_number = 41
+discussion_url = "https://github.com/orgs/developmeh/discussions/41"
 +++
 
 I have been hearing a lot lately about the focus on "Delivery," and it has always struck me as somewhat reductionist and linear in its thinking.

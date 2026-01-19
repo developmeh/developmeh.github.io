@@ -3,6 +3,8 @@ title = "Sankey Git"
 template = "page.html"
 date = 2024-09-11
 updated = 2024-09-11
+discussion_number = 21
+discussion_url = "https://github.com/orgs/developmeh/discussions/21"
 +++
 
 ## Idea generation

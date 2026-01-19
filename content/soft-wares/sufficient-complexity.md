@@ -7,6 +7,8 @@ date = 2025-07-01
 updated = 2025-07-01
 [extra]
 description = "Exploring the concept of sufficient complexity in software design and how to create maintainable, focused modules that avoid common pitfalls of over-engineering"
+discussion_number = 42
+discussion_url = "https://github.com/orgs/developmeh/discussions/42"
 +++
 
 ## Sufficient Complexity and Pipe Herding

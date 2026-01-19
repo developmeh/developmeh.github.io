@@ -4,6 +4,8 @@ template = "page.html"
 weight = 0
 date = 2024-08-30
 updated = 2024-08-30
+discussion_number = 25
+discussion_url = "https://github.com/orgs/developmeh/discussions/25"
 +++
 
 ## An Uncomplicated Picture
