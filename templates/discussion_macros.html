@@ -12,8 +12,18 @@
       </a>
       <span class="comment-separator">·</span>
       <time datetime="{{ comment.createdAt }}">
-        {{ comment.createdAt | date(format="%B %d, %Y") }}
+        {{ comment.createdAt | date(format="%d-%b-%Y") }}
       </time>
+      {% if comment.url %}
+        <span class="comment-separator">·</span>
+        <a href="{{ comment.url }}" class="comment-link" target="_blank" rel="noopener" title="View on GitHub">
+          <svg class="external-link-icon" height="14" width="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
+      {% endif %}
     </div>
     <div class="comment-body">
       {{ comment.bodyHTML | safe }}
