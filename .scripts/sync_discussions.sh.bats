@@ -61,8 +61,13 @@ stub_curl_github_api() {
       esac
     done
 
-    # Return different responses based on query type
-    if [[ "$payload" == *"GetRepositoryInfo"* ]]; then
+  # Return different responses based on query type
+  if [[ "$payload" == *"FAIL_ME"* ]]; then
+    return 1
+  elif [[ "$payload" == *"EMPTY_ME"* ]]; then
+    echo ""
+    return 0
+  elif [[ "$payload" == *"GetRepositoryInfo"* ]]; then
       cat <<'EOF'
 {
   "data": {
@@ -361,6 +366,12 @@ EOF
   echo "$file"
 }
 
+# Helper to setup repo info
+setup_repo_vars() {
+  export REPO_ID="R_kgDOKgpTas"
+  export CATEGORY_ID="DIC_kwDOKgpTas4CXYZ"
+}
+
 # Test: Script can get repository info
 @test "get_repo_info fetches repository ID and category ID" {
   run get_repo_info
@@ -384,8 +395,7 @@ EOF
   # Use a different title to avoid matching existing "Test Article" in search
   local test_file=$(create_test_page "new-article.md" "true" "false" "" "Brand New Article")
 
-  export REPO_ID="R_kgDOKgpTas"
-  export CATEGORY_ID="DIC_kwDOKgpTas4CXYZ"
+  setup_repo_vars
 
   declare -A discussions_map
 
@@ -555,8 +565,7 @@ EOF
   # Create a page without discussion_number in frontmatter
   local test_file=$(create_test_page "test-article.md" "true" "false")
 
-  export REPO_ID="R_kgDOKgpTas"
-  export CATEGORY_ID="DIC_kwDOKgpTas4CXYZ"
+  setup_repo_vars
 
   declare -A discussions_map
 
@@ -628,4 +637,20 @@ EOF
 
   # Should use the first match (discussion #50)
   grep -q 'discussion_number = 50' "$test_file"
+}
+
+# Test: graphql_query handles curl failure
+@test "graphql_query handles curl failure" {
+  run graphql_query "FAIL_ME"
+  echo "Output: $output" >&3
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"GraphQL request failed"* ]]
+}
+
+# Test: graphql_query handles empty response
+@test "graphql_query handles empty response" {
+  run graphql_query "EMPTY_ME"
+  echo "Output: $output" >&3
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"GraphQL request returned empty response"* ]]
 }

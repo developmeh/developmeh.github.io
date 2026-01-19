@@ -26,7 +26,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # GraphQL query helper
 graphql_query() {
   local query="$1"
-  local variables="$2"
+  local variables="${2:-}"
 
   # Use default empty object if variables not provided
   if [[ -z "$variables" ]]; then
@@ -39,10 +39,24 @@ graphql_query() {
     --argjson v "$variables" \
     '{query: $q, variables: $v}')
 
-  curl -s -X POST "$GITHUB_API" \
+  local response
+  response=$(curl -s -X POST "$GITHUB_API" \
     -H "Authorization: bearer $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$payload"
+    -d "$payload")
+
+  local exit_code=$?
+  if [[ $exit_code -ne 0 ]]; then
+    log_error "GraphQL request failed with exit code $exit_code"
+    return $exit_code
+  fi
+
+  if [[ -z "$response" ]]; then
+    log_error "GraphQL request returned empty response"
+    return 1
+  fi
+
+  echo "$response"
 }
 
 # Get repository or organization ID and category ID
@@ -148,6 +162,7 @@ fetch_discussion() {
           totalCount
           nodes {
             id
+            url
             author {
               login
               url
@@ -159,6 +174,7 @@ fetch_discussion() {
             replies(first: 100) {
               nodes {
                 id
+                url
                 author {
                   login
                   url
@@ -316,7 +332,7 @@ process_markdown_file() {
 
   # Create nameref only if discussions_map parameter is provided and valid
   if [[ -n "$discussions_map_name" ]] && declare -p "$discussions_map_name" &>/dev/null; then
-    local -n discussions_map="$discussions_map_name"
+    local -n _discussions_map="$discussions_map_name"
   fi
 
   log_info "Processing: $file"
@@ -408,8 +424,8 @@ process_markdown_file() {
       update_frontmatter_discussion "$file" "$existing_number" "$discussion_url"
 
       # Add to map if it exists
-      if [[ -n "${discussions_map+x}" ]]; then
-        discussions_map[$page_path]=$(echo "$discussion_data" | jq '{
+      if [[ -n "${_discussions_map+x}" ]]; then
+        _discussions_map[$page_path]=$(echo "$discussion_data" | jq '{
           id: .id,
           number: .number,
           url: .url,
@@ -456,8 +472,8 @@ process_markdown_file() {
   local discussion_id=$(echo "$discussion_json" | jq -r '.data.repository.discussion.id')
   local updated_at=$(echo "$discussion_json" | jq -r '.data.repository.discussion.updatedAt')
 
-  if [[ -n "${discussions_map+x}" ]]; then
-    discussions_map[$page_path]=$(jq -n \
+  if [[ -n "${_discussions_map+x}" ]]; then
+    _discussions_map[$page_path]=$(jq -n \
       --arg id "$discussion_id" \
       --argjson number "$existing_number" \
       --arg url "$discussion_url" \
