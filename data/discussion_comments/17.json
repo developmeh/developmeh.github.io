@@ -1,0 +1,36 @@
+{
+  "discussion": {
+    "id": "D_kwDOKgpTas4AjtR1",
+    "number": 17,
+    "url": "https://github.com/orgs/developmeh/discussions/17",
+    "updated_at": "2026-01-18T23:23:24Z"
+  },
+  "comments": [
+    {
+      "id": "DC_kwDOKgpTas4A7QVD",
+      "author": {
+        "login": "ninjapanzer",
+        "url": "https://github.com/ninjapanzer",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/159591?u=dcc788ea2b29afd358aefe68fab304df4f5d39fd&v=4"
+      },
+      "bodyHTML": "<p dir=\"auto\">Test</p>",
+      "createdAt": "2026-01-18T23:23:14Z",
+      "updatedAt": "2026-01-18T23:23:14Z",
+      "replies": {
+        "nodes": [
+          {
+            "id": "DC_kwDOKgpTas4A7QVF",
+            "author": {
+              "login": "ninjapanzer",
+              "url": "https://github.com/ninjapanzer",
+              "avatarUrl": "https://avatars.githubusercontent.com/u/159591?u=dcc788ea2b29afd358aefe68fab304df4f5d39fd&v=4"
+            },
+            "bodyHTML": "<p dir=\"auto\">reply test</p>",
+            "createdAt": "2026-01-18T23:23:24Z",
+            "updatedAt": "2026-01-18T23:23:24Z"
+          }
+        ]
+      }
+    }
+  ]
+}
