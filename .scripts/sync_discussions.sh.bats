@@ -210,6 +210,7 @@ EOF
           "nodes": [
             {
               "id": "DC_kwDOKgpTas4AAABa",
+              "url": "https://github.com/testowner/testrepo/discussions/$discussion_num#discussioncomment-123",
               "author": {
                 "login": "testuser1",
                 "url": "https://github.com/testuser1",
@@ -222,6 +223,7 @@ EOF
                 "nodes": [
                   {
                     "id": "DC_kwDOKgpTas4AAABb",
+                    "url": "https://github.com/testowner/testrepo/discussions/$discussion_num#discussioncomment-456",
                     "author": {
                       "login": "testuser2",
                       "url": "https://github.com/testuser2",
@@ -236,6 +238,7 @@ EOF
             },
             {
               "id": "DC_kwDOKgpTas4AAABc",
+              "url": "https://github.com/testowner/testrepo/discussions/$discussion_num#discussioncomment-789",
               "author": {
                 "login": "testuser3",
                 "url": "https://github.com/testuser3",
@@ -270,6 +273,7 @@ EOF
           "nodes": [
             {
               "id": "DC_kwDOKgpTas4AAABa",
+              "url": "https://github.com/testowner/testrepo/discussions/$discussion_num#discussioncomment-123",
               "author": {
                 "login": "testuser1",
                 "url": "https://github.com/testuser1",
@@ -282,6 +286,7 @@ EOF
                 "nodes": [
                   {
                     "id": "DC_kwDOKgpTas4AAABb",
+                    "url": "https://github.com/testowner/testrepo/discussions/$discussion_num#discussioncomment-456",
                     "author": {
                       "login": "testuser2",
                       "url": "https://github.com/testuser2",
@@ -296,6 +301,7 @@ EOF
             },
             {
               "id": "DC_kwDOKgpTas4AAABc",
+              "url": "https://github.com/testowner/testrepo/discussions/$discussion_num#discussioncomment-789",
               "author": {
                 "login": "testuser3",
                 "url": "https://github.com/testuser3",
@@ -585,6 +591,18 @@ EOF
   # Verify frontmatter was updated with found discussion
   grep -q 'discussion_number = 42' "$test_file"
   grep -q 'discussion_url = "https://github.com/testowner/testrepo/discussions/42"' "$test_file"
+
+  # Verify comments JSON file exists and contains URLs
+  local comment_file="$COMMENTS_DIR/42.json"
+  [ -f "$comment_file" ]
+  
+  # Check for comment URL
+  local first_comment_url=$(jq -r '.comments[0].url' "$comment_file")
+  [ "$first_comment_url" = "https://github.com/testowner/testrepo/discussions/42#discussioncomment-123" ]
+  
+  # Check for reply URL
+  local first_reply_url=$(jq -r '.comments[0].replies.nodes[0].url' "$comment_file")
+  [ "$first_reply_url" = "https://github.com/testowner/testrepo/discussions/42#discussioncomment-456" ]
 }
 
 # Test: search_discussion_by_url finds existing discussion
