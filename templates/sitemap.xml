@@ -3,9 +3,27 @@
     {% for p in entries -%}
     <url>
         <loc>{{ p.permalink }}</loc>
-        {% if p.updated %}
-            <lastmod>{{ p.updated }}</lastmod>
-        {% endif %}
+        {% set_global lastmod = p.updated -%}
+        {% if p.extra and p.extra.discussion_number -%}
+            {% set comment_file = "data/discussion_comments/" ~ p.extra.discussion_number ~ ".json" -%}
+            {% set discussion_data = load_data(path=comment_file, required=false) -%}
+            {% if discussion_data and discussion_data.discussion and discussion_data.discussion.updated_at -%}
+                {% set comment_date_str = discussion_data.discussion.updated_at | date(format="%Y%m%d") -%}
+                {% set comment_date_int = comment_date_str | int -%}
+                {% if lastmod -%}
+                    {% set lastmod_str = lastmod | date(format="%Y%m%d") -%}
+                    {% set lastmod_int = lastmod_str | int -%}
+                {% else -%}
+                    {% set lastmod_int = 0 -%}
+                {% endif -%}
+                {% if comment_date_int > lastmod_int -%}
+                    {% set_global lastmod = discussion_data.discussion.updated_at | date(format="%Y-%m-%d") -%}
+                {% endif -%}
+            {% endif -%}
+        {% endif -%}
+        {% if lastmod -%}
+            <lastmod>{{ lastmod }}</lastmod>
+        {% endif -%}
         {% if p.extra and p.extra.sitemap_priority %}
             <priority>{{ p.extra.sitemap_priority }}</priority>
         {% else %}
@@ -13,7 +31,7 @@
         {% endif %}
         {% if p.extra and p.extra.sitemap_changefreq %}
             <changefreq>{{ p.extra.sitemap_changefreq }}</changefreq>
-        {% elif p.updated %}
+        {% elif lastmod %}
             <changefreq>monthly</changefreq>
         {% else %}
             <changefreq>yearly</changefreq>

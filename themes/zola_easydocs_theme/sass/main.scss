@@ -122,6 +122,8 @@ pre {
 
 nav {
   position: sticky;
+  display: flex;
+  flex-direction: column;
   height: 92vh;
   top:$baseline;
   left:$baseline;
@@ -137,6 +139,12 @@ nav {
   h1 {
     margin:0;
     line-height: 1;
+  }
+
+  footer {
+    margin-top: auto;
+    font-size: 0.8rem;
+    padding: $baseline 0;
   }
 }
 
@@ -208,6 +216,7 @@ main {
 
  #trees {
   overflow-y: auto;
+  flex: 1;
   height: 80%;
 
   a.tree-toggle-label {
