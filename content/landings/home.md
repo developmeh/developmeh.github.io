@@ -14,21 +14,37 @@ discussion_number = 26
 discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 +++
 
-## Developmeh
-_Develop ¯\\_(ツ)_/¯_
+<div class="hero-section">
+  <h2>Developmeh</h2>
+  <div class="subtitle">Develop ¯\_(ツ)_/¯</div>
+  <p>Contained within are harebrained ideas that have no commercial value... still here... you are one of the special ones.</p>
+</div>
 
-Contained within are harebrained ideas that have no commercial value... still here... you are one of the special ones.
+<div class="callout info">
+  <span class="callout-title">Perspective</span>
+  I have done a lot of software engineering in my life and after all that time I have come to appreciate an industry in constant evolution.
 
-I have done a lot of software engineering in my life and after all that time I have come to appreciate an industry in constant evolution.
-> I, though, seem to stand as a fixed point, arriving to accomplish a specific task and obstinately refusing to become a tradesman.
+  I, though, seem to stand as a fixed point, arriving to accomplish a specific task and obstinately refusing to become a tradesman.
+</div>
 
-For those of you who have a craft and participate in a creative act on the regular, I salute you. Your bravery is what I idolize. In pursuit of of some kind of self-idolatry I create toys to expand my knowledge and forgive myself for being a shill.
->But who cares? Welcome to my workshop!
+<div class="callout success">
+  <span class="callout-title">Welcome</span>
+  For those of you who have a craft and participate in a creative act on the regular, I salute you. Your bravery is what I idolize. In pursuit of of some kind of self-idolatry I create toys to expand my knowledge and forgive myself for being a shill.
 
-This is a safe space for all ideas; the point is to have fun with it; you don't wanna write tests...suuuuure....
-> GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
+  But who cares? Welcome to my workshop!
+</div>
 
-### Devlogs
+<div class="callout warning">
+  <span class="callout-title">Standards</span>
+  This is a safe space for all ideas; the point is to have fun with it; you don't wanna write tests...suuuuure....
+
+  GET THE HELL OUT! I am not some kind of heathen. I have standards, bud.
+</div>
+
+<div class="card-stack">
+  <div class="card">
+    <h3>Devlogs</h3>
+
 - [14-07-2025 This Week's Crazy Idea (Just build binaries)](/i-made-a-thing/this-weeks-crazy#14-07-2025)
 - [13-07-2025 This Week's Crazy Idea (Everything is a Stream)](/i-made-a-thing/this-weeks-crazy#13-07-2025)
 - [21-06-2025 This Week's Crazy Idea (OpenTelemetry and the question of ditching logs)](/i-made-a-thing/this-weeks-crazy#21-06-2025)
@@ -48,7 +64,11 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 - [22-12-2024 Krappy Kafka (Handler Cleanup and Func Interface)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
 - [05-11-2024 Krappy Kafka (Shared Consumer Groups)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
 
-### Articles
+</div>
+
+  <div class="card">
+    <h3>Articles</h3>
+
 - [The Magic of Stubbing sh](/i-made-a-thing/the-magic-of-stubbing-sh)
 - [Sufficient Complexity](/soft-wares/sufficient-complexity)
 - [Do Devs Really Do DevOps in your Org?](/soft-wares/do-devs-really-do-devops)
@@ -58,9 +78,16 @@ This is a safe space for all ideas; the point is to have fun with it; you don't 
 - [Distributed Game of Life](/projects/gol/)
 - [Krappy Kafka](/i-made-a-thing/recreating-kafka-blind)
 
+</div>
+</div>
+
+<div class="callout info">
+  <span class="callout-title">Connect</span>
+  
 ### Everything is on GitHub:
 - [https://github.com/developmeh](https://github.com/developmeh)
 - [https://github.com/ninjapanzer](https://github.com/ninjapanzer)
 
 ### Correspondence
 Please address all hate mail [here](https://github.com/orgs/developmeh/discussions/categories/general)
+</div>
