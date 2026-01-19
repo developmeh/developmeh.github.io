@@ -4,7 +4,7 @@
 {% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
 
 {% block content %}
-    {# Discussion nav link at top #}
+    {# Discussion link at the top #}
     {% if page.extra.discussion_url %}
         {% if page.extra.enable_discussions is not defined or page.extra.enable_discussions != false %}
         <div class="discussion-nav">
@@ -23,6 +23,7 @@
     {# Always show discussion section if discussion_url exists and not explicitly disabled #}
     {% if page.extra.discussion_url %}
         {% if page.extra.enable_discussions is not defined or page.extra.enable_discussions != false %}
+        
         {# Try to load discussion data if available #}
         {% if page.extra.discussion_number %}
             {% set discussion_number = page.extra.discussion_number %}

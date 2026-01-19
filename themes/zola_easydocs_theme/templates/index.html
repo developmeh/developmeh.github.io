@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{{ get_url(path="main.css") | safe }}">
+    <link rel="stylesheet" href="{{ get_url(path="custom.css") | safe }}">
     {% if config.extra.favicon -%}
         {% set _favicon = config.extra.favicon -%}
         {% if (_favicon is starting_with("http")) == false -%}
@@ -53,7 +54,7 @@
 {% endif -%}
 <main>
     {# Create variable to allow appending index.html at end of links if set in config #}
-    {% if not config.extra.easydocs_uglyurls or config.mode == "serve" or config.mode == "Sehttps://developmeh.com/rss.xmlrve" -%}
+    {% if not config.extra.easydocs_uglyurls or config.mode == "serve" or config.mode == "Serve" -%}
         {% set _ugly_url = "" -%}
     {% else %}
         {% set _ugly_url = "index.html" -%}

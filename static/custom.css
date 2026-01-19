@@ -6,15 +6,16 @@
 
 /* Discussion Navigation (top of page) */
 .discussion-nav {
+  margin-top: 2rem;
   margin-bottom: 2rem;
   padding: 0.75rem 1rem;
-  background-color: #f6f8fa;
-  border-left: 4px solid #0066cc;
+  background-color: #1a1e15; /* Matching $quote-bg */
+  border-left: 4px solid #e67e22; /* Matching $nav-top-color */
   border-radius: 4px;
 }
 
 .discussion-nav .discussion-link {
-  color: #0066cc;
+  color: #e67e22; /* Matching $nav-top-color */
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
@@ -24,6 +25,7 @@
 }
 
 .discussion-nav .discussion-link:hover {
+  color: #e74c3c; /* Matching $hover-links */
   text-decoration: underline;
 }
 
@@ -41,35 +43,39 @@
 /* Discussion Footer */
 .discussion-footer {
   margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 2px solid #e0e0e0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(144, 180, 113, 0.2); /* $color with opacity */
 }
 
 .discussion-footer h3 {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
-  color: #333;
+  margin-top: 1rem;
+  color: #f1c40f; /* $term-yellow */
+  border-left: 4px solid #f1c40f;
+  padding-left: 0.75rem;
 }
 
 .discussion-cta {
   margin-bottom: 2rem;
   font-size: 0.95rem;
-  color: #666;
+  color: #90b471; /* $color */
 }
 
 .discussion-cta a {
-  color: #0066cc;
+  color: #e67e22; /* $nav-top-color */
   text-decoration: none;
   font-weight: 500;
 }
 
 .discussion-cta a:hover {
+  color: #e74c3c; /* $hover-links */
   text-decoration: underline;
 }
 
 /* Comments */
 .discussion-comments {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -85,14 +91,14 @@
   gap: 0.5rem;
   margin-bottom: 0.5rem;
   font-size: 0.85rem;
-  color: #666;
+  color: rgba(144, 180, 113, 0.7); /* $color with opacity */
 }
 
 .comment-author {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #0066cc;
+  color: #1abc9c; /* $term-cyan */
   text-decoration: none;
   font-weight: 500;
 }
@@ -107,11 +113,11 @@
 }
 
 .comment-separator {
-  color: #ccc;
+  color: rgba(144, 180, 113, 0.3);
 }
 
 .comment-body {
-  color: #333;
+  color: #90b471; /* $color */
   line-height: 1.6;
 }
 
@@ -120,33 +126,35 @@
 }
 
 .comment-body pre {
-  background: #f6f8fa;
+  background: #1a1e15;
   padding: 0.75rem;
   border-radius: 3px;
   overflow-x: auto;
   font-size: 0.85rem;
+  border: 1px solid rgba(144, 180, 113, 0.1);
 }
 
 .comment-body code {
-  background: #f6f8fa;
+  background: #1a1e15;
   padding: 0.2rem 0.4rem;
   border-radius: 3px;
   font-size: 0.85rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 }
 
 /* Nested indentation */
 .discussion-comment .discussion-comment {
-  border-left: 2px solid #e0e0e0;
+  border-left: 2px solid rgba(144, 180, 113, 0.2);
   padding-left: 1rem;
 }
 
 .discussion-comment:hover {
-  background-color: #f9f9f9;
+  background-color: rgba(144, 180, 113, 0.05);
   border-radius: 4px;
 }
 
 .no-comments {
   font-style: italic;
-  color: #999;
+  color: rgba(144, 180, 113, 0.5);
   margin: 2rem 0;
 }
