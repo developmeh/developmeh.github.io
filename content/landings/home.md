@@ -9,6 +9,7 @@ date = 2025-06-06
 updated = 2025-07-14
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
+enable_discussions = false
 discussion_number = 26
 discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 +++
