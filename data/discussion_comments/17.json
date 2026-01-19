@@ -16,6 +16,7 @@
       "bodyHTML": "<p dir=\"auto\">Test</p>",
       "createdAt": "2026-01-18T23:23:14Z",
       "updatedAt": "2026-01-18T23:23:14Z",
+      "url": "https://github.com/developmeh/developmeh.github.io/discussions/17#discussioncomment-15533379",
       "replies": {
         "nodes": [
           {
@@ -27,7 +28,8 @@
             },
             "bodyHTML": "<p dir=\"auto\">reply test</p>",
             "createdAt": "2026-01-18T23:23:24Z",
-            "updatedAt": "2026-01-18T23:23:24Z"
+            "updatedAt": "2026-01-18T23:23:24Z",
+            "url": "https://github.com/developmeh/developmeh.github.io/discussions/17#discussioncomment-15533381"
           }
         ]
       }
