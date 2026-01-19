@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  margin:$baseline 0;
+  margin: 0;
   font-size:$font-size;
   font-family:$font-family;
   line-height: $line-height;
@@ -125,7 +125,7 @@ nav {
   display: flex;
   flex-direction: column;
   height: 92vh;
-  top:$baseline;
+  top: calc(#{$baseline} * 1.5);
   left:$baseline;
   bottom: $baseline;
   padding-right: $baseline;
@@ -350,6 +350,14 @@ article {
 
 
 @media screen and (max-width: 1023px) {
+  .home-layout {
+    flex-direction: column;
+  }
+
+  .hero-section {
+    flex-direction: column;
+    text-align: center;
+  }
 
   main {
     flex-flow: column nowrap;
@@ -448,22 +456,62 @@ blockquote {
 }
 
 .hero-section {
-  padding: calc(#{$baseline} * 2) 0;
+  padding: calc(#{$baseline} * 1.5) $baseline;
   border-bottom: 1px solid rgba($color, 0.2);
   margin-bottom: calc(#{$baseline} * 2);
+  box-shadow: -4px -4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: $baseline;
+
+  .hero-logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid $nav-top-color;
+  }
+
+  .hero-content {
+    flex: 1;
+  }
 
   h2 {
     font-size: 2.5rem;
-    margin-top: 0;
+    margin: 0;
     color: $nav-top-color;
+    border: none;
+    background: transparent;
   }
 
   .subtitle {
     font-style: italic;
     font-size: 1.25rem;
     color: $sub-nav-color;
-    margin-bottom: $baseline;
+    margin-bottom: calc(#{$baseline} / 2);
   }
+
+  p {
+    margin: 0;
+  }
+}
+
+.home-layout {
+  display: flex;
+  gap: calc(#{$baseline} * 2);
+
+  .main-column {
+    flex: 2;
+  }
+
+  .side-column {
+    flex: 1;
+  }
+}
+
+.github-link-icon {
+  vertical-align: middle;
+  margin-right: 0.5rem;
+  opacity: 0.8;
 }
 
 .card-stack {

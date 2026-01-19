@@ -135,15 +135,18 @@ function debounce(func, wait) {
   function toggleSearchMode() {
     var $wrapContent = document.querySelector("#wrap");
     var $searchIcon = document.querySelector("#search-ico");
+    var $searchText = document.querySelector(".search-text");
     var $searchContainer = document.querySelector(".search-container");
     if ($searchContainer.classList.contains("search-container--is-visible")) {
       $searchContainer.classList.remove("search-container--is-visible");
       $wrapContent.style.display = "";
       $searchIcon.className = "ms-Icon--Search";
+      if ($searchText) $searchText.innerText = "Search";
     } else {
       $searchContainer.classList.add("search-container--is-visible");
       $wrapContent.style.display = "none";
       $searchIcon.className = "ms-Icon--ChromeClose";
+      if ($searchText) $searchText.innerText = "Close";
       document.getElementById("search").focus();
     }
   }
@@ -153,8 +156,8 @@ function debounce(func, wait) {
     if (!$searchInput) {
       return;
     }
-    var $searchIcon = document.querySelector("#search-ico");
-    $searchIcon.addEventListener("click", toggleSearchMode);
+    var $searchTrigger = document.getElementById("nav-search") || document.querySelector("#search-ico");
+    $searchTrigger.addEventListener("click", toggleSearchMode);
   
     var $searchResults = document.querySelector(".search-results");
     var $searchResultsHeader = document.querySelector(".search-results__header");

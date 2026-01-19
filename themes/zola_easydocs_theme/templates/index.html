@@ -159,6 +159,12 @@
                     </ul>
                 {% endfor -%}
             </div>
+            {% if config.build_search_index -%}
+                <div id="nav-search">
+                    <span id="search-ico" class="ms-Icon--Search"></span>
+                    <span class="search-text">Search</span>
+                </div>
+            {% endif -%}
             <footer>Copyright: Paul Scarrone {{ now() | date(format="%Y") }}</footer>
         </nav>
     {% endblock nav -%}
@@ -166,9 +172,6 @@
     <article>
 
         {% if config.build_search_index -%}
-            <div id="on_right">
-                <span id="search-ico" class="ms-Icon--Search"></span>
-            </div>
             <div class="search-container">
                 <input id="search" type="search" placeholder="Search as you type...">
                 <div class="search-results">
