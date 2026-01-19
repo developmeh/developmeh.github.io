@@ -24,6 +24,8 @@ Though in some ways I am talking about giving every internet connected person a 
 
 ## DevLog
 
+<div class="devlog-entry">
+
 ## 14 07 2025
 ### Just build binaries
 
@@ -39,6 +41,10 @@ Well thats the nature of the project and I want it to be plug-able. Injecting th
 
 So keep an eye out for that.
 
+</div>
+
+<div class="devlog-entry">
+
 ## 13 07 2025
 ### Everything is a stream
 
@@ -46,10 +52,14 @@ With ths shutdown of Pocket I started thinking about the Krappy Internet project
 
 At some level every idea distills back to persistent identity and that then conflicts with the need for anonyminity. There is probably a simple problem here, we don't generally index items without identity. Those naturally become live streams and maybe grouping by event and time like timeseries data like a human telemetry platform is interesting.
 
+</div>
+
 <!-- ## 06 07 2025
 ### Decentralized advertising
 
 So one of the things I find frustrating where I live is the amount of effort it takes to find interesting activities to attend. So it got me thinking how we could have something like a marketplace without having a central marketplace. Recently I have been playing with LoRa and meshtastic which is an interesting platform that I expect could be extended for things like this. When I think of centralization I think of history but that doesn't mean there is some special ownership. With commodity hardward its would be possible to hand off information about activities and offers. Assuming a critical mass of devices there is no reason to believe that a buisness would be unable to effictively distribute info to its customer base. Clearly, this is about shrinking the userbase while providing a similar level of visibility. When I think back to something similar -->
+
+<div class="devlog-entry">
 
 ## 21 06 2025
 ### OpenTelemetry and the question of ditching logs
@@ -65,6 +75,10 @@ So the short answer, yes there should be something easier than Jaeger and ELK lo
 When you are in a tool like Goland or IntelliJ, you can have it add something more akin to logs at tracepoints so you don't have to stop on those or modify your code. Where GDB is powerful is it works on your binaries but language level tools work on the runtime code.
 
 Expect more about a lightweight OTEL tracer for exploring traces locally too.
+
+</div>
+
+<div class="devlog-entry">
 
 ## 15 06 2025
 ### WebRTC and what not to ask AI to do
@@ -87,6 +101,10 @@ So in the end I got some joy from the LLM with WebRTC but I kinda had to treat i
 
 As this is part of the bigger [Krappy-Internet](https://sr.ht/~ninjapanzer/krappy_internet/) project I then used this poc to try and fix its previous failed implementation. But clearly there is a conceptual block for how the LLM deals with network debugging that it couldn't take a working version and use it to fix a broken version. I did learn something in the process but if this was an actual work activity I would have been stressed, instead of just killing time between blog posts on a rainy Sunday.
 
+</div>
+
+<div class="devlog-entry">
+
 ## 14 06 2025
 ### WebRTC, NAT Traversals, and American Manufacturing
 
@@ -99,6 +117,10 @@ Probably the reason its a crazy idea in fact is everything about this rolls back
 __Simpler__, is probably very subjective but I can see a mechanism around this course work in this project that makes this all a daemon.
 
 In some way this has become a diatribe on why we can't build anything in America. Its because we assume that all items need to be produced at a scale to buy at a Lowes. I think consumer expectations for products is they should be complicated but I think we should start looking back to the items we find at thrift stores. The modality should start to wander towards, "I want to make a good X" not so much "I need a new solutions for X". But thats just my opinion in reality.
+
+</div>
+
+<div class="devlog-entry">
 
 ## 08 06 2025
 ### Krappy Internet Dynamic Dns and Hosting at Home
@@ -125,3 +147,5 @@ So back to the point, you own some internet property and with the help of some k
 A user comes along and wants to leave a comment on your site. It makes a call to the comment service you run on your laptop and the client making the request knows what service it wants to interact with finding the correct .well-known and thus collecting an IP address. Next the tricky part, we have to trick your ISP to accept an incoming connection without an outbound call. Thats the whole NAT thing, probably utilizing something like [https://en.wikipedia.org/wiki/Hole_punching_(networking)](https://git.sr.ht/~ninjapanzer/krappy-dyndns). So your laptop will also host this service on your IP and allow for some underlying protocol like WebRTC to allow the initial transaction and boom the comment has been sent. Now, this is an internet that isn't trying to waste your time, so we take the comment and after its moderated we write it once back to our free hosting and if our laptop gets turned off for the night, who cares, people just cant leave a comment but the imporant stuff stays there. I mean they could always just send an email too.
 
 Just one step in this crazy plan complete this week and another piece of the Krappy Internet is available.
+
+</div>

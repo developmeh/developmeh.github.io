@@ -67,6 +67,8 @@ A persistent connection multiplexing TCP protocol server library. Since everythi
 
 ## DevLog
 
+<div class="devlog-entry">
+
 ### 24 02 2025
 #### Working around the browser
 So one of the challenges of making a side-channel connection to the krappy internet is through a proxy. I don't really see the need to try and forklift the world of current browsers. The plan for this is to create an extension that loads a WASM module wrapping a webrtc data channel. This way I can maintain a socket like stream to another client that is not restricted by the rules of the browser. I can then establish a TCP or QUIC connection to the content tree.
@@ -78,6 +80,10 @@ It will also be much harder to destroy content as any page that changes can be r
 Dreaming dreams.
 
 For now I am planning on building a PoC from https://github.com/pion/webrtc which will then be compile to WASM and connected to a proxy server.
+
+</div>
+
+<div class="devlog-entry">
 
 ### 11 02 2025
 #### An Ideal World
@@ -91,11 +97,19 @@ It's not an X or Y kind of situation, personally hosted lives alongside the gian
 
 An idealistic view of a future state that still requires a lot of work.
 
+</div>
+
+<div class="devlog-entry">
+
 ### 06 02 2025
 #### Getting over the Browser
 So recently I came to this understanding of the nature of the Modern OS, which includes the web browser. So there are really two ways to go. Create a new browser using an open source project or build a side-channel daemon.
 
 I rather like the daemon concept because getting something integrated and deployed into a bespoke browser build is going to be an unlikely way to get someone to use something.
+
+</div>
+
+<div class="devlog-entry">
 
 ### 29 01 2025
 #### Building a TCP server Library
@@ -106,3 +120,5 @@ The challenge is making sure that connection management happens as we expect. Si
 From here we move to the Content Linker, in something like a WoT (Web of Trust) model we want to allow content registration for trust. While we want to allow anonymous users to contribute whatever they want we also want content to have a machine like identity. The hope is to promote that content linking is how we establish a chain of custody for truth. User provided consensus then helps to build this trust. This means that content from public identities doesn't have to join a web of trust. Its just available and as it gains consensus the trust of that content is improved as authoritative.
 
 A good model would be wikipedia, Content can be copied and modified but its moderation is the responsibility of the whole. While this doesn't mean that mistruth is evicted, it means that it will often be short lived and even hard to find. Burrying is not something you can effectively pay for but the community can dimish the impact of garbage so much it may never be seen. There are going to need to be some algorithms to help address cheating here but this is the resonsibility of the consumer. The content model is just a weighted data store. You look at whatever you want albeit the model will promote some decisions.
+
+</div>

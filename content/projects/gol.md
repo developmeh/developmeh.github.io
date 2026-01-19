@@ -37,6 +37,8 @@ Heredity, try and see if I can trace the lineage of a cell through this process 
 
 ## DevLog
 
+<div class="devlog-entry">
+
 ### 21 01 2025
 #### Debugging stats
 
@@ -114,6 +116,10 @@ I was really making goncurses do too much work. The solution to erratic renderin
 
 There is still a condition where we might write cells over the stats but its good enough.
 
+</div>
+
+<div class="devlog-entry">
+
 ### 20 01 2025
 #### Stats
 
@@ -123,6 +129,10 @@ __TODO__ Provide some change / second stats related to rendering.
 
 The next phase is to build a more rational renderer in SDL. Ncurses is fine when doing simple displays or text overlays. But high fidelity renders require some ASICS and even using garbage built in graphics hardware acceleration will provide a better experience, and it will be a little fun.
 
+</div>
+
+<div class="devlog-entry">
+
 ### 19 01 2025
 #### Profiling
 
@@ -131,6 +141,10 @@ What I have learned is that for the best effect in rendering we need to set some
 I found that profiling in golang is a little weak, as a beginner. I am more familiar with executing any binary observed by a profiler. In Goland at least it prefers to only execute profiling during tests. Which promotes testing and atomic profiling. But I haven't gotten to test design for this PoC yet and goncurses introduces its own challenge when running any code that requires a terminal. Again this is mostly a goland issue.
 
 The solution I found was to execute my test with profiling and then move the command that goland generated to a new terminal that goncurses would support and open the pprof it generated in Goland. I think the real fix here is to :TODO: check if the terminal is supporte by goland and skip window generation if its not. While this impacts performance around goncurses rendering it will at least allow me to focus on where my own code is non-performant.
+
+</div>
+
+<div class="devlog-entry">
 
 ### 15 01 2025
 #### Getting Started
@@ -238,3 +252,5 @@ func (w *Window) NoutRefresh() {
 ```
 
 Thus we can create a render loop in our main function that only calls __Update__ on the __Screen__. As I mentioned before this means not every update is rendered and we get a smooth but not very organic rendering. There is also no clear a redraw we are progressively updating the display and accumulating writes. If you have worked in a rendering engine before you may be aware of the render loop that broadcasts a tick to all components and then draws the accumulated changes to screen. The smoothness of such renderings is based on the rate of change in distance. Our eye does a good job of building the motion between near states but not so good when the distance is rather far.
+
+</div>

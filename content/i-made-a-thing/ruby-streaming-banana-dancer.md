@@ -38,6 +38,8 @@ Hope your keyboard’s ready for some dancing fun! 🍌🕺🎵
 
 ## DevLog
 
+<div class="devlog-entry">
+
 ### 31 01 2025
 #### Beating Nix
 
@@ -127,6 +129,10 @@ _Content-Type_ text/event-stream is the magic bullet which hints to the proxy th
 
 _Transfer-Encoding_ "chunked" makes sure we send a full block at a time. Since I flush on each image presented each write is a chunk.
 
+</div>
+
+<div class="devlog-entry">
+
 ### 27 01 2025
 #### Nix and planning for ruby streaming
 
@@ -149,3 +155,5 @@ With ruby we tend to bundle within the docker image creation. That is where this
 ![xkcd compiling](../compiling.png)
 
 Sorry guys, gotta keep working now
+
+</div>
