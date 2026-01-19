@@ -3,6 +3,7 @@ title = "Distributed Game of Life"
 template = "page.html"
 date = 2025-01-21
 updated = 2025-01-21
+[extra]
 discussion_number = 23
 discussion_url = "https://github.com/orgs/developmeh/discussions/23"
 +++

@@ -1,3 +1,13 @@
+// Terminal Palette (ANSI-inspired)
+$term-black: #000000;
+$term-red: #e74c3c;     // Using existing danger color
+$term-green: #2ecc71;   // Using existing success color
+$term-yellow: #f1c40f;  // Using existing warning color
+$term-blue: #3498db;    // Using existing info color
+$term-magenta: #9b59b6;
+$term-cyan: #1abc9c;
+$term-white: #ecf0f1;
+
 $baseline: 1.5rem;
 
 $background:#0f110c;

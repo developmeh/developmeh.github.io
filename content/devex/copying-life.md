@@ -5,6 +5,7 @@ weight = 1
 draft = false
 date = 2025-07-13
 updated = 2025-07-13
+[extra]
 discussion_number = 30
 discussion_url = "https://github.com/orgs/developmeh/discussions/30"
 +++
