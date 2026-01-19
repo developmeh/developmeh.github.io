@@ -5,7 +5,7 @@
 
 {% block content %}
     {# Discussion nav link at top #}
-    {% if page.extra.discussion_url %}
+    {% if page.extra.discussion_url and page.extra.enable_discussions != false %}
         <div class="discussion-nav">
             <a href="{{ page.extra.discussion_url }}" target="_blank" rel="noopener" class="discussion-link">
                 <svg class="github-logo" height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
@@ -18,10 +18,10 @@
 
     {{ page.content | safe }}
 
-    {# Always show discussion section if discussion_url exists #}
-    {% if page.extra.discussion_url %}
+    {# Always show discussion section if discussion_url exists and not explicitly disabled #}
+    {% if page.extra.discussion_url and page.extra.enable_discussions != false %}
         {# Try to load discussion data if available #}
-        {% if page.extra.enable_discussions and page.extra.discussion_number %}
+        {% if page.extra.discussion_number %}
             {% set discussion_number = page.extra.discussion_number %}
             {% set comment_file = "data/discussion_comments/" ~ discussion_number ~ ".json" %}
             {% set discussion_data = load_data(path=comment_file) %}

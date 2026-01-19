@@ -453,7 +453,7 @@ setup_repo_vars() {
   [ "$reply_count" = "1" ]
 }
 
-# Test: Script skips pages without enable_discussions
+# Test: Script skips pages with enable_discussions=false
 @test "process_markdown_file skips page with enable_discussions=false" {
   local test_file=$(create_test_page "disabled-article.md" "false" "false" "" "Disabled Article")
 
@@ -462,10 +462,35 @@ setup_repo_vars() {
   run process_markdown_file "$test_file" discussions_map
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Skipping (discussions not enabled)"* ]]
+  [[ "$output" == *"Skipping (discussions explicitly disabled)"* ]]
 
   # Verify no discussion_number was added
   ! grep -q 'discussion_number' "$test_file"
+}
+
+# Test: Script processes pages without enable_discussions (opt-in by default)
+@test "process_markdown_file processes page without enable_discussions (opt-in by default)" {
+  local test_file="$TEST_CONTENT_DIR/no-enable-field.md"
+  cat > "$test_file" <<EOF
++++
+title = "No Enable Field"
+date = 2025-01-18
+draft = false
+[extra]
+desc = "A test article without enable_discussions field"
++++
+
+This is test content.
+EOF
+
+  setup_repo_vars
+  declare -A discussions_map
+
+  run process_markdown_file "$test_file" discussions_map
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Creating discussion for: No Enable Field"* ]]
+  grep -q 'discussion_number = 1' "$test_file"
 }
 
 # Test: Script skips draft pages

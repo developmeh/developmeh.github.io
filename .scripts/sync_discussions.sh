@@ -340,8 +340,8 @@ process_markdown_file() {
 
   # Check if discussions enabled
   local enabled=$(get_frontmatter_value "$file" ".extra.enable_discussions")
-  if [[ "$enabled" != "true" ]]; then
-    log_info "  Skipping (discussions not enabled)"
+  if [[ "$enabled" == "false" ]]; then
+    log_info "  Skipping (discussions explicitly disabled)"
     return
   fi
 
