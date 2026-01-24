@@ -129,10 +129,6 @@ But identifying success? Knowing if the plan was actually *good*?
 
 That part wasn't easy at all.
 
-## So We're Back to Waterfall?
-
-Nope. Not even close. Try again.
-
 I hear all the time that effective LLM use for code gen is about planning everything. Small tasks. Tool construction.
 
 Better to see it like this:
@@ -142,8 +138,6 @@ Better to see it like this:
 The practices that don't *seem* to save time—writing focused functions, documenting intent, structuring code into discrete responsibilities—those are exactly what make AI augmentation work.
 
 The model can't navigate a tangled mess of god objects and hidden dependencies any better than a new human teammate can. But give it a clean interface, a well-defined problem, and examples of the pattern you want? It'll predict something useful.
-
-Consider this: the future of the model's success in this field is DevEx. Or maybe LLMEx. If we step up the abstraction tree away from libraries and into tools that are artifacts, it's like playing a civilization sim—research "hammers" so your meeples can get hammers, part of a skill tree where you need hammers to make swords.
 
 Generally asking the LLM to do the work is the wrong solution. It's kind of meh at it. But building tools that are small and composable so it can be the orchestration engine? Now you might have something. If the tool is small enough, maybe it can even build it.
 
