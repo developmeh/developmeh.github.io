@@ -8,6 +8,8 @@ updated = 2026-01-27
 [extra]
 desc = "Taming LLM non-determinism through structured workflows, task tracking with Beads, and memory management strategies for more predictable AI-assisted development"
 keywords = "LLM, AI agents, non-determinism, task tracking, Beads, Claude Code, agentic workflows, context management, Kubernetes, DevOps, AI orchestration"
+discussion_number = 43
+discussion_url = "https://github.com/orgs/developmeh/discussions/43"
 +++
 
 ## The Nature of Non-Determinism with LLMs
