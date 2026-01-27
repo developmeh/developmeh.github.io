@@ -75,6 +75,8 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Articles</h3>
 
+- [A Deterministic Box for Non-Deterministic Engines](/tech-dives/a-deterministic-box-for-non-deterministic-engines)
+- [Claude or Clod](/soft-wares/claude-or-clod)
 - [The Magic of Stubbing sh](/i-made-a-thing/the-magic-of-stubbing-sh)
 - [Sufficient Complexity](/soft-wares/sufficient-complexity)
 - [Do Devs Really Do DevOps in your Org?](/soft-wares/do-devs-really-do-devops)
