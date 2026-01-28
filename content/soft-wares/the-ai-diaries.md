@@ -2,7 +2,7 @@
 title = "The AI Diaries"
 template = "page.html"
 weight = 0
-draft = true
+draft = false
 slug = "ai-diaries"
 date = 2026-01-19
 updated = 2026-01-27
