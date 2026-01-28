@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2025-07-14
+updated = 2026-01-27
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 enable_discussions = false
@@ -51,6 +51,8 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Devlogs</h3>
 
+- [27-01-2026 The AI Diaries (Throughput over Precision)](/soft-wares/ai-diaries#27-01-2026)
+- [20-01-2026 The AI Diaries (AI-generated Code Debt)](/soft-wares/ai-diaries#20-01-2026)
 - [14-07-2025 This Week's Crazy Idea (Just build binaries)](/i-made-a-thing/this-weeks-crazy#14-07-2025)
 - [13-07-2025 This Week's Crazy Idea (Everything is a Stream)](/i-made-a-thing/this-weeks-crazy#13-07-2025)
 - [21-06-2025 This Week's Crazy Idea (OpenTelemetry and the question of ditching logs)](/i-made-a-thing/this-weeks-crazy#21-06-2025)
