@@ -5,7 +5,7 @@ weight = 0
 draft = false
 slug = "ai-diaries"
 date = 2026-01-19
-updated = 2026-01-27
+updated = 2026-01-28
 [extra]
 desc = "Anecdotes and observations from working with AI coding tools - the hype, the reality, and the debt"
 keywords = "AI, coding tools, developer experience, code quality, technical debt"
@@ -20,6 +20,16 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 
 
 ## DevLog
+
+<div class="devlog-entry">
+
+## 28 01 2026
+
+I gotta admit there is one thing about using AI coding tools that continues to be true no matter how much I try and constrain the model's failures I generally get similar results. If I don't know exactly what I want it to do and can provide a complex enough context the results will be that of an "Eager Intern" meaning I will get results that I didn't expect and when there were obvious places where the model should have stopped and asked questions it failed. I suspect that the model architecture was trained to focus more on task completion than task accuracy. I have a few times been able to get various agents to "give up" and tell me to try again. Of those Junie definitely does this and doesn't waste my time. Claude-Code though is too appeasing, it closes tasks without verification even when prompted to verify their work. Even with orchestration of multiple agents with fresh contexts, asking to build an app that isn't a todo-list will fail. This benefits the sale of coding tools, during evaluation it impresses with the ability to construct simple things but falls over when complex solutions are required. When I say complex I mean those that are generally novel or require doing interactions over APIs. It commonly produces boilerplate which I think is by design to influence the numbers for LoC for code generation stats. But insidiously, it is also there to obscure the solution it introduces.
+
+A clear sign of AI code generation is bloat and intentional omissions. As of yet the only way I have found to avoid this omissions is to have the model show its work and put it in the clear view of me. So I can set it on a task and watch its completion, then ask it to review the goals and try again. This clearly sucks and I can introduce tools to guide it away from the problem but that's just a bad tool not something that is going to change the nature of my job. It is on the other hand an insult to my 20 year career and all the juniors that are unable to get a job because there is an assumption that if we just "trust me bro" enough it will work.
+
+</div>
 
 <div class="devlog-entry">
 
