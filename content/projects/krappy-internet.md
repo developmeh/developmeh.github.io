@@ -69,6 +69,18 @@ A persistent connection multiplexing TCP protocol server library. Since everythi
 
 <div class="devlog-entry">
 
+### 02 02 2026
+#### WASM is the way in
+Something that has become clear is that with the introduction of WASM my desire to move on from webapps and browser experiences that expand past HTTP has become more common. I see a future where content is delivered from central sources and interactions are handled with decentralized networks. I keep thinking that the problem is its all or nothing when it comes to tool like TOR and I2P.
+
+Thinking about what the internet is quite good at its linking documents and even if some of the major search engine players are failing at delivering valuable content, the content is stable and addressable.
+
+Clearly, if the debacle with Cursor trying to build a new browser building browsers is hard and we probably need to take another stab at browser extensions. Locking down the browser was once necessary in the days of IE but now we can provide actual functionality that is quite interesting and doesn't require and evolution in JavaScript to accomplish. WASM gives me complex tools and introduces them to the internet operating system of the browser.
+
+</div>
+
+<div class="devlog-entry">
+
 ### 24 02 2025
 #### Working around the browser
 So one of the challenges of making a side-channel connection to the krappy internet is through a proxy. I don't really see the need to try and forklift the world of current browsers. The plan for this is to create an extension that loads a WASM module wrapping a webrtc data channel. This way I can maintain a socket like stream to another client that is not restricted by the rules of the browser. I can then establish a TCP or QUIC connection to the content tree.
