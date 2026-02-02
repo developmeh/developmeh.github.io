@@ -23,9 +23,21 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 
 <div class="devlog-entry">
 
+## 02 02 2026
+
+On Sunday I spent some more considerable time building something dumb and noticed something interesting. While I had observed this before this was formal confirmation because I was able to encounter the same issue across multiple models. While I don't know what is the common source for coding training data but as a person who makes programs that do specifc non-business tasks it seems clear that all the models I have worked on so far don't know how to make a browser extension. Add it to the list of things like webrtc but in this case understanding Manifest v2 vs v3 is always a challenge. In most cases my usage for LLMs is to help get me past the hump of a new technology, traditionally if I know a technology I write the code myself. I have built a number of extensions with various LLMs and they always get trapped on CSP and manifest considerations. They also don't seem to understand anything about how the browser works outside the spec. An extension has to follow a bunch of rules that are bespoke to the application but these are unknown to the models training it would seem.
+
+But $10 to build an HLS extractor is pretty cool.
+
+</div>
+
+<div class="devlog-entry">
+
 ## 30 01 2026
 
-Success with coding agents is as expected completely bound to the quality of the model used. So much of how the agent works is dependent on the model architecture very little configuration work built for Claude will say work with Quen. But outside of foundation models tool use is quite limited for comodity hardware.
+Success with coding agents is as expected completely bound to the quality of the model used. So much of how the agent works is dependent on the model architecture very little configuration work built for Claude will say work with Quen. But outside of foundation models tool use is quite limited for comodity hardware. Having taken a stab this weekend across a number of different models I can confirm that models focused on a task perform better than generalized foundation models.
+
+A great example of this is a comparison of MiniMax and Qwen2.5 Coder vs Claude code. The tools are so completely similar that it really raised the differences between the models. One of the things that Claude Code has going for it is the user experience, its quite tight. But it also leads to some Apple like resistence. On the other hand Open code as a tool did all the same things sans agent generation skills but being able to switch between models was critical. I would use MiniMax2.5 for coding in one terminal and then Qwen or something smaller on a local machine. It was totally reasonable to have a cloud model doing the heavy lifting and a local model doing code reviews or writing comments.
 
 </div>
 
