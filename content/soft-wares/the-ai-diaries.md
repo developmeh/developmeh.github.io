@@ -5,7 +5,7 @@ weight = 0
 draft = false
 slug = "ai-diaries"
 date = 2026-01-19
-updated = 2026-01-28
+updated = 2026-01-30
 [extra]
 desc = "Anecdotes and observations from working with AI coding tools - the hype, the reality, and the debt"
 keywords = "AI, coding tools, developer experience, code quality, technical debt"
@@ -20,6 +20,14 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 
 
 ## DevLog
+
+<div class="devlog-entry">
+
+## 30 01 2026
+
+Success with coding agents is as expected completely bound to the quality of the model used. So much of how the agent works is dependent on the model architecture very little configuration work built for Claude will say work with Quen. But outside of foundation models tool use is quite limited for comodity hardware.
+
+</div>
 
 <div class="devlog-entry">
 
