@@ -12,7 +12,7 @@ enable_discussions = true
 
 **Remember that dancing Ruby banana?** 🍌
 
-Well, I couldn't help myself. After building the [Ruby version with chunked transfer encoding](../ruby-streaming-banana-dancer), I started wondering: what if we explored the *other* way to stream data to browsers and terminals? Enter the Rust implementation using Server-Sent Events.
+Well, I couldn't help myself. After building the [Ruby version with chunked transfer encoding](/i-made-a-thing/ruby-streaming-banana-dancer/), I started wondering: what if we explored the *other* way to stream data to browsers and terminals? Enter the Rust implementation using Server-Sent Events.
 
 Yeah, I rewrote it in Rust. With SSE.
 
@@ -128,7 +128,7 @@ For this project, SSE won because I wanted both curl *and* browser support witho
 
 <div class="devlog-entry">
 
-### 02 02 2026
+### 02 02 2026 1
 #### Rust's Async Streams: The Good Parts
 
 Coming from Ruby's Sinatra with its simple `stream` block, I expected Rust to be painful. It wasn't.
@@ -227,7 +227,7 @@ This works, but it's runtime overhead, potential I/O errors, and requires the fi
 
 <div class="devlog-entry">
 
-### 02 01 2026
+### 01 02 2026 1
 #### Nix for Rust: Less Painful Than Ruby
 
 After fighting Nix for the Ruby version's gem dependencies, Rust was refreshing:

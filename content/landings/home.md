@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-01-28
+updated = 2026-02-02
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 enable_discussions = false
@@ -51,6 +51,10 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Devlogs</h3>
 
+- [02-02-2026 Rust Dancing Banana (SSE vs Chunked Encoding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026)
+- [02-02-2026 Rust Dancing Banana (Rust's Async Streams)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026-1)
+- [01-02-2026 Rust Dancing Banana (Compile-Time Frame Embedding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#01-02-2026)
+- [01-02-2026 Rust Dancing Banana (Nix for Rust)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#01-02-2026-1)
 - [28-01-2026 The AI Diaries (Eager Intern Problem)](/soft-wares/ai-diaries#28-01-2026)
 - [27-01-2026 The AI Diaries (Throughput over Precision)](/soft-wares/ai-diaries#27-01-2026)
 - [20-01-2026 The AI Diaries (AI-generated Code Debt)](/soft-wares/ai-diaries#20-01-2026)
@@ -78,6 +82,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Articles</h3>
 
+- [Rust Dancing ANSI Banana with Server-Sent Events](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events)
 - [A Deterministic Box for Non-Deterministic Engines](/tech-dives/a-deterministic-box-for-non-deterministic-engines)
 - [Claude or Clod](/soft-wares/claude-or-clod)
 - [The Magic of Stubbing sh](/i-made-a-thing/the-magic-of-stubbing-sh)
