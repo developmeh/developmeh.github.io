@@ -8,6 +8,8 @@ updated = 2026-02-02
 desc = "A Rust implementation of the dancing banana using Server-Sent Events (SSE) instead of chunked transfer encoding"
 keywords = "rust, curl, sse, server-sent events, streaming, command-line, actix-web"
 enable_discussions = true
+discussion_number = 44
+discussion_url = "https://github.com/orgs/developmeh/discussions/44"
 +++
 
 **Remember that dancing Ruby banana?** 🍌
