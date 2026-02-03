@@ -23,6 +23,26 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 
 <div class="devlog-entry">
 
+## 02 03 2026
+
+This is just a thought process I go through with LLM generated code...
+
+> OK, I can produce more code than I reasonably can keep track of in a single session, which means there is always going to be some code I didn't read.
+
+> OK, I can always produce and keep in sync documentation about the code that is produced, ADRs and design docs. But if they are too long no one will read them. But at least there is some consumable record.
+
+Kinda like a factory maybe stamping widgets, because this model of writing all the code all the time seems a little odd. I should be writing less code and there should be more shared code. If the produce is the feature and the speed to market is what matters then the cost for encapsulation should go down. Modern products will end up as composable licensable modules.
+
+This is kind of the path that infrastructure took, so why not product. Think about it, if we can remove the human ego from deciding on a solution then any solution is good as long as it can be wired into the product.
+
+If code gen is expensive its better to reduce the work and just contribute to open source.
+
+I might have lost you there but hear me out:
+
+<div>
+
+<div class="devlog-entry">
+
 ## 02 02 2026
 
 On Sunday I spent some more considerable time building something dumb and noticed something interesting. While I had observed this before this was formal confirmation because I was able to encounter the same issue across multiple models. While I don't know what is the common source for coding training data but as a person who makes programs that do specifc non-business tasks it seems clear that all the models I have worked on so far don't know how to make a browser extension. Add it to the list of things like webrtc but in this case understanding Manifest v2 vs v3 is always a challenge. In most cases my usage for LLMs is to help get me past the hump of a new technology, traditionally if I know a technology I write the code myself. I have built a number of extensions with various LLMs and they always get trapped on CSP and manifest considerations. They also don't seem to understand anything about how the browser works outside the spec. An extension has to follow a bunch of rules that are bespoke to the application but these are unknown to the models training it would seem.
