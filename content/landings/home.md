@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-02-02
+updated = 2026-02-03
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 enable_discussions = false
@@ -51,6 +51,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Devlogs</h3>
 
+- [03-02-2026 The AI Diaries (Composable Code Future)](/soft-wares/ai-diaries#02-03-2026)
 - [02-02-2026 Rust Dancing Banana (SSE vs Chunked Encoding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026)
 - [02-02-2026 Rust Dancing Banana (Rust's Async Streams)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026-1)
 - [01-02-2026 Rust Dancing Banana (Compile-Time Frame Embedding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#01-02-2026)
@@ -82,6 +83,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Articles</h3>
 
+- [Just Forget About Owning Code](/soft-wares/just-forget-about-owning-code)
 - [Rust Dancing ANSI Banana with Server-Sent Events](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events)
 - [A Deterministic Box for Non-Deterministic Engines](/tech-dives/a-deterministic-box-for-non-deterministic-engines)
 - [Claude or Clod](/soft-wares/claude-or-clod)

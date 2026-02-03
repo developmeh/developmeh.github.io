@@ -5,7 +5,7 @@ weight = 0
 draft = false
 slug = "ai-diaries"
 date = 2026-01-19
-updated = 2026-01-30
+updated = 2026-02-03
 [extra]
 desc = "Anecdotes and observations from working with AI coding tools - the hype, the reality, and the debt"
 keywords = "AI, coding tools, developer experience, code quality, technical debt"
@@ -31,15 +31,15 @@ This is just a thought process I go through with LLM generated code...
 
 > OK, I can always produce and keep in sync documentation about the code that is produced, ADRs and design docs. But if they are too long no one will read them. But at least there is some consumable record.
 
-Kinda like a factory maybe stamping widgets, because this model of writing all the code all the time seems a little odd. I should be writing less code and there should be more shared code. If the produce is the feature and the speed to market is what matters then the cost for encapsulation should go down. Modern products will end up as composable licensable modules.
+Kinda like a factory maybe stamping widgets, because this model of writing all the code all the time seems a little odd. I should be writing less code and there should be more shared code. If the product is the feature and the speed to market is what matters then the cost for encapsulation should go down. Modern products will end up as composable licensable modules.
 
 This is kind of the path that infrastructure took, so why not product. Think about it, if we can remove the human ego from deciding on a solution then any solution is good as long as it can be wired into the product.
 
-If code gen is expensive its better to reduce the work and just contribute to open source.
+If code gen is expensive it's better to reduce the work and just contribute to open source.
 
-I might have lost you there but hear me out:
+I might have lost you there but hear me out: [Just Forget About Owning Code](/soft-wares/just-forget-about-owning-code)
 
-<div>
+</div>
 
 <div class="devlog-entry">
 
