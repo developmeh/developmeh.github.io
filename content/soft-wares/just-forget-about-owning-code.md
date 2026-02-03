@@ -10,7 +10,7 @@ desc = "LLMs and the death of bespoke code - why we should embrace composable, s
 keywords = "LLMs, code ownership, open source, software architecture, FOSS, enshittification"
 +++
 
-![The future is FOSS](/soft-wares/0204crcv.jpeg)
+<img src="/soft-wares/0204crcv.jpeg" alt="The future is FOSS" style="width: 100%; height: 600px; object-fit: cover; object-position: center calc(20% + 50px);">
 
 ## Just Forget About Owning Code
 ### Why keep making versions of the same thing?
