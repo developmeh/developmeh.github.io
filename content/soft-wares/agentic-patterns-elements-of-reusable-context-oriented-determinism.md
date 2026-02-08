@@ -16,6 +16,9 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/46"
 
 While not as exhaustive as the title might indicate but aligned with my focus on enforcing as much determinism as possible from any given LLM ala Article let's take a look at exploiting tool using LLMs as a process instead of as a conversation. As I posed in the linked article much of the failures we experience are related to attention and confusion which is the progressive noise we introduce as we try to convince the model to perform an action.
 
+
+What I describe below are patterns for building [A Deterministic Box for Non-Deterministic Engines](/tech-dives/a-deterministic-box-for-non-deterministic-engines/)
+
 ### Chats are an artifact
 
 This behavior of progressing the chat with multiple statements to a solution is merely an artifact of pre-tooluse models. So we the humans needed to interact with moving files and integrating code at each step while testing it became natural to turn interactions into long conversations. Ones that eventually degrade into failure loops, while surely someone has told you to just keep clearing your context and start over.
