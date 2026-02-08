@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-02-06
+updated = 2026-02-08
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 enable_discussions = false
@@ -83,6 +83,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Articles</h3>
 
+- [Keep Your Eyes on the IDE, Let the Robots Look at Tickets](/i-made-a-thing/keep-your-eyes-on-the-ide-and-your-robots-on-the-tickets)
 - [Agentic Patterns: Elements of Reusable Context-Oriented Determinism](/soft-wares/agentic-patterns-elements-of-reusable-context-oriented-determinism)
 - [Just Forget About Owning Code](/soft-wares/just-forget-about-owning-code)
 - [Rust Dancing ANSI Banana with Server-Sent Events](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events)
