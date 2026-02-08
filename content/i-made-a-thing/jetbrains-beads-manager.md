@@ -1,5 +1,5 @@
 +++
-title = "Jetbrains Beads Manager, Beads, and AI Orchestration"
+title = "Keep Your Eyes on the IDE, Let the Robots Look at Tickets"
 template = "page.html"
 weight = 1
 draft = false
@@ -10,7 +10,7 @@ desc = "Building a Jetbrains plugin for Beads, an AI agent orchestration workflo
 keywords = "Jetbrains, Beads, AI orchestration, LLM, Claude, agent workflow, IDE plugin, agentic patterns"
 +++
 
-## Jetbrains Beads Manager, Beads, and AI Orchestration
+## Keep Your Eyes on the IDE, Let the Robots Look at Tickets
 
 _Initial Scene:_
 
@@ -33,7 +33,7 @@ _New Scene:_
 
 ### The Hero's Journey
 
-As you can imagine I have been following the post transformer LLM growth for about 4-5 years at this point. I didn't understand it and I never really used it but I keep my ear to the ground. Growingly frustrated with the inability to keep the LLM on task. I mean its ignorance on my part and the tool isn't ready yet. Such is the mark of progress, things improve over time. Although I am still challenged with simple things.
+As you can imagine I have been following the post transformer LLM growth for about 4-5 years at this point. I didn't understand it and I never really used it but I keep my ear to the ground. Increasingly frustrated with the inability to keep the LLM on task. I mean its ignorance on my part and the tool isn't ready yet. Such is the mark of progress, things improve over time. Although I am still challenged with simple things.
 
 > Give me 20 variations of this prompt for as jsonl training data using X format
 
@@ -47,9 +47,9 @@ _Jump Cut:_
 
     Laptop launches out the window
 
-So that's problem one and how do we solve it? Well with a novel wrapper that counts outputs and then re-prompts to do it again. I think the call that the _Ralph Loop_, I don't, I just call it the nature of the thing.
+So that's problem one and how do we solve it? Well with a novel wrapper that counts outputs and then re-prompts to do it again. I think they call that the _Ralph Loop_, I don't, I just call it the nature of the thing.
 
-I learn later that this generally caused by ambiguity of the context. Asking for 1 item 20 times and feeding back in the previous set to avoid duplicates always works better. The teaching, the computer is dumb, don't make it think too hard and everything goes smoother.
+I learned later that this is generally caused by ambiguity of the context. Asking for 1 item 20 times and feeding back in the previous set to avoid duplicates always works better. The teaching: the computer is dumb, don't make it think too hard and everything goes smoother.
 
 Most of what is to follow is the application of [Agentic Patterns: Elements of Reusable Context-Oriented Determinism](/soft-wares/agentic-patterns-elements-of-reusable-context-oriented-determinism/)
 
@@ -57,13 +57,13 @@ Most of what is to follow is the application of [Agentic Patterns: Elements of R
 
 What beads provides is really just an idea and its worth exploring yourself: [https://github.com/steveyegge/beads](https://github.com/steveyegge/beads).
 
-It self describes as "A memory upgrade for your coding agent," which I think is arguable but it was the trigger I needed to expand my concept of what a workflow with an LLM could look like. To be honest I didn't just go "Ah Beads! Its all clear now." Instead I found this article about [Gas Town](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04) which I didn't read, thanks ADHD, and instead installed it blindly. If I was to give it a review it would be that gas town is kind of a meme of agent orchestration. Clearly, there is a lot of work put into it, but I think the author might agree that its an expression of an idea in a more artistic than practical form.
+It self describes as "A memory upgrade for your coding agent," which I think is arguable but it was the trigger I needed to expand my concept of what a workflow with an LLM could look like. To be honest I didn't just go "Ah Beads! Its all clear now." Instead I found this article about [Gas Town](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04) which I didn't read, thanks ADHD, and instead installed it blindly. If I was to give it a review it would be that Gas Town is kind of a meme of agent orchestration. Clearly, there is a lot of work put into it, but I think the author might agree that its an expression of an idea in a more artistic than practical form.
 
-But who cares, I walked back from gas town to beads, the underlying magic, in my opinion. So I describe this as a context graph, I am able to manually or with an agent LLM extract just as much focused context as I want and use it as a concrete repeatable prompt. While the same prompt doesn't get the exact response each time, the same prompt gets generally the same tool use and generally the same code is constructed. Which makes me wonder if the variability of code is so limited by its grammar restrictions that LLMs have less predictive options to bias towards.
+But who cares, I walked back from Gas Town to beads, the underlying magic, in my opinion. So I describe this as a context graph, I am able to manually or with an agent LLM extract just as much focused context as I want and use it as a concrete repeatable prompt. While the same prompt doesn't get the exact response each time, the same prompt gets generally the same tool use and generally the same code is constructed. Which makes me wonder if the variability of code is so limited by its grammar restrictions that LLMs have less predictive options to bias towards.
 
-Ok, I am gilding the lily a bit, a bead is just a bug ticket or a todo list and its a prompt that has a dependency chain. How I am using it is more like Jira for robots, that if Jira wasn't software designed for my suffering. I am able to build a feature and break down tasks then feed a path of those tasks to the agent.
+Ok, I am gilding the lily a bit, a bead is just a bug ticket or a todo list and its a prompt that has a dependency chain. How I am using it is more like Jira for robots, if Jira wasn't software designed for my suffering. I am able to build a feature and break down tasks then feed a path of those tasks to the agent.
 
-You may be asking, but why not just use markdown files or JSONL. Well because I am a human and I hate reading JSONL files, I have ADHD so if the file is longer than 10 lines it will never be fully read. Better put what you want as the last line on the bottom cause thats all I see. Point is I need to be able to monitor, tune, and track the agents. See what gas town did was have the agents self-manage. While novel, its a bit bizarre when you are trying to avoid scope creep cause LLMs love to add features.
+You may be asking, but why not just use markdown files or JSONL. Well because I am a human and I hate reading JSONL files, I have ADHD so if the file is longer than 10 lines it will never be fully read. Better put what you want as the last line on the bottom cause thats all I see. Point is I need to be able to monitor, tune, and track the agents. See what Gas Town did was have the agents self-manage. While novel, its a bit bizarre when you are trying to avoid scope creep cause LLMs love to add features.
 
 Back to the other question, why not markdown files. Well, two reasons, first they are kinda noisy, second if the LLM has to read more than the exact section of the file they are working on some ambiguity could be introduced. If you notice the agent will often scan a file 50 lines at a time if there is no index. Which means some of that ends up in its context. When we want determinism our first goal is to make sure each interaction is exactly the same prompt. This means beads is mostly an opinion and is probably not required.
 
@@ -83,7 +83,7 @@ Well that has led to this:
 
 A full management console that lets me watch the beads transition status but also let me edit and add comments.
 
-In this video we there is an experimental refinement mechanism being demonstrated, available in the current release: [Jetbrains Marketplace](https://plugins.jetbrains.com/plugin/30089-beads-manager)
+In this video there is an experimental refinement mechanism being demonstrated, available in the current release: [Jetbrains Marketplace](https://plugins.jetbrains.com/plugin/30089-beads-manager)
 
 ### The workflow
 
@@ -114,11 +114,11 @@ Your agent should now be creating issues in beads for your project. Depending on
 
 You should then review the tasks. This can be done with `bd list` and `bd show id` or use the jetbrains plugin.
 
-#### Review
+#### 2. Review
 
 So now we review the beads and expand / contract the plan asking the agent to defer tickets we are unsure about or expand others.
 
-#### Work Breakdown
+#### 3. Work Breakdown
 
 This is probably the most important part. Ask a reasoning model to review all the beads and provide implementation details for those exact tasks in the beads. The idea here is to have the agent make a big plan but instead of writing all the code write code snippets that are attached to the tasks.
 
@@ -128,7 +128,7 @@ The best way to do this is to first clear your context and ask:
 
 > Given the project overview please review bead <id> and revise to include an a single refresh flow for all data sources. Also review implementation details.
 
-#### SDLC
+#### 4. SDLC
 
 Tell the agent to now make documentation and testing tasks linking them as required to the beads that relate to them. You should end up with a layer 2 of tasks that will follow up after the implementation completes.
 
@@ -138,9 +138,9 @@ I usually then ask:
 
 If all is well the agent should create a task that it will stop and design testing with you that include acceptance criteria based on the provided use-cases.
 
-#### Burn tokens
+#### 5. Burn tokens
 
-Now we get to the more technical part. We need to delegate actions to sub agents and depending on what agent infra you use this could be built in or require manual orchestration.
+Now we get to the more technical part. We need to delegate actions to sub agents and depending on what agent infra you use this could be built-in or require manual orchestration.
 
 The command `/beads-orchestrate` [REF](https://github.com/ninjapanzer/beads-orchestration-claude/tree/master?tab=readme-ov-file#beads-orchestration) handles most of the heavy lifting.
 
@@ -154,16 +154,16 @@ For the prompt it will read the bead details along with some workflow about upda
 
 It then sleeps and waits for the sub process to finish.
 
-_Why?_ Well Claude is just a nodejs app and it eventually runs out heap space because it reads the stdout and stderr of all tasks it orchestrates internally. As a subprocess it watches its a fresh claude instance so if it fails it fails in a recoverable way. Since the prompt file is named after the bead it can recover by just restarting the agent.
+_Why?_ Well Claude is just a nodejs app and it eventually runs out heap space because it reads the stdout and stderr of all tasks it orchestrates internally. As a subprocess it watches, it's a fresh Claude instance so if it fails it fails in a recoverable way. Since the prompt file is named after the bead it can recover by just restarting the agent.
 
 At this point the orchestrator should spawn the implementer which reads the implementation details and completes the work.
 
 Then the orchestrator will spawn a new agent to handle code review, usually a simpler agent.
 
-All this time the agents will leave comments on the tickets so you can see where it ran into problems and picked a tradeoff. This is very important for root cause analysis later if a feature degrades. You can have the llm resurrect the changes merged into a branch the same name as the bead. Review the decision it made and make another one. Better since the orchestrator and implementer read the comments you can just append your request to the ticket, mark it open, and tell the agent to refactor it again.
+All this time the agents will leave comments on the tickets so you can see where it ran into problems and picked a tradeoff. This is very important for root cause analysis later if a feature degrades. You can have the LLM resurrect the changes merged into a branch the same name as the bead. Review the decision it made and make another one. Better yet, since the orchestrator and implementer read the comments you can just append your request to the ticket, mark it open, and tell the agent to refactor it again.
 
 
-#### When it fails
+#### 6. When it fails
 
 This workflow isn't perfect but thats the big reason for the plugin. This whole process keeps you from staring at the chat stream and back into the IDE as your work. If you see progress not being made or an issue has comments that move it to blocked you can address it there and then just kick the orchestration. The goal is we have boring work we don't wanna do and we let the robot do it while we act on the interesting parts.
 
