@@ -1,5 +1,5 @@
 +++
-title = "Keep Your Eyes on the IDE, Let the Robots Look at Tickets"
+title = "Keep Your Eyes on the IDE, and Your Robots on the Tickets"
 template = "page.html"
 weight = 1
 draft = false
@@ -10,7 +10,7 @@ desc = "Building a Jetbrains plugin for Beads, an AI agent orchestration workflo
 keywords = "Jetbrains, Beads, AI orchestration, LLM, Claude, agent workflow, IDE plugin, agentic patterns"
 +++
 
-## Keep Your Eyes on the IDE, Let the Robots Look at Tickets
+## Keep Your Eyes on the IDE, and Your Robots on the Tickets
 
 _Initial Scene:_
 
