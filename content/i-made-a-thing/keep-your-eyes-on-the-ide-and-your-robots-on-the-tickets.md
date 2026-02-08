@@ -67,7 +67,7 @@ You may be asking, but why not just use markdown files or JSONL. Well because I 
 
 Back to the other question, why not markdown files. Well, two reasons, first they are kinda noisy, second if the LLM has to read more than the exact section of the file they are working on some ambiguity could be introduced. If you notice the agent will often scan a file 50 lines at a time if there is no index. Which means some of that ends up in its context. When we want determinism our first goal is to make sure each interaction is exactly the same prompt. This means beads is mostly an opinion and is probably not required.
 
-### The plugin
+### Stay in the IDE and Manage your robots
 
 So good choices after bad maybe but when I have a database for my tasks and their prompts I need a way to visualize it. The purpose here is to allow me to create and observe the tasks my agent orchestration is running on. For me this is just Claude Opus delegating tasks to Sonnet agents in an agentic loop.
 
