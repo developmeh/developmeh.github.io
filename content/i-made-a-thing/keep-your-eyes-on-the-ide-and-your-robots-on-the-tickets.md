@@ -8,6 +8,8 @@ updated = 2026-02-08
 [extra]
 desc = "Building a Jetbrains plugin for Beads, an AI agent orchestration workflow using context graphs and deterministic prompts"
 keywords = "Jetbrains, Beads, AI orchestration, LLM, Claude, agent workflow, IDE plugin, agentic patterns"
+discussion_number = 47
+discussion_url = "https://github.com/orgs/developmeh/discussions/47"
 +++
 
 ## Keep Your Eyes on the IDE, and Your Robots on the Tickets
