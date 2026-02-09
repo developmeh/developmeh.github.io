@@ -164,6 +164,24 @@ Then the orchestrator will spawn a new agent to handle code review, usually a si
 
 All this time the agents will leave comments on the tickets so you can see where it ran into problems and picked a tradeoff. This is very important for root cause analysis later if a feature degrades. You can have the LLM resurrect the changes merged into a branch the same name as the bead. Review the decision it made and make another one. Better yet, since the orchestrator and implementer read the comments you can just append your request to the ticket, mark it open, and tell the agent to refactor it again.
 
+Here is an example of what a bead comment thread looks like in practice. This is from an issue where the Gradle build was failing:
+
+> **[Opus]** at 2026-02-06 01:11
+> Starting orchestration. Dispatching Sonnet implementer to fix Kotlin stdlib warning in gradle buildPlugin.
+>
+> **[Opus]** at 2026-02-06 01:16
+> Resuming orchestration. Dispatching Sonnet implementer to fix Kotlin stdlib warning.
+>
+> **[Opus]** at 2026-02-06 01:24
+> Resuming orchestration. Previous worktree had no commits - starting fresh. Dispatching Sonnet implementer to fix Kotlin stdlib warning.
+>
+> **[Sonnet]** at 2026-02-06 01:25
+> Starting implementation. Will examine build.gradle.kts and gradle.properties to understand current configuration, then apply fix per https://jb.gg/intellij-platform-kotlin-stdlib
+>
+> **[Sonnet]** at 2026-02-06 01:26
+> COMPLETED: Added kotlin.stdlib.default.dependency=false to gradle.properties. Build verified successful without warnings. Fix committed to branch.
+
+Notice how the orchestrator (Opus) had to resume twice - once after the first dispatch seemingly stalled, and again when it found the worktree had no commits. This is the kind of recovery that happens automatically. The implementer (Sonnet) then picked up the task, did its research, applied the fix, and verified success. All of this is visible in the ticket history without watching terminal output scroll by.
 
 #### 6. When it fails
 
