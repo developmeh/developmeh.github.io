@@ -9,6 +9,8 @@ updated = 2026-02-08
 [extra]
 desc = "Stop treating bash scripts like second-class citizens. BATS brings real testing rigor to CLI tools—from basic assertions to background processes and state machine validation."
 keywords = "BATS, bash testing, CLI integration testing, shell script testing, automated testing, integration tests, bash automation, test helpers, mock commands, asynchronous testing"
+discussion_number = 48
+discussion_url = "https://github.com/orgs/developmeh/discussions/48"
 +++
 
 Bash has a reputation problem.
