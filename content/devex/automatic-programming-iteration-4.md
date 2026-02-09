@@ -13,6 +13,8 @@ discussion_number = 50
 discussion_url = "https://github.com/orgs/developmeh/discussions/50"
 +++
 
+<img src="/devex/mark1-computer.jpg" alt="Grace Hopper: Mark 1 Computer" style="width: 100%; height: 600px; object-fit: cover; object-position: center calc(50% + 50px);">
+
 ## Automatic Programming: Iteration 4
 
 While I know that the discourse is not complete binary whether you are for or against LLM generated code it's probably the right time to take a step back a few years and explore the iterations of our industry.
