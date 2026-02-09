@@ -5,7 +5,7 @@ weight = 0
 draft = false
 slug = "ai-diaries"
 date = 2026-01-19
-updated = 2026-02-03
+updated = 2026-02-08
 [extra]
 desc = "Anecdotes and observations from working with AI coding tools - the hype, the reality, and the debt"
 keywords = "AI, coding tools, developer experience, code quality, technical debt"
@@ -20,6 +20,33 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 
 
 ## DevLog
+
+<div class="devlog-entry">
+
+## 08 02 2026
+
+I've been tracking beads data on the [JetBrains Beads Manager plugin](https://plugins.jetbrains.com/plugin/30089-beads-manager) build and the numbers tell the 80/20 story pretty clearly.
+
+Four days, 156 issues closed. Sounds impressive until you look at the breakdown:
+
+```
+        ┃ Features/Epics ┃ Tasks        ┃ Bugs              ┃
+────────╋────────────────╋──────────────╋───────────────────╋────
+Feb 5   ┃ ▓▓ 5           ┃ ░░░░░░░░ 24  ┃ ████████████ 29   ┃ 59
+Feb 6   ┃ ▓▓▓▓ 12        ┃ ░░░ 9        ┃ ████ 12           ┃ 37
+Feb 7   ┃ ▓ 4            ┃ ░░░░░░░░░ 34 ┃ ████ 12           ┃ 50
+Feb 8   ┃ ▓ 1            ┃ ░░ 5         ┃ █ 3               ┃ 10
+────────╋────────────────╋──────────────╋───────────────────╋────
+Total   ┃ 22 (14%)       ┃ 72 (46%)     ┃ 56 (36%)          ┃ 156
+```
+
+Day 1 built the thing. 5 features, 24 tasks to wire them up, and immediately 29 bugs. Day 2 added more features - macOS compatibility, settings panels, refresh timers. Day 3 and 4? Chasing bugs and polish. UI stuttering, race conditions, tree selection quirks, scroll position resets.
+
+56 bugs out of 156 total issues. That's 36% of all tickets just fixing what the agents broke while building features. And those bug tickets often took longer - VFS async race conditions, deprecated API replacements, multi-selection state management. The kind of stuff where the agent confidently implements the wrong fix and you're three attempts deep before finding the real problem.
+
+The agents built a working plugin in a day. Then we spent three days making it actually work.
+
+</div>
 
 <div class="devlog-entry">
 
