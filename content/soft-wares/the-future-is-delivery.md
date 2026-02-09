@@ -6,6 +6,8 @@ draft = false
 date = 2024-09-10
 updated = 2024-09-10
 [extra]
+desc = "Challenging the obsession with delivery culture in software — why ownership, pride, and longer roadmaps matter more than shipping speed"
+keywords = "software delivery, technical debt, ownership, roadmaps, agile, product development, change management"
 discussion_number = 41
 discussion_url = "https://github.com/orgs/developmeh/discussions/41"
 +++

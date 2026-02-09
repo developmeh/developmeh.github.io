@@ -4,6 +4,8 @@ template = "page.html"
 date = 2025-01-29
 updated = 2025-03-02
 [extra]
+desc = "Building a personal internet from scratch to re-envision how we trust data, without blockchains or onion routers"
+keywords = "decentralized internet, self-hosting, trust, peer-to-peer, content silos, moderation, personal web"
 discussion_number = 22
 discussion_url = "https://github.com/orgs/developmeh/discussions/22"
 +++

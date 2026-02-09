@@ -6,7 +6,8 @@ draft = false
 date = 2025-06-26
 [extra]
 updated = 2025-06-27
-description = "A critical look at how DevOps is implemented in organizations, examining the gap between the promise of shift-left practices and the reality of developers' access to infrastructure"
+desc = "A critical look at how DevOps is implemented in organizations, examining the gap between the promise of shift-left practices and the reality of developers' access to infrastructure"
+keywords = "DevOps, shift-left, shift-right, infrastructure, developer access, agile, continuous delivery, platform engineering"
 discussion_number = 39
 discussion_url = "https://github.com/orgs/developmeh/discussions/39"
 +++

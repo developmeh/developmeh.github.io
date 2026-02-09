@@ -4,6 +4,8 @@ template = "page.html"
 date = 2025-01-21
 updated = 2025-01-21
 [extra]
+desc = "A distributed Game of Life implementation in Go using channels, exploring state distribution with NATS and Kafka"
+keywords = "Game of Life, Go, Golang, distributed systems, channels, NATS, Kafka, simulation, concurrency"
 discussion_number = 23
 discussion_url = "https://github.com/orgs/developmeh/discussions/23"
 +++

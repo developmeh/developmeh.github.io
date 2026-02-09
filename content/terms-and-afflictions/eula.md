@@ -6,6 +6,8 @@ draft = false
 date = 2024-08-10
 updated = 2024-08-10
 [extra]
+desc = "A satirical End User Languor Agreement for enterprise software development — the real terms and conditions of working in tech"
+keywords = "satire, enterprise software, developer experience, corporate culture, EULA, work conditions"
 discussion_number = 28
 discussion_url = "https://github.com/orgs/developmeh/discussions/28"
 +++

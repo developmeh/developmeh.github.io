@@ -6,6 +6,8 @@ draft = false
 date = 2025-01-22
 updated = 2025-01-22
 [extra]
+desc = "Using Go generics to build pluggable renderer and game world interfaces for a Game of Life project"
+keywords = "Go, Golang, generics, interfaces, Game of Life, type constraints, software design"
 discussion_number = 24
 discussion_url = "https://github.com/orgs/developmeh/discussions/24"
 +++

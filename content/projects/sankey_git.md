@@ -4,6 +4,8 @@ template = "page.html"
 date = 2024-09-11
 updated = 2024-09-11
 [extra]
+desc = "Exploring the idea of visualizing git commit histories as Sankey diagrams weighted by commit frequency and timing"
+keywords = "git, visualization, Sankey diagram, commits, idea generation, Logseq"
 discussion_number = 21
 discussion_url = "https://github.com/orgs/developmeh/discussions/21"
 +++

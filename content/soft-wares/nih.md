@@ -6,6 +6,8 @@ draft = false
 date = 2024-09-30
 updated = 2024-09-30
 [extra]
+desc = "Not Invented Here syndrome in software and business — why we keep reinventing instead of borrowing proven solutions"
+keywords = "Not Invented Here, NIH syndrome, software development, open source, standardization, bias"
 discussion_number = 37
 discussion_url = "https://github.com/orgs/developmeh/discussions/37"
 +++

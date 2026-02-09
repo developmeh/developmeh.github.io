@@ -6,7 +6,8 @@ draft = false
 date = 2025-07-01
 updated = 2025-07-01
 [extra]
-description = "Exploring the concept of sufficient complexity in software design and how to create maintainable, focused modules that avoid common pitfalls of over-engineering"
+desc = "Exploring the concept of sufficient complexity in software design and how to create maintainable, focused modules that avoid common pitfalls of over-engineering"
+keywords = "software complexity, modules, interfaces, over-engineering, software design, dependencies, architecture"
 discussion_number = 42
 discussion_url = "https://github.com/orgs/developmeh/discussions/42"
 +++

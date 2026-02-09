@@ -6,6 +6,8 @@ draft = false
 date = 2024-10-10
 updated = 2024-10-10
 [extra]
+desc = "The self-doubt of getting pushback despite producing good work, and how perception and wisdom shape our ability to communicate value"
+keywords = "impostor syndrome, perception, wisdom, software development, confidence, communication, self-doubt"
 discussion_number = 36
 discussion_url = "https://github.com/orgs/developmeh/discussions/36"
 +++

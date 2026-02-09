@@ -6,6 +6,8 @@ draft = false
 date = 2024-10-14
 updated = 2024-10-14
 [extra]
+desc = "Examining the shifting ethics of internet technology, from early AOL keywords to LLMs and the repeating cycles of content creation"
+keywords = "software ethics, AI, LLM, internet history, marketing, content creation, morality, technology evolution"
 discussion_number = 29
 discussion_url = "https://github.com/orgs/developmeh/discussions/29"
 +++

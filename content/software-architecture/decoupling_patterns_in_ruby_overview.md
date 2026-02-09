@@ -5,6 +5,8 @@ weight = 0
 date = 2024-08-30
 updated = 2024-08-30
 [extra]
+desc = "Breaking down lazy coupling in Ruby on Rails with dependency injection and SOLID principles, inspired by Sandi Metz"
+keywords = "Ruby, Rails, SOLID, dependency injection, decoupling, design patterns, Sandi Metz, clean code"
 discussion_number = 25
 discussion_url = "https://github.com/orgs/developmeh/discussions/25"
 +++

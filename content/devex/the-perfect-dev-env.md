@@ -6,6 +6,8 @@ updated = 2025-01-28
 weight = 0
 draft = false
 [extra]
+desc = "Building a reproducible, template-able development environment with Nix that manages project-specific dependencies and avoids environment collisions"
+keywords = "Nix, development environment, reproducible builds, dependency management, Homebrew, devshell, project templates"
 discussion_number = 31
 discussion_url = "https://github.com/orgs/developmeh/discussions/31"
 +++

@@ -5,6 +5,8 @@ weight = 0
 date = 2024-08-08
 updated = 2024-09-06
 [extra]
+desc = "Why most teams have continuous deployment but not continuous delivery, and how better commit hygiene and test hierarchies close the gap"
+keywords = "CI/CD, continuous integration, continuous delivery, continuous deployment, testing, E2E, TDD, change management, DevOps"
 discussion_number = 32
 discussion_url = "https://github.com/orgs/developmeh/discussions/32"
 +++
