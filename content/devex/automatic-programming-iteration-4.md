@@ -9,6 +9,8 @@ updated = 2026-02-08
 [extra]
 desc = "From looms to LLMs — Grace Hopper dreamed of programs writing themselves, and each generation of programmers has resisted the next layer of abstraction."
 keywords = "automatic programming, Grace Hopper, COBOL, LLM, code generation, compilers, abstraction"
+discussion_number = 50
+discussion_url = "https://github.com/orgs/developmeh/discussions/50"
 +++
 
 ## Automatic Programming: Iteration 4
