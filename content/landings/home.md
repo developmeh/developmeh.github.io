@@ -84,6 +84,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Articles</h3>
 
+- [Automatic Programming: Iteration 4](/devex/automatic-programming-iteration-4)
 - [BATS - Testing Bash Like You Mean It](/tech-dives/bats-testing-bash-like-you-mean-it)
 - [Keep Your Eyes on the IDE, and Your Robots on the Tickets](/i-made-a-thing/keep-your-eyes-on-the-ide-and-your-robots-on-the-tickets)
 - [Agentic Patterns: Elements of Reusable Context-Oriented Determinism](/soft-wares/agentic-patterns-elements-of-reusable-context-oriented-determinism)
