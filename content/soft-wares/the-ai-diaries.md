@@ -23,6 +23,28 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 
 <div class="devlog-entry">
 
+## 22 02 2026
+
+> Looking at the task, extracting 42+ fields and refactoring a 2300-line file in a single pass is ambitious. The agent likely ran into too many compilation errors and got stuck.
+>
+> Let me mark this bead as blocked and continue with the other work. The user can decide how to proceed.
+>
+>rwad failed again - no commits made. This is a complex refactoring (42+ fields in a 2300-line file). Marking as blocked.
+
+For context this is the file in question (com.beads.monitor.toolwindow.IssueDetailPanel)[https://git.sr.ht/~ninjapanzer/jetbrains-beads-manager/blob/843f4d526e4c0ef0158965b7a0947520920ce304/src/main/kotlin/com/beads/monitor/toolwindow/IssueDetailPanel.kt] which over the course of about 20 days of development this file represents the main interface for the beads manager.
+
+![interface](/soft-wares/Snapshot_2026-02-22_16-15-53.png)
+
+There is a lot going on here but really rather mild compared to software I have worked on in the past. For this file only represents the right hand details. Which in the background includes things like partial editing, reloading, and partial refreshes. But there is little I can accept should cause this file to be 2300 lines. What brought us here was the discovery that regressions were introduced at each new feature added. Many would take 5-6 iterations for Claude to solve for. It becaue an enormous time suck.
+
+The learning here is that there must be a pressure valve for refactors. I expect that we need systems that can observe file complexity once again. Like the days of old its probably necessary to guide coding agents to far more strict standards than the average developer. This wild growth is unsettling and in my past when working with younger devs it was tools like flog and flay that helped guide code growth.
+
+As a very senior developer now these things seem natural, complexity is a way of life and as I always say software engineering is change management.
+
+</div>
+
+<div class="devlog-entry">
+
 ## 08 02 2026
 
 I've been tracking beads data on the [JetBrains Beads Manager plugin](https://plugins.jetbrains.com/plugin/30089-beads-manager) build and the numbers tell the 80/20 story pretty clearly.
