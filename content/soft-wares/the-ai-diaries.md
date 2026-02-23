@@ -31,7 +31,7 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 >
 >rwad failed again - no commits made. This is a complex refactoring (42+ fields in a 2300-line file). Marking as blocked.
 
-For context this is the file in question (com.beads.monitor.toolwindow.IssueDetailPanel)[https://git.sr.ht/~ninjapanzer/jetbrains-beads-manager/blob/843f4d526e4c0ef0158965b7a0947520920ce304/src/main/kotlin/com/beads/monitor/toolwindow/IssueDetailPanel.kt] which over the course of about 20 days of development this file represents the main interface for the beads manager.
+For context this is the file in question [com.beads.monitor.toolwindow.IssueDetailPanel](https://git.sr.ht/~ninjapanzer/jetbrains-beads-manager/blob/843f4d526e4c0ef0158965b7a0947520920ce304/src/main/kotlin/com/beads/monitor/toolwindow/IssueDetailPanel.kt) which over the course of about 20 days of development this file represents the main interface for the beads manager.
 
 ![interface](/soft-wares/Snapshot_2026-02-22_16-15-53.png)
 
