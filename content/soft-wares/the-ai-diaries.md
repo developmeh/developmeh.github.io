@@ -5,7 +5,7 @@ weight = 0
 draft = false
 slug = "ai-diaries"
 date = 2026-01-19
-updated = 2026-02-08
+updated = 2026-03-01
 [extra]
 desc = "Anecdotes and observations from working with AI coding tools - the hype, the reality, and the debt"
 keywords = "AI, coding tools, developer experience, code quality, technical debt"

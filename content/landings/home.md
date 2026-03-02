@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-02-08
+updated = 2026-03-01
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 enable_discussions = false
