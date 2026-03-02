@@ -51,8 +51,8 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Devlogs</h3>
 
-- [01-03-2026 The AI Diaries (Limitless Abstraction)](/softwares/ai-diaries#01-03-2026)
-- [22-02-2026 The AI Diaries (Unboudned Growth)](/softwares/ai-diaries#22-02-2026)
+- [01-03-2026 The AI Diaries (Limitless Abstraction)](/soft-wares/ai-diaries#01-03-2026)
+- [22-02-2026 The AI Diaries (Unboudned Growth)](/soft-wares/ai-diaries#22-02-2026)
 - [08-02-2026 The AI Diaries (80/20 Rule Still Applies)](/soft-wares/ai-diaries#08-02-2026)
 - [03-02-2026 The AI Diaries (Composable Code Future)](/soft-wares/ai-diaries#03-02-2026)
 - [02-02-2026 Rust Dancing Banana (SSE vs Chunked Encoding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026)
