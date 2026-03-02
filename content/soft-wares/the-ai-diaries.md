@@ -23,6 +23,31 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 
 <div class="devlog-entry">
 
+## 01 03 2026
+
+I have been off in a microcosm of building PoCs for things, some of them useful:
+
+- [Agent Orchestration](https://sr.ht/~ninjapanzer/codify-orchestration/)
+- [IDE Tooling](https://sr.ht/~ninjapanzer/beads-monitor/)
+
+Some not so much:
+
+- [From Scratch Semantic Code Search](https://sr.ht/~ninjapanzer/small-language-models/)
+
+But coming back to the real world for a moment I am starting to see how I might be in a bubble, an AI bubble. I have simplified AI as a soft executor. Like a script with smart error handling. It's not conversational, it's imperative and command oriented. I think I am a control freak or maybe it's a matter of perspective scale, but I am preparing my statement to the model with a pre-defined expectation of the outcome. I also express the expected outcome and then explain the direction and then confirm the outcome in my statement. I am not looking for the model to introduce inspiration. I highly question the decision to allow the idea to flow from the model, because it often has some pretty bad ideas.
+
+Its about reducing drudgery, [Like I alluded to here](/devex/automatic-programming-iteration-4/). Having something of a long tail in this industry now I have seen the world when the product was hosted in the office on consumer hardware. I did the cowboy coding without version control, just FTP to the server. That's how debugging happened too sometimes. Then we got all full of ourselves, we needed more guardrails, we needed to support more engineers with lower skills, we needed to grow. That sounds like punching-down or retroactive gate-keeping that's not the point. There wasn't time to train people on or off the job. Bootcamps did their best to teach functional skills and get the butts in the seats but they were unable to embed what years of experience also provides. Being good thoughtful people we focused on how to make the work safer for more people and permit more capability with less experience. Then we over generalized, we produced specialization in managing tools and never built up the experience, it was abstracted away at a rate that required it to have more abstraction. So now what we have is a ton of drudgery, that hides its meaning so well it has become hard to use.
+
+Regardless, we poo poo on shell scripts because they are brittle (citation needed). I have worked too many places where I was refused a merge due to the presence of a shell script because I could have written the same thing in Ruby or JavaScript. A language that the humans understood better and purported would be less brittle. Of course the brittleness is in the error handling not the language. So this is where I started thinking about llms as error traps for code, don't write a skill that does work, have the LLM write the code and then a skill to run the code. When the code breaks because of a bad filename or a missing system dependency it doesn't blow up. Instead the model takes over and either mitigates the flaw and follows the "spirit" of the code to get things done or just fixes the code.
+
+Here is the thing, both of these are brittle solutions, one we expect to be brittle eventually, the other will be unexpectedly brittle but self correcting. I know the cheap seats will say, "by unexpectedly you mean it will rm -rf ~/". I mean maybe sure but that's pretty unlikely especially if you don't let it run rm -rf outside of $CWD or just not at all.
+
+TLDR; Here is the point, we are always afraid of something, when it was humans we were afraid of the humans, now its robots and we are elevating the humans to the robots. What if we just all agreed that both are likely to screw everything up and take a chance to pivot. Excessive abstraction didn't fix the problem it didn't make the work easier or faster. It did make it consistent which is the thing to learn. Now we have robots and our purpose is to make them operate consistently. Time to break some rules and climb out of the pit of drudgery.
+
+</div>
+
+<div class="devlog-entry">
+
 ## 22 02 2026
 
 > Looking at the task, extracting 42+ fields and refactoring a 2300-line file in a single pass is ambitious. The agent likely ran into too many compilation errors and got stuck.
@@ -72,7 +97,7 @@ The agents built a working plugin in a day. Then we spent three days making it a
 
 <div class="devlog-entry">
 
-## 02 03 2026
+## 03 02 2026
 
 This is just a thought process I go through with LLM generated code...
 
