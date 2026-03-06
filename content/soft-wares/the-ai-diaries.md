@@ -5,7 +5,7 @@ weight = 0
 draft = false
 slug = "ai-diaries"
 date = 2026-01-19
-updated = 2026-03-01
+updated = 2026-03-06
 [extra]
 desc = "Anecdotes and observations from working with AI coding tools - the hype, the reality, and the debt"
 keywords = "AI, coding tools, developer experience, code quality, technical debt"
@@ -20,6 +20,18 @@ So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I
 
 
 ## DevLog
+
+<div class="devlog-entry">
+
+## 06 03 2026
+
+During the beginning of the hype cycle for "AI", the thing that turned me off was the noise about everyone having to become a "Product Engineer." It was the concept that the only value software provides is building products to be sold. Disgusting! (Obviously, I know what platform this is and how dumb this opinion is for this tribe)
+
+It took a while and a few books, one specifically that told some stories of Grace Hopper that healed my issues. It was the realization that software and automation was to reduce drudgery not to create revenue. It was the need to reduce drudgery that results in positive outcomes and the reason people would pay for software.
+
+Have your own opinions but I repeatedly seem to re-learn this lesson, my choices should be about my thoughts and those are validated by vetting the thoughts of others.
+
+</div>
 
 <div class="devlog-entry">
 
