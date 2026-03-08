@@ -54,6 +54,9 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 - [06-03-2026 The AI Diaries (My Own Ideas)](/soft-wares/ai-diaries#06-03-2026)
 - [01-03-2026 The AI Diaries (Limitless Abstraction)](/soft-wares/ai-diaries#01-03-2026)
 - [22-02-2026 The AI Diaries (Unboudned Growth)](/soft-wares/ai-diaries#22-02-2026)
+- [14-02-2026 Catalyst Orchestrator (The Daemon Creates Steps at Runtime)](/i-made-a-thing/catalyst-orchestrator#14-02-2026)
+- [13-02-2026 Catalyst Orchestrator (The Daemon Parses, The Daemon Routes)](/i-made-a-thing/catalyst-orchestrator#13-02-2026)
+- [11-02-2026 Catalyst Orchestrator (The Haiku Decides)](/i-made-a-thing/catalyst-orchestrator#11-02-2026)
 - [08-02-2026 The AI Diaries (80/20 Rule Still Applies)](/soft-wares/ai-diaries#08-02-2026)
 - [03-02-2026 The AI Diaries (Composable Code Future)](/soft-wares/ai-diaries#03-02-2026)
 - [02-02-2026 Rust Dancing Banana (SSE vs Chunked Encoding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026)
@@ -102,6 +105,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 - [Creative Impostor Syndrome](/soft-wares/creative-impostor-syndrome)
 - [The Perfect Dev Env Part 1](/devex/the-perfect-dev-env/)
 - [Distributed Game of Life](/projects/gol/)
+- [Kwik-E-Mart: Who Needs a Gas Town When a Gas Station Will Do](/i-made-a-thing/kwik-e-mart-who-needs-a-gas-town)
 - [Krappy Kafka](/i-made-a-thing/recreating-kafka-blind)
 
 </div>
