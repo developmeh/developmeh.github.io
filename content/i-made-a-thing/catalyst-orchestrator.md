@@ -9,6 +9,8 @@ keywords = "catalyst, orchestrator, workflow automation, AI agents, Go, beads, d
 schema_type = "BlogPosting"
 sitemap_priority = "0.8"
 bluesky_tags = "dev, orchestration, AI, golang, devlog"
+discussion_number = 52
+discussion_url = "https://github.com/orgs/developmeh/discussions/52"
 +++
 
 <!-- OUTLINE: Intro — The Two Problems

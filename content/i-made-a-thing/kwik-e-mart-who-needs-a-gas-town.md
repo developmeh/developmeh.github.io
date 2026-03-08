@@ -7,6 +7,8 @@ date = 2026-03-07
 desc = "Comparing tools for building event-driven pipelines — NATS, Redis Streams, shell pipes, and Kwik-E-Mart — with a focus on what it takes to get durable, fan-out reactive flows feeding LLMs."
 keywords = "event-driven, reactive flows, LLM orchestration, NATS, JetStream, Redis Streams, Kwik-E-Mart, eventing, CLI, Go, durable events, Gas Town, beads, Unix philosophy"
 sitemap_priority = "0.8"
+discussion_number = 51
+discussion_url = "https://github.com/orgs/developmeh/discussions/51"
 +++
 
 <!-- INTERVIEW REMARKS:
