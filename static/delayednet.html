@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DelayedNet Browser Client</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #0a0a1a;
+            color: #0f0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #0ff; }
+        input, button {
+            font-family: monospace;
+            font-size: 14px;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+        }
+        input {
+            background: #1a1a2e;
+            color: #0f0;
+            border: 1px solid #0f0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+        }
+        button:hover { background: #0ff; }
+        button:disabled { background: #333; color: #666; cursor: not-allowed; }
+        .log {
+            background: #000;
+            border: 1px solid #333;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        .log-entry { margin: 0.25rem 0; }
+        .log-info { color: #0f0; }
+        .log-error { color: #f00; }
+        .log-warn { color: #ff0; }
+        .log-data { color: #0ff; }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            margin-left: 0.5rem;
+        }
+        .status-disconnected { background: #600; }
+        .status-connecting { background: #660; }
+        .status-connected { background: #060; }
+        .section {
+            background: #1a1a2e;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid #333;
+        }
+        label { display: block; margin-top: 0.5rem; color: #888; }
+        #chat {
+            margin-top: 1rem;
+            display: none;
+        }
+        #chat.connected { display: block; }
+        #messages {
+            background: #000;
+            border: 1px solid #0f0;
+            padding: 1rem;
+            height: 150px;
+            overflow-y: auto;
+            margin-bottom: 0.5rem;
+        }
+        #messageInput {
+            width: calc(100% - 80px);
+            display: inline-block;
+        }
+        #sendBtn {
+            width: 70px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 DelayedNet Browser Client</h1>
+        <p>
+            Status: <span id="statusText">Disconnected</span>
+            <span id="statusBadge" class="status status-disconnected">●</span>
+        </p>
+
+        <div class="section">
+            <h2>Configuration</h2>
+
+            <label>Offer URL (GitHub Pages .well-known CBOR file):</label>
+            <input type="text" id="offerUrl"
+                   placeholder="https://developmeh.com/.well-known/krappy-dyndns-XXXXXXXX"
+                   value="">
+
+            <label>STUN Server:</label>
+            <input type="text" id="stunServer" value="stun:stun.l.google.com:19302">
+
+            <br><br>
+            <button id="connectBtn" onclick="connect()">🔌 Connect</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+        </div>
+
+        <div id="chat" class="section">
+            <h2>💬 DataChannel Chat</h2>
+            <div id="messages"></div>
+            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendMessage()">
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+
+        <div class="section">
+            <h2>📜 Log</h2>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/cbor-js@0.1.0/cbor.min.js"></script>
+    <script>
+        let pc = null;
+        let dataChannel = null;
+
+        function log(msg, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(msg);
+        }
+
+        function logData(label, data) {
+            log(`${label}:`, 'data');
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry log-data';
+            entry.style.marginLeft = '1rem';
+            entry.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function setStatus(status) {
+            const text = document.getElementById('statusText');
+            const badge = document.getElementById('statusBadge');
+            const chat = document.getElementById('chat');
+
+            text.textContent = status;
+            badge.className = `status status-${status.toLowerCase()}`;
+
+            if (status === 'Connected') {
+                chat.classList.add('connected');
+            } else {
+                chat.classList.remove('connected');
+            }
+        }
+
+        async function connect() {
+            const offerUrl = document.getElementById('offerUrl').value;
+            const stunServer = document.getElementById('stunServer').value;
+
+            if (!offerUrl) {
+                log('Error: Offer URL required', 'error');
+                return;
+            }
+
+            document.getElementById('connectBtn').disabled = true;
+            document.getElementById('disconnectBtn').disabled = false;
+            setStatus('Connecting');
+
+            try {
+                // 1. Fetch CBOR payload from GitHub
+                log(`Fetching offer from: ${offerUrl}`);
+                const offerResp = await fetch(offerUrl);
+                if (!offerResp.ok) {
+                    throw new Error(`Failed to fetch offer: ${offerResp.status}`);
+                }
+                const cborBuf = await offerResp.arrayBuffer();
+                const payload = CBOR.decode(cborBuf);
+                logData('Decoded CBOR payload', payload);
+
+                if (!payload.webrtc) {
+                    throw new Error('Payload has no webrtc offer — this may be an IP-only entry');
+                }
+                const offer = payload.webrtc;
+                logData('WebRTC offer', offer);
+
+                // 2. Create RTCPeerConnection
+                log(`Creating RTCPeerConnection with STUN: ${stunServer}`);
+                pc = new RTCPeerConnection({
+                    iceServers: [{ urls: stunServer }]
+                });
+
+                // Set up event handlers
+                pc.onicecandidate = (e) => {
+                    if (e.candidate) {
+                        log(`ICE candidate: ${e.candidate.candidate.substring(0, 50)}...`);
+                    } else {
+                        log('ICE gathering complete');
+                    }
+                };
+
+                pc.oniceconnectionstatechange = () => {
+                    log(`ICE connection state: ${pc.iceConnectionState}`);
+                    if (pc.iceConnectionState === 'connected') {
+                        setStatus('Connected');
+                    } else if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+                        setStatus('Disconnected');
+                    }
+                };
+
+                pc.ondatachannel = (e) => {
+                    log(`Received data channel: ${e.channel.label}`);
+                    setupDataChannel(e.channel);
+                };
+
+                // 3. Set remote description (the offer)
+                log('Setting remote description (offer)');
+                await pc.setRemoteDescription(new RTCSessionDescription({
+                    type: 'offer',
+                    sdp: offer.sdp
+                }));
+
+                // 4. Add remote ICE candidates if provided
+                if (offer.candidates && offer.candidates.length > 0) {
+                    log(`Adding ${offer.candidates.length} remote ICE candidates`);
+                    for (const candidate of offer.candidates) {
+                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                    }
+                }
+
+                // 5. Create answer
+                log('Creating answer');
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+
+                // 6. Wait for ICE gathering to complete
+                log('Waiting for ICE gathering...');
+                await new Promise((resolve) => {
+                    if (pc.iceGatheringState === 'complete') {
+                        resolve();
+                    } else {
+                        pc.onicegatheringstatechange = () => {
+                            if (pc.iceGatheringState === 'complete') {
+                                resolve();
+                            }
+                        };
+                        // Timeout after 5 seconds
+                        setTimeout(resolve, 5000);
+                    }
+                });
+
+                // 7. Collect our ICE candidates
+                const localCandidates = [];
+                // Note: candidates are already in localDescription after gathering
+
+                // 8. Send answer via ntfy relay
+                if (!payload.answer_topic) {
+                    throw new Error('Payload has no answer_topic — cannot relay answer');
+                }
+                const ntfyUrl = `https://ntfy.sh/${payload.answer_topic}`;
+                const answerPayload = {
+                    sdp: pc.localDescription.sdp,
+                    candidates: localCandidates,
+                    type: 'answer'
+                };
+
+                log(`Sending answer via ntfy: ${ntfyUrl}`);
+                logData('Answer payload', answerPayload);
+
+                const answerResp = await fetch(ntfyUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(answerPayload)
+                });
+
+                if (!answerResp.ok) {
+                    throw new Error(`Failed to send answer to ntfy: ${answerResp.status}`);
+                }
+
+                log('Answer sent via ntfy! Waiting for connection...', 'info');
+
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+                disconnect();
+            }
+        }
+
+        function setupDataChannel(channel) {
+            dataChannel = channel;
+
+            channel.onopen = () => {
+                log('DataChannel opened!', 'info');
+                setStatus('Connected');
+            };
+
+            channel.onclose = () => {
+                log('DataChannel closed', 'warn');
+            };
+
+            channel.onmessage = (e) => {
+                log(`Received: ${e.data}`, 'info');
+                addMessage('Remote', e.data);
+            };
+
+            channel.onerror = (e) => {
+                log(`DataChannel error: ${e}`, 'error');
+            };
+        }
+
+        function disconnect() {
+            if (dataChannel) {
+                dataChannel.close();
+                dataChannel = null;
+            }
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+            setStatus('Disconnected');
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('disconnectBtn').disabled = true;
+            log('Disconnected');
+        }
+
+        function addMessage(sender, text) {
+            const messages = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.textContent = `[${sender}] ${text}`;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !dataChannel || dataChannel.readyState !== 'open') return;
+
+            dataChannel.send(text);
+            addMessage('You', text);
+            input.value = '';
+        }
+
+        // Initialize
+        log('DelayedNet Browser Client initialized');
+        log('Enter offer URL and click Connect to start');
+    </script>
+</body>
+</html>
