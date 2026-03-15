@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-03-06
+updated = 2026-03-15
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 enable_discussions = false
@@ -51,6 +51,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Devlogs</h3>
 
+- [15-03-2026 Kwik-E-Mart (v0.5 — Making tools for robots)](/i-made-a-thing/kwik-e-mart-who-needs-a-gas-town#15-03-2026)
 - [06-03-2026 The AI Diaries (My Own Ideas)](/soft-wares/ai-diaries#06-03-2026)
 - [01-03-2026 The AI Diaries (Limitless Abstraction)](/soft-wares/ai-diaries#01-03-2026)
 - [22-02-2026 The AI Diaries (Unboudned Growth)](/soft-wares/ai-diaries#22-02-2026)

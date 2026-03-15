@@ -3,6 +3,7 @@ title = "Kwik-E-Mart: Who Needs a Gas Town When a Gas Station Will Do"
 template = "page.html"
 weight = 0
 date = 2026-03-07
+updated = 2026-03-15
 [extra]
 desc = "Comparing tools for building event-driven pipelines — NATS, Redis Streams, shell pipes, and Kwik-E-Mart — with a focus on what it takes to get durable, fan-out reactive flows feeding LLMs."
 keywords = "event-driven, reactive flows, LLM orchestration, NATS, JetStream, Redis Streams, Kwik-E-Mart, eventing, CLI, Go, durable events, Gas Town, beads, Unix philosophy"
