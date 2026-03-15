@@ -1,0 +1,3 @@
+# Kwike configuration for developmeh.com publish workflow
+daemon:
+  socket: .kwike/daemon.sock

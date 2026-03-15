@@ -1,0 +1,60 @@
+# Commit Agent - Verification & Robot Commit
+#
+# Receives doc-organizer output, verifies changes, commits as DevelopmehPublishRobot.
+# Uses verify_script to ensure commit author is correct.
+#
+# Usage:
+#   kwike consume --config ./consumer.yaml
+
+name: commit-agent
+
+source:
+  daemon: "unix://./.kwike/daemon.sock"
+  types:
+    - "publish.commit.done"        # Doc-organizer completed work
+
+state:
+  dir: ./state
+
+uniform:
+  path: ./uniform.md
+
+llm:
+  command: claude
+  stdin: [prompt, spec]
+  args:
+    - "--print"
+    - "--permission-mode"
+    - "dontAsk"
+    - "--allowedTools"
+    - "Read,Bash(git diff *),Bash(git log *),Bash(git status),Bash(git add *),Bash(git commit *)"
+    - "--add-dir"
+    - "${KWIKE_WORKING_DIR}"
+  timeout: 10m
+  resume_flag: true
+  schema: ./schema.json
+  schema_max_retries: 3
+
+flow:
+  poll_interval: 5s
+  inbox_size: 1
+  max_concurrent: 1
+  backoff:
+    initial: 1s
+    max: 30s
+    multiplier: 2.0
+
+lifecycle:
+  emit_done: true
+  emit_failed: true
+  status_field: status
+  status_mapping:
+    approved: done               # publish.commit.review.done
+    rejected: rejected           # publish.commit.review.rejected
+  verify_script: ./verify.sh
+  verify_max_retries: 2
+
+session:
+  resume_types:
+    - "publish.commit.done"
+  timeout: 2h

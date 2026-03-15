@@ -30,6 +30,25 @@ inputs = {
           inputsFrom = [
             deployShell
           ];
+
+          shellHook = ''
+            # Kwike publish workflow scripts
+            export PATH="$PWD/.kwike/scripts:$PATH"
+
+            # Convenience aliases
+            alias kwike-start=".kwike/scripts/start-kwike.sh start"
+            alias kwike-stop=".kwike/scripts/start-kwike.sh stop"
+            alias kwike-status=".kwike/scripts/start-kwike.sh status"
+            alias kwike-setup=".kwike/scripts/setup-hooks.sh"
+
+            echo ""
+            echo "Kwike publish workflow available:"
+            echo "  kwike-setup   - Install git hooks (run once)"
+            echo "  kwike-start   - Start daemon and consumers"
+            echo "  kwike-stop    - Stop all kwike processes"
+            echo "  kwike-status  - Check kwike status"
+            echo ""
+          '';
         };
       });
     };

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Commit Agent Output Contract",
+  "description": "Output contract for the commit-agent that verifies and commits changes",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["approved", "rejected"],
+      "description": "Whether the changes were approved and committed, or rejected"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief description of what was done"
+    },
+    "commit_author": {
+      "type": "string",
+      "description": "The author used for the commit - must be DevelopmehPublishRobot"
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$",
+      "description": "The full SHA of the commit"
+    },
+    "event_id": {
+      "type": "string",
+      "description": "The kwike event ID"
+    },
+    "original_commit_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$",
+      "description": "The SHA of the user's original commit (used for lock file)"
+    },
+    "feedback": {
+      "type": "string",
+      "description": "Feedback for doc-organizer when rejecting"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "const": "approved" } }
+      },
+      "then": {
+        "required": ["commit_author", "commit_sha", "original_commit_sha", "event_id"],
+        "properties": {
+          "commit_author": {
+            "const": "DevelopmehPublishRobot <robot@developmeh.com>"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "status": { "const": "rejected" } }
+      },
+      "then": {
+        "required": ["feedback", "original_commit_sha", "event_id"]
+      }
+    }
+  ]
+}

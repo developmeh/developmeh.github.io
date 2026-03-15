@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# Post-commit hook for developmeh.com
+# Dispatches publish.commit events to kwike daemon for non-robot commits
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+KWIKE_SOCKET="${REPO_ROOT}/.kwike/daemon.sock"
+
+# Check if daemon is running
+if [[ ! -S "$KWIKE_SOCKET" ]]; then
+  # Daemon not running, skip
+  exit 0
+fi
+
+# Get the commit author
+COMMIT_AUTHOR=$(git log -1 --format='%an')
+
+# Skip if this is a robot commit (prevents infinite loops)
+if [[ "$COMMIT_AUTHOR" == "DevelopmehPublishRobot" ]]; then
+  exit 0
+fi
+
+# Get list of changed content files with rename detection
+COMMIT_SHA=$(git rev-parse HEAD)
+
+# Get file status with rename detection (-M)
+# Format: status\told_path\tnew_path (for renames) or status\tpath (for add/modify/delete)
+FILE_STATUS=$(git diff-tree --no-commit-id -r -M --name-status "$COMMIT_SHA" | grep '^[AMDR].*content/' | grep -v 'content/landings/' || true)
+
+# Skip if no content files changed
+if [[ -z "$FILE_STATUS" ]]; then
+  exit 0
+fi
+
+# Parse into arrays
+ADDED_FILES=()
+MODIFIED_FILES=()
+DELETED_FILES=()
+RENAMED_FILES=()  # Array of "old_path -> new_path"
+
+while IFS=$'\t' read -r status old_path new_path; do
+  case "$status" in
+    A)
+      ADDED_FILES+=("$old_path")
+      ;;
+    M)
+      MODIFIED_FILES+=("$old_path")
+      ;;
+    D)
+      DELETED_FILES+=("$old_path")
+      ;;
+    R*)
+      # Rename: old_path is source, new_path is destination
+      RENAMED_FILES+=("${old_path}|${new_path}")
+      ;;
+  esac
+done <<< "$FILE_STATUS"
+
+# Convert to JSON arrays
+to_json_array() {
+  local arr=("$@")
+  if [[ ${#arr[@]} -eq 0 ]]; then
+    echo "[]"
+  else
+    printf '%s\n' "${arr[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))'
+  fi
+}
+
+ADDED_JSON=$(to_json_array "${ADDED_FILES[@]}")
+MODIFIED_JSON=$(to_json_array "${MODIFIED_FILES[@]}")
+DELETED_JSON=$(to_json_array "${DELETED_FILES[@]}")
+
+# Convert renames to JSON array of objects
+if [[ ${#RENAMED_FILES[@]} -eq 0 ]]; then
+  RENAMED_JSON="[]"
+else
+  RENAMED_JSON=$(printf '%s\n' "${RENAMED_FILES[@]}" | jq -R -s -c '
+    split("\n") | map(select(length > 0)) | map(
+      split("|") | {from: .[0], to: .[1]}
+    )
+  ')
+fi
+
+# Build combined files_changed for backward compat (all touched files)
+ALL_FILES=("${ADDED_FILES[@]}" "${MODIFIED_FILES[@]}")
+for rename in "${RENAMED_FILES[@]}"; do
+  ALL_FILES+=("${rename#*|}")  # Add the new path
+done
+FILES_JSON=$(to_json_array "${ALL_FILES[@]}")
+
+PAYLOAD=$(jq -c -n \
+  --arg commit_sha "$COMMIT_SHA" \
+  --arg commit_author "$COMMIT_AUTHOR" \
+  --arg commit_message "$(git log -1 --format='%s')" \
+  --argjson files_changed "$FILES_JSON" \
+  --argjson files_added "$ADDED_JSON" \
+  --argjson files_modified "$MODIFIED_JSON" \
+  --argjson files_deleted "$DELETED_JSON" \
+  --argjson files_renamed "$RENAMED_JSON" \
+  '{
+    commit_sha: $commit_sha,
+    commit_author: $commit_author,
+    commit_message: $commit_message,
+    files_changed: $files_changed,
+    files_added: $files_added,
+    files_modified: $files_modified,
+    files_deleted: $files_deleted,
+    files_renamed: $files_renamed
+  }')
+
+# Create lock file to block push while agents work
+LOCKS_DIR="${REPO_ROOT}/.kwike/locks"
+mkdir -p "$LOCKS_DIR"
+LOCK_FILE="${LOCKS_DIR}/${COMMIT_SHA}.lock"
+touch "$LOCK_FILE"
+echo "Created lock file: $LOCK_FILE"
+
+# Dispatch to kwike daemon (uses .kwike/config.yaml for socket path)
+cd "$REPO_ROOT"
+echo "$PAYLOAD" | kwike dispatch --type publish.commit --daemon local
+
+echo "Dispatched publish.commit event for $COMMIT_SHA"

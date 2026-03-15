@@ -1,0 +1,10 @@
+# Ignore runtime state
+daemon.sock
+pids/
+
+# Ignore consumer state directories
+agents/*/state/
+
+# Ignore lock files (but keep the directory)
+locks/*.lock
+!locks/.gitkeep

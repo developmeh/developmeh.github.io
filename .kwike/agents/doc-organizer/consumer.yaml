@@ -1,0 +1,56 @@
+# Doc Organizer - Frontmatter & Home Page Updater
+#
+# Triggered by git post-commit hook when user commits content changes.
+# Validates frontmatter, updates home.md devlogs/articles, creates lock file.
+#
+# Usage:
+#   kwike consume --config ./consumer.yaml
+
+name: doc-organizer
+
+source:
+  daemon: "unix://./.kwike/daemon.sock"
+  types:
+    - "publish.commit"               # Fresh: triggered by post-commit hook
+    - "publish.commit.review.rejected"  # Resume: commit-agent rejected changes
+
+state:
+  dir: ./state
+
+uniform:
+  path: ./uniform.md
+
+llm:
+  command: claude
+  stdin: [prompt, spec]
+  args:
+    - "--print"
+    - "--permission-mode"
+    - "dontAsk"
+    - "--allowedTools"
+    - "Read,Edit,Write,Glob,Grep"
+    - "--add-dir"
+    - "${KWIKE_WORKING_DIR}"
+  timeout: 15m
+  resume_flag: true
+  schema_max_retries: 3
+
+flow:
+  poll_interval: 5s
+  inbox_size: 1
+  max_concurrent: 1
+  backoff:
+    initial: 1s
+    max: 30s
+    multiplier: 2.0
+
+lifecycle:
+  emit_done: true
+  emit_failed: true
+
+session:
+  fresh_types:
+    - "publish.commit"
+  resume_types:
+    - "publish.commit.review.rejected"
+  timeout: 2h

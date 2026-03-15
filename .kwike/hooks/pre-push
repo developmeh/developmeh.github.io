@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Pre-push hook for developmeh.com
+# Blocks push if doc-organizer is still processing (lock file exists)
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+LOCKS_DIR="${REPO_ROOT}/.kwike/locks"
+MAX_WAIT=300  # Maximum wait time in seconds (5 minutes)
+POLL_INTERVAL=5  # Check every 5 seconds
+
+# Check if any lock files exist
+check_locks() {
+  local count
+  count=$(find "$LOCKS_DIR" -name "*.lock" -type f 2>/dev/null | wc -l)
+  echo "$count"
+}
+
+# If no locks directory, proceed
+if [[ ! -d "$LOCKS_DIR" ]]; then
+  exit 0
+fi
+
+# Check for lock files
+LOCK_COUNT=$(check_locks)
+
+if [[ "$LOCK_COUNT" -eq 0 ]]; then
+  exit 0
+fi
+
+echo "Doc-organizer is processing commits. Waiting for completion..."
+echo "Lock files found: $LOCK_COUNT"
+
+WAITED=0
+while [[ "$LOCK_COUNT" -gt 0 ]] && [[ "$WAITED" -lt "$MAX_WAIT" ]]; do
+  sleep "$POLL_INTERVAL"
+  WAITED=$((WAITED + POLL_INTERVAL))
+  LOCK_COUNT=$(check_locks)
+
+  if [[ "$LOCK_COUNT" -gt 0 ]]; then
+    echo "Still waiting... ($WAITED seconds, $LOCK_COUNT lock(s) remaining)"
+    # Show which locks are active
+    find "$LOCKS_DIR" -name "*.lock" -type f -exec basename {} \; 2>/dev/null | head -5
+  fi
+done
+
+if [[ "$LOCK_COUNT" -gt 0 ]]; then
+  echo "ERROR: Timeout waiting for doc-organizer to complete after ${MAX_WAIT}s"
+  echo "Active lock files:"
+  find "$LOCKS_DIR" -name "*.lock" -type f -exec basename {} \; 2>/dev/null
+  echo ""
+  echo "To force push, remove the lock files:"
+  echo "  rm ${LOCKS_DIR}/*.lock"
+  exit 1
+fi
+
+echo "Doc-organizer completed. Proceeding with push."
+exit 0
