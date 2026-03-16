@@ -38,11 +38,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1773618204,
-        "narHash": "sha256-YMRjgZRgRe7DLhzhmnQIavjHWW66sluYB1ObehVmQXw=",
+        "lastModified": 1773619200,
+        "narHash": "sha256-5WZrW19o2UpsXAA4alVQWvthpspMtbTrWaVSxiwR5cM=",
         "owner": "~ninjapanzer",
         "repo": "kwik-e-mart",
-        "rev": "ac8635028965b83b9481d1d94421c12c130cbe8b",
+        "rev": "162b02bd29a827c7a0eff62a47068c5fde257d31",
         "type": "sourcehut"
       },
       "original": {

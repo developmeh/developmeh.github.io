@@ -1,3 +1,6 @@
 .direnv
 site/
 .test/bats
+.kwike/events.jsonl
+.kwike/acks.jsonl
+.kwike/daemon.pid
