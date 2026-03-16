@@ -25,6 +25,8 @@ llm:
   stdin: [prompt, spec]
   args:
     - "--print"
+    - "--model"
+    - "sonet"
     - "--permission-mode"
     - "dontAsk"
     - "--allowedTools"

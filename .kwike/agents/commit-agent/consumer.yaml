@@ -24,6 +24,8 @@ llm:
   stdin: [prompt, spec]
   args:
     - "--print"
+    - "--model"
+    - "haiku"
     - "--permission-mode"
     - "dontAsk"
     - "--allowedTools"
