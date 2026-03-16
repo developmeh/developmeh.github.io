@@ -29,7 +29,12 @@ llm:
     - "--permission-mode"
     - "dontAsk"
     - "--allowedTools"
-    - "Read,Bash(git diff *),Bash(git log *),Bash(git status),Bash(git add *),Bash(git commit *)"
+    - "Read"
+    - "Bash(git diff *)"
+    - "Bash(git log *)"
+    - "Bash(git status)"
+    - "Bash(git add *)"
+    - "Bash(git commit *)"
     - "--add-dir"
     - "${KWIKE_WORKING_DIR}"
   timeout: 10m

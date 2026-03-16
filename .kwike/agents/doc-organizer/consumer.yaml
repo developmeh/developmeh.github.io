@@ -26,11 +26,15 @@ llm:
   args:
     - "--print"
     - "--model"
-    - "sonet"
+    - "sonnet"
     - "--permission-mode"
     - "dontAsk"
     - "--allowedTools"
-    - "Read,Edit,Write,Glob,Grep"
+    - "Read"
+    - "Edit"
+    - "Write"
+    - "Glob"
+    - "Grep"
     - "--add-dir"
     - "${KWIKE_WORKING_DIR}"
   timeout: 15m
