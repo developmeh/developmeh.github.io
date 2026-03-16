@@ -276,6 +276,4 @@ Just having sequence diagrams updated or API docs synced when HTTP endpoint code
 
 Kwike is not really designed to be used by humans, its rather complicated. Since its been designed as a tool robots use its cli is intended to instruct process and carry a lot of documentation. Its an interesting problem and the question is, does something like this inform on how to build for humans too.
 
-what
-
 </div>
