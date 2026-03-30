@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-03-15
+updated = 2026-03-29
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 enable_discussions = false
@@ -51,7 +51,8 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Devlogs</h3>
 
-- [15-03-2026 Kwik-E-Mart (v0.5 — Making tools for robots)](/i-made-a-thing/kwik-e-mart-who-needs-a-gas-town#15-03-2026)
+- [29-03-2026 kwike (v0.0.15 - Refining Options)](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#29-03-2026)
+- [15-03-2026 kwike (v0.0.5 - Making tools for robots)](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#15-03-2026)
 - [06-03-2026 The AI Diaries (My Own Ideas)](/soft-wares/ai-diaries#06-03-2026)
 - [01-03-2026 The AI Diaries (Limitless Abstraction)](/soft-wares/ai-diaries#01-03-2026)
 - [22-02-2026 The AI Diaries (Unboudned Growth)](/soft-wares/ai-diaries#22-02-2026)
@@ -91,6 +92,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Articles</h3>
 
+- [kwike: LLM-First Agentic Workflow Composition](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition)
 - [Automatic Programming: Iteration 4](/devex/automatic-programming-iteration-4)
 - [BATS - Testing Bash Like You Mean It](/tech-dives/bats-testing-bash-like-you-mean-it)
 - [Keep Your Eyes on the IDE, and Your Robots on the Tickets](/i-made-a-thing/keep-your-eyes-on-the-ide-and-your-robots-on-the-tickets)
@@ -106,7 +108,6 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 - [Creative Impostor Syndrome](/soft-wares/creative-impostor-syndrome)
 - [The Perfect Dev Env Part 1](/devex/the-perfect-dev-env/)
 - [Distributed Game of Life](/projects/gol/)
-- [Kwik-E-Mart: Who Needs a Gas Town When a Gas Station Will Do](/i-made-a-thing/kwik-e-mart-who-needs-a-gas-town)
 - [Krappy Kafka](/i-made-a-thing/recreating-kafka-blind)
 
 </div>
