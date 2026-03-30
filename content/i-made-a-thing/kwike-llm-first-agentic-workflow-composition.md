@@ -8,8 +8,8 @@ updated = 2026-03-29
 desc = "An LLM-first tool for composing agentic workflows using Unix primitives - pipes, append-only logs, and event subscriptions instead of SDKs and harnesses."
 keywords = "event-driven, reactive flows, LLM orchestration, kwike, eventing, CLI, Go, durable events, Unix philosophy, agentic workflows, claude-code"
 sitemap_priority = "0.8"
-discussion_number = 51
-discussion_url = "https://github.com/orgs/developmeh/discussions/51"
+discussion_number = 53
+discussion_url = "https://github.com/orgs/developmeh/discussions/53"
 +++
 
 I've been building [kwike](https://git.sr.ht/~ninjapanzer/kwike), an LLM-first tool for composing agentic workflows using Unix primitives - pipes, append-only logs, and event subscriptions instead of SDKs and harnesses.
