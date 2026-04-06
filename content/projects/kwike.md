@@ -6,6 +6,8 @@ date = 2026-03-26
 [extra]
 desc = "Composable event-driven agent orchestration using Unix primitives"
 keywords = "kwike, event-driven, agent orchestration, Unix philosophy, LLM, Claude, automation"
+discussion_number = 53
+discussion_url = "https://github.com/orgs/developmeh/discussions/53"
 +++
 
 **[View Interactive Site →](/kwike/)**

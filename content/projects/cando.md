@@ -6,6 +6,8 @@ date = 2026-04-05
 [extra]
 desc = "Task-oriented AI agent - spawned for a task, does the work, exits"
 keywords = "cando, AI agent, task automation, software development, LLM, Gemma, Crystal"
+discussion_number = 54
+discussion_url = "https://github.com/orgs/developmeh/discussions/54"
 +++
 
 **[View Interactive Site →](/cando/)**
