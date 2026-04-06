@@ -1,6 +1,7 @@
 +++
 title = "The Krappy Internet"
 template = "page.html"
+weight = 3
 date = 2025-01-29
 updated = 2025-03-02
 [extra]
