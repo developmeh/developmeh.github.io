@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiments | cando</title>
+    <link rel="stylesheet" href="tailwind.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0f172a; }
+        .gradient-text {
+            background: linear-gradient(90deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-glow {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% -20%, rgba(96, 165, 250, 0.15), transparent 70%);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 selection:bg-blue-500/30">
+    <div class="hero-glow"></div>
+
+    <!-- Navigation -->
+    <nav class="container mx-auto px-6 py-8 flex justify-between items-center">
+        <a href="index.html" class="text-2xl font-extrabold tracking-tighter text-white">
+            can<span class="text-blue-500">do</span>
+        </a>
+        <div class="hidden md:flex space-x-8 text-sm font-medium text-slate-400">
+            <a href="index.html" class="hover:text-white transition-colors">Home</a>
+            <a href="architecture.html" class="hover:text-white transition-colors">Architecture</a>
+            <a href="experiments.html" class="text-white">Experiments</a>
+            <a href="https://git.sr.ht/~ninjapanzer/cando/tree/master/item/docs/adr" class="hover:text-white transition-colors">ADRs</a>
+        </div>
+        <a href="https://git.sr.ht/~ninjapanzer/cando" class="bg-white text-slate-950 px-5 py-2 rounded-full text-sm font-bold hover:bg-blue-400 transition-all">
+            Source
+        </a>
+    </nav>
+
+    <!-- Header -->
+    <header class="container mx-auto px-6 pt-16 pb-16 text-center">
+        <span class="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-widest uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full">
+            Research Log
+        </span>
+        <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
+            <span class="gradient-text">Experiments</span>
+        </h1>
+        <p class="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Building an LLM agent on consumer hardware means running into walls. We document what we hit, what we tried, and what we learned.
+        </p>
+    </header>
+
+    <!-- Content -->
+    <main class="container mx-auto px-6 pb-32 max-w-4xl space-y-10">
+
+        <!-- Completed -->
+        <div class="p-8 rounded-2xl bg-slate-900/50 border border-slate-800">
+            <h2 class="text-2xl font-bold text-white mb-2">Completed</h2>
+            <p class="text-slate-500 text-sm mb-8">Experiments with results and conclusions.</p>
+
+            <div class="space-y-6">
+                <a href="https://git.sr.ht/~ninjapanzer/cando/tree/master/item/docs/exp/0001-llm-backend-and-context-management.md" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-blue-500/50 transition-all group">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-blue-500/20 text-blue-400 text-xs font-mono px-2.5 py-1 rounded">EXP-0001</span>
+                        <span class="text-slate-500 text-xs">2026-04-05</span>
+                    </div>
+                    <h3 class="text-white font-semibold mb-2 group-hover:text-blue-400 transition-colors">LLM Backend Selection and Context Window Management</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Compared llama.cpp vs ollama for Gemma 4 26B on 12GB VRAM. Ollama wins on GPU utilization due to MoE-aware offloading. Context management and smart file reading essential for multi-step tool use.</p>
+                </a>
+
+                <a href="https://git.sr.ht/~ninjapanzer/cando/tree/master/item/docs/exp/0010-system-prompt-role-in-tool-use-behavior.md" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 transition-all group">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-purple-500/20 text-purple-400 text-xs font-mono px-2.5 py-1 rounded">EXP-0010</span>
+                        <span class="text-slate-500 text-xs">2026-04-05</span>
+                    </div>
+                    <h3 class="text-white font-semibold mb-2 group-hover:text-purple-400 transition-colors">System Prompt Role in Tool-Use Behavior</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">System prompt is load-bearing. "Helpful assistant" &rarr; model reviews files. "Task executor, NEVER review" &rarr; model acts. Small wording changes produce large behavioral shifts at Q4 quant.</p>
+                </a>
+
+                <a href="https://git.sr.ht/~ninjapanzer/cando/tree/master/item/docs/exp/0011-model-sed-capability-and-html-corruption.md" class="block p-6 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-emerald-500/50 transition-all group">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-emerald-500/20 text-emerald-400 text-xs font-mono px-2.5 py-1 rounded">EXP-0011</span>
+                        <span class="text-slate-500 text-xs">2026-04-05</span>
+                    </div>
+                    <h3 class="text-white font-semibold mb-2 group-hover:text-emerald-400 transition-colors">Model sed Capability and HTML Corruption</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">sed is unreliable for HTML modification by LLMs. Partial application compounds errors. Atomic file rewrites are safer than incremental edits for structured documents.</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Planned -->
+        <div class="p-8 rounded-2xl bg-slate-900/50 border border-slate-800">
+            <h2 class="text-2xl font-bold text-white mb-2">Planned</h2>
+            <p class="text-slate-500 text-sm mb-8">Experiments with hypotheses, waiting to run.</p>
+
+            <div class="space-y-4">
+                <div class="flex gap-4 items-start p-4 rounded-xl bg-slate-800/30">
+                    <span class="bg-slate-700/50 text-slate-400 text-xs font-mono px-2.5 py-1 rounded flex-shrink-0 mt-0.5">0002</span>
+                    <div>
+                        <h3 class="text-slate-300 font-medium text-sm">Context Compaction Under Sustained Tool Use</h3>
+                        <p class="text-slate-500 text-xs mt-1">Does summarize-and-replace preserve enough state for 10+ turn tasks?</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start p-4 rounded-xl bg-slate-800/30">
+                    <span class="bg-slate-700/50 text-slate-400 text-xs font-mono px-2.5 py-1 rounded flex-shrink-0 mt-0.5">0003</span>
+                    <div>
+                        <h3 class="text-slate-300 font-medium text-sm">Tree-Sitter Aware File Reading</h3>
+                        <p class="text-slate-500 text-xs mt-1">Can AST-based outlines reduce context waste for code files like heading extraction does for markdown?</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start p-4 rounded-xl bg-slate-800/30">
+                    <span class="bg-slate-700/50 text-slate-400 text-xs font-mono px-2.5 py-1 rounded flex-shrink-0 mt-0.5">0004</span>
+                    <div>
+                        <h3 class="text-slate-300 font-medium text-sm">Quant Quality vs Instruction Following</h3>
+                        <p class="text-slate-500 text-xs mt-1">Does Q8 Gemma 4 follow tool-use instructions more reliably than Q4?</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start p-4 rounded-xl bg-slate-800/30">
+                    <span class="bg-slate-700/50 text-slate-400 text-xs font-mono px-2.5 py-1 rounded flex-shrink-0 mt-0.5">0005</span>
+                    <div>
+                        <h3 class="text-slate-300 font-medium text-sm">Per-Expert MoE Offloading in Upstream llama.cpp</h3>
+                        <p class="text-slate-500 text-xs mt-1">When upstream adds per-expert offloading, does it close the gap with ollama?</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start p-4 rounded-xl bg-slate-800/30">
+                    <span class="bg-slate-700/50 text-slate-400 text-xs font-mono px-2.5 py-1 rounded flex-shrink-0 mt-0.5">0006</span>
+                    <div>
+                        <h3 class="text-slate-300 font-medium text-sm">Ollama GGUF Format Differences</h3>
+                        <p class="text-slate-500 text-xs mt-1">Document exact structural differences between ollama's GGUF and ggml-org's. Converter feasibility.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start p-4 rounded-xl bg-slate-800/30">
+                    <span class="bg-slate-700/50 text-slate-400 text-xs font-mono px-2.5 py-1 rounded flex-shrink-0 mt-0.5">0007</span>
+                    <div>
+                        <h3 class="text-slate-300 font-medium text-sm">System Prompt Engineering for Q4 Models</h3>
+                        <p class="text-slate-500 text-xs mt-1">Systematic testing of prompt variants: role framing, negative constraints, few-shot examples.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start p-4 rounded-xl bg-slate-800/30">
+                    <span class="bg-slate-700/50 text-slate-400 text-xs font-mono px-2.5 py-1 rounded flex-shrink-0 mt-0.5">0008</span>
+                    <div>
+                        <h3 class="text-slate-300 font-medium text-sm">Output Token Budget and File Generation</h3>
+                        <p class="text-slate-500 text-xs mt-1">Map ctx-size to max reliable output tokens. What's the biggest file cando can write in one tool call?</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start p-4 rounded-xl bg-slate-800/30">
+                    <span class="bg-slate-700/50 text-slate-400 text-xs font-mono px-2.5 py-1 rounded flex-shrink-0 mt-0.5">0009</span>
+                    <div>
+                        <h3 class="text-slate-300 font-medium text-sm">Task Decomposition Strategies</h3>
+                        <p class="text-slate-500 text-xs mt-1">Multiple focused cando runs vs one big prompt. External orchestration vs in-context planning.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topics -->
+        <div class="p-8 rounded-2xl bg-slate-900/50 border border-slate-800">
+            <h2 class="text-2xl font-bold text-white mb-6">Topics</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <h3 class="text-blue-400 font-semibold text-sm uppercase tracking-wider">Context Window</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">The primary constraint for complex tasks. Smart file reading, compaction, and output budgeting.</p>
+                    <p class="text-slate-500 text-xs">EXP-0001, 0002, 0008</p>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-purple-400 font-semibold text-sm uppercase tracking-wider">Tooling</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Structural file reading, tree-sitter awareness, sed reliability, write strategies.</p>
+                    <p class="text-slate-500 text-xs">EXP-0001, 0003, 0011</p>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-emerald-400 font-semibold text-sm uppercase tracking-wider">Model Behavior</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">System prompt engineering, quant effects on instruction following, reviewer-mode drift.</p>
+                    <p class="text-slate-500 text-xs">EXP-0004, 0007, 0010</p>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-amber-400 font-semibold text-sm uppercase tracking-wider">Infrastructure</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Ollama vs llama.cpp, GGUF formats, MoE offloading, VRAM constraints.</p>
+                    <p class="text-slate-500 text-xs">EXP-0001, 0005, 0006</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-12 border-t border-slate-800/50 text-center">
+        <div class="text-slate-500 text-sm">
+            &copy; 2026 cando. Apache-2.0. Built with <a href="https://ai.google.dev/gemma" class="hover:text-slate-300 transition-colors">Gemma 4</a>.
+        </div>
+    </footer>
+</body>
+</html>

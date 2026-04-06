@@ -3,7 +3,7 @@ title = "kwike: LLM-First Agentic Workflow Composition"
 template = "page.html"
 weight = 0
 date = 2026-03-07
-updated = 2026-03-29
+updated = 2026-04-05
 [extra]
 desc = "An LLM-first tool for composing agentic workflows using Unix primitives - pipes, append-only logs, and event subscriptions instead of SDKs and harnesses."
 keywords = "event-driven, reactive flows, LLM orchestration, kwike, eventing, CLI, Go, durable events, Unix philosophy, agentic workflows, claude-code"
@@ -137,50 +137,26 @@ kwike consume --config ./agents/writer/consumer.yaml
 
 Here's something that has nothing to do with code. A small business receives documents - invoices, contracts, correspondence - dropped into a shared folder. The workflow: watch for new files, classify them, extract structured data based on type, and produce a weekly digest.
 
-```
-                         +------------------+
-                         |   doc.received   |  <-- watch command
-                         +--------+---------+
-                                  |
-                                  v
-                         +------------------+
-                         |    classifier    |
-                         +--------+---------+
-                                  |
-                    +-------------+-------------+
-                    |                           |
-                    v                           v
-           +----------------+          +-----------------+
-           |  doc.classified |         | doc.classify    |  [TERMINAL]
-           +-------+--------+          | .failed         |
-                   |                   +-----------------+
-                   |
-     +-------------+-------------+-------------+
-     |             |             |             |
-     | filter:     | filter:     | filter:     |
-     | invoice     | contract    | corresp.    |
-     v             v             v             |
-+----------+ +----------+ +-----------+        |
-| invoice  | | contract | | corresp.  |        |
-| extractor| | extractor| | extractor |        |
-+----+-----+ +----+-----+ +-----+-----+        |
-     |            |             |              |
-     |    +-------+-------+     |              |
-     |    |               |     |              |
-     v    v               v     v              |
-+-----------+          +-----------+           |
-| .extracted|          | .extract  | [TERMINAL]|
-| events    |          | .failed   |           |
-+----+------+          +-----------+           |
-     |                                         |
-     +-------------+-------------+             |
-                   |                           |
-                   v                           |
-          +------------------+                 |
-          |    [TERMINAL]    |                 |
-          |  markdown output |                 |
-          +------------------+                 |
-```
+<span class="mermaid">
+flowchart TD
+    W[watch command] --> R[doc.received]
+    R --> C[classifier]
+    C --> CL[doc.classified]
+    C --> CF((doc.classify.failed))
+    CL --> FI[filter: invoice]
+    CL --> FC[filter: contract]
+    CL --> FP[filter: correspondence]
+    FI --> EI[invoice extractor]
+    FC --> EC[contract extractor]
+    FP --> EP[correspondence extractor]
+    EI --> EX[.extracted events]
+    EC --> EX
+    EP --> EX
+    EI --> EF((.extract.failed))
+    EC --> EF
+    EP --> EF
+    EX --> MD((markdown output))
+</span>
 
 ```bash
 # daemon running somewhere
@@ -260,6 +236,82 @@ There's plenty left to do but I'd love to hear feedback on the architecture and 
 ---
 
 ## DevLog
+
+<div class="devlog-entry">
+
+### 05 04 2026
+#### Fan-Out Gets a Collector
+
+Added `kwike collect` for fan-out/fan-in patterns. The problem: orchestrator dispatches work to N workers, needs to wait for all N to complete before continuing. Previous approach had handlers running as background scripts with no crash recovery.
+
+The insight was that collection is just another consumer pattern. It has its own cursor, its own session, fits the existing recovery model.
+
+```bash
+# orchestrator dispatches work, emits job.dispatched
+# workers do their thing, emit worker.*.done or worker.*.failed
+# collector subscribes to all of these
+kwike collect --state-dir ./state/collect
+```
+
+`kwike collect` reads events from stdin, tracks state per thread:
+
+<span class="mermaid">
+flowchart LR
+    A[*.dispatched] --> C[kwike collect]
+    B[worker.*.done] --> C
+    D[worker.*.failed] --> C
+    C --> E[*.collected]
+</span>
+
+When done + failed >= expected count, it emits `*.collected` and the orchestrator resumes with the aggregated results. Crash-safe because state lives on disk and event processing is idempotent.
+
+Also added `kwike memory` CLI. Agents can now persist learnings across sessions:
+
+```bash
+kwike memory add --category "project" --key "test-runner" --value "uses pytest"
+kwike memory search --query "how do I run tests"
+```
+
+Uses the consumer's state directory (already exported as `KWIKE_STATE_DIR`), so memory is scoped per-consumer by default. JSONL storage with flock-based locking for cross-process safety.
+
+</div>
+
+<div class="devlog-entry">
+
+### 04 04 2026
+#### v0.1.0
+
+Bumped to 0.1.0. Mostly documentation and architecture work today.
+
+Wrote three ADRs for memory architecture: how agents should persist and recall context across sessions. The core idea is three memory scopes (workflow, consumer, session) with memory injected into prompts at render time rather than through MCP tool calls.
+
+Also documented where kwike diverges from claude-code internals. kwike uses 2-tier compaction vs claude-code's 4-tier. kwike has 8 hooks vs claude-code's 27. These aren't bugs, they're intentional simplifications for the use case.
+
+</div>
+
+<div class="devlog-entry">
+
+### 03 04 2026
+#### Live Reload and Test Stability
+
+Added fsnotify-based live reload for uniform templates. Change a prompt file, consumer picks it up without restart. Defaults to on with 300ms debounce. If your new template has a syntax error, it keeps the old one and logs the issue.
+
+```yaml
+uniform:
+  template: ./uniform.md
+  live_reload: true  # default
+  debounce: 300ms    # default
+```
+
+Spent most of the day fixing flaky tests. Two issues:
+
+1. Background processes in bats weren't getting killed properly. When you do `(cd dir && cmd) &`, `$!` gives you the subshell PID, not the actual command. Fix: use `exec` so the subshell gets replaced: `(cd dir && exec cmd) &`
+
+2. Unix socket paths exceeded the ~104 char limit in nix-shell temp directories. Nix creates deep paths like `/nix/store/abc123-something/tmp/...`. Fix: use short paths in `/tmp/kwike-test-xxx/d.sock`.
+
+Both are the kind of bugs that only show up in CI and make you question your life choices.
+
+</div>
 
 <div class="devlog-entry">
 

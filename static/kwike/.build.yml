@@ -1,0 +1,14 @@
+image: alpine/latest
+oauth: pages.sr.ht/PAGES:RW
+packages:
+  - hut
+environment:
+  domain: ninjapanzer.srht.site
+  subdir: kwike-site
+sources:
+  - https://git.sr.ht/~ninjapanzer/kwike-site
+tasks:
+  - publish: |
+      cd kwike-site
+      tar -cvz . > ../site.tar.gz
+      hut pages publish -d $domain -s $subdir ../site.tar.gz

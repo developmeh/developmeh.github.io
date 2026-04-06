@@ -1,0 +1,58 @@
+@startuml
+!theme cyborg
+skinparam backgroundColor transparent
+skinparam defaultFontColor #ecf0f1
+skinparam arrowColor #3498db
+
+title SRHTD Process DAG
+
+|srhtd CLI|
+start
+:srhtd start;
+note right: creates worktree + ticket
+
+|kwike|
+:srhtd.refine;
+
+:Opus refiner; <<#e67e22>>
+note right: spec → tasks
+
+:srhtd.refine.done;
+
+repeat
+  :Sonnet implementer ×3; <<#9b59b6>>
+  note right: creates sub-branches
+
+  :srhtd.refine.done.done;
+
+  :Haiku reviewer ×3; <<#2ecc71>>
+  note right: approve/reject
+
+  if (approved?) then (yes)
+    :merge sub-branch;
+    break
+  else (reject)
+    :srhtd.review.rejected;
+    note right: resume session
+  endif
+repeat while (review loop)
+
+|srhtd CLI|
+:srhtd finish;
+note right: user triggers
+
+|kwike|
+:srhtd.integrate;
+
+:Opus integrator; <<#e67e22>>
+note right: final review
+
+|srhtd CLI|
+:squash-merge → master;
+:cleanup worktree;
+:close ticket;
+
+:MERGED; <<#2ecc71>>
+stop
+
+@enduml

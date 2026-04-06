@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive presentation about Kwike: a composable event-driven agent orchestration system built on Unix philosophy, featuring crash-only design and robots-not-companions philosophy.">
+    <meta name="keywords" content="kwike, event-driven, agent orchestration, Unix philosophy, LLM, Claude, automation">
+    <title>Kwike Architecture - Composable Event-Driven Systems</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button class="theme-toggle-btn" aria-label="Toggle dark/light mode">
+            <span class="icon-sun">☀️</span>
+            <span class="icon-moon">🌙</span>
+        </button>
+    </div>
+
+    <nav id="nav">
+        <a href="#intro" class="nav-link">Introduction</a>
+        <a href="#philosophy" class="nav-link">Philosophy</a>
+        <a href="#events" class="nav-link">Events</a>
+        <a href="#primitives" class="nav-link">Primitives</a>
+        <a href="#onboarding" class="nav-link">LLM Onboarding</a>
+        <a href="#consumers" class="nav-link">Consumers</a>
+        <a href="#patterns" class="nav-link">Patterns</a>
+        <a href="#cli" class="nav-link">CLI Tools</a>
+        <a href="projects.html" class="nav-link nav-forward">Projects →</a>
+    </nav>
+
+    <main id="main-content">
+        <!-- Introduction Section -->
+        <section id="intro" class="slide" data-parallax="0.5">
+            <div class="slide-content">
+                <h1>Kwike</h1>
+                <p class="subtitle">Composable Event-Driven Agent Orchestration</p>
+                <div class="intro-about">
+                    <p>Kwike is a lightweight event queue for orchestrating LLM agents. It provides four Unix-style primitives—<code>daemon</code>, <code>dispatch</code>, <code>watch</code>, and <code>consume</code>—that let you build composable, crash-only workflows where agents communicate through JSON events rather than direct coupling.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Philosophy Section -->
+        <section id="philosophy" class="slide" data-parallax="0.3">
+            <div class="slide-content">
+                <h2>Philosophy</h2>
+                <div id="philosophy-content">
+                    <!-- Content injected by philosophy.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Message/Event Structure Section -->
+        <section id="events" class="slide" data-parallax="0.6">
+            <div class="slide-content">
+                <h2>Message & Event Structure</h2>
+                <div id="events-content">
+                    <!-- Content injected by events.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Four Primitives Section -->
+        <section id="primitives" class="slide" data-parallax="0.4">
+            <div class="slide-content">
+                <h2>The Four Primitives</h2>
+                <div id="primitives-content">
+                    <!-- Content injected by primitives.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- LLM Onboarding Section -->
+        <section id="onboarding" class="slide" data-parallax="0.4">
+            <div class="slide-content">
+                <h2>LLM Onboarding</h2>
+                <div id="onboarding-content">
+                    <!-- Content injected by onboarding.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Consumer Patterns Section -->
+        <section id="consumers" class="slide" data-parallax="0.5">
+            <div class="slide-content">
+                <h2>Consumer Patterns</h2>
+                <div id="consumers-content">
+                    <!-- Content injected by consumers.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflow Patterns Section -->
+        <section id="patterns" class="slide" data-parallax="0.4">
+            <div class="slide-content">
+                <h2>Workflow Patterns</h2>
+                <div id="patterns-content">
+                    <!-- Content injected by patterns.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- CLI Tools Section -->
+        <section id="cli" class="slide" data-parallax="0.4">
+            <div class="slide-content">
+                <h2>CLI Tools</h2>
+                <div id="cli-content">
+                    <!-- Content injected by cli.js -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Load section content scripts -->
+    <script src="sections/intro.js"></script>
+    <script src="sections/philosophy.js"></script>
+    <script src="sections/events.js"></script>
+    <script src="sections/primitives.js"></script>
+    <script src="sections/consumers.js"></script>
+    <script src="sections/patterns.js"></script>
+    <script src="sections/cli.js"></script>
+    <script src="sections/onboarding.js"></script>
+
+    <!-- Main application script -->
+    <script src="main.js"></script>
+</body>
+</html>

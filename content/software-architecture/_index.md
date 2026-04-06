@@ -11,7 +11,7 @@ sort_by = "weight"
 
 # Used by the parent section to order its subsections.
 # Lower values have higher priority.
-weight = 1
+weight = 6
 
 # Template to use to render this section page.
 template = "section.html"

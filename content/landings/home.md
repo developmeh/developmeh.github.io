@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-03-29
+updated = 2026-04-05
 [extra]
 description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
 enable_discussions = false
@@ -51,6 +51,9 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Devlogs</h3>
 
+- [05-04-2026 kwike (Fan-Out Gets a Collector)](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#05-04-2026)
+- [04-04-2026 kwike (v0.1.0)](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#04-04-2026)
+- [03-04-2026 kwike (Live Reload and Test Stability)](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#03-04-2026)
 - [29-03-2026 kwike (v0.0.15 - Refining Options)](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#29-03-2026)
 - [15-03-2026 kwike (v0.0.5 - Making tools for robots)](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#15-03-2026)
 - [06-03-2026 The AI Diaries (My Own Ideas)](/soft-wares/ai-diaries#06-03-2026)

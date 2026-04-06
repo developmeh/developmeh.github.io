@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kwike Projects Showcase: A progression from proof-of-concept to production orchestration, featuring fruit-stand, feature-forge, tic-tac-toe, and srhtd.">
+    <meta name="keywords" content="kwike, projects, fruit-stand, feature-forge, tic-tac-toe, srhtd, agent orchestration">
+    <title>Kwike Projects - From POC to Production</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button class="theme-toggle-btn" aria-label="Toggle dark/light mode">
+            <span class="icon-sun">☀️</span>
+            <span class="icon-moon">🌙</span>
+        </button>
+    </div>
+
+    <nav id="nav">
+        <a href="index.html" class="nav-link nav-back">← Kwike</a>
+        <a href="#projects-intro" class="nav-link">Overview</a>
+        <a href="#fruit-stand" class="nav-link">Fruit Stand</a>
+        <a href="#feature-forge" class="nav-link">Feature Forge</a>
+        <a href="#tic-tac-toe" class="nav-link">Tic-Tac-Toe</a>
+        <a href="#srhtd" class="nav-link">SRHTD</a>
+    </nav>
+
+    <main id="main-content">
+        <!-- Projects Introduction Section -->
+        <section id="projects-intro" class="slide" data-parallax="0.5">
+            <div class="slide-content">
+                <h1>Kwike in the Wild</h1>
+                <p class="subtitle">A progression from proof-of-concept to production orchestration</p>
+                <div id="projects-intro-content">
+                    <!-- Content injected by projects-intro.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Fruit Stand Section -->
+        <section id="fruit-stand" class="slide" data-parallax="0.3">
+            <div class="slide-content">
+                <h2>Fruit Stand</h2>
+                <div id="fruit-stand-content">
+                    <!-- Content injected by fruit-stand.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Forge Section -->
+        <section id="feature-forge" class="slide" data-parallax="0.4">
+            <div class="slide-content">
+                <h2>Feature Forge</h2>
+                <div id="feature-forge-content">
+                    <!-- Content injected by feature-forge.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Tic-Tac-Toe Section -->
+        <section id="tic-tac-toe" class="slide" data-parallax="0.5">
+            <div class="slide-content">
+                <h2>Tic-Tac-Toe</h2>
+                <div id="tic-tac-toe-content">
+                    <!-- Content injected by tic-tac-toe.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SRHTD Section -->
+        <section id="srhtd" class="slide" data-parallax="0.4">
+            <div class="slide-content">
+                <h2>SRHTD</h2>
+                <div id="srhtd-content">
+                    <!-- Content injected by srhtd.js -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Load section content scripts -->
+    <script src="sections/projects-intro.js"></script>
+    <script src="sections/fruit-stand.js"></script>
+    <script src="sections/feature-forge.js"></script>
+    <script src="sections/tic-tac-toe.js"></script>
+    <script src="sections/srhtd.js"></script>
+
+    <!-- Main application script -->
+    <script src="main.js"></script>
+</body>
+</html>
