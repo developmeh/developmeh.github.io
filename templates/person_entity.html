@@ -1,0 +1,124 @@
+{# ---------------------------------------------------------------------------
+   Site-wide entity graph.
+
+   This is the single most important block of markup on the site for LLM and
+   answer-engine discoverability. It declares, once, with stable @ids:
+
+     Person       - who Paul Scarrone is and what he knows about
+     Organization - the DevelopMeh publishing entity, founded by that Person
+     WebSite      - the site itself, authored by that Person
+
+   Every article's `author` field points at the Person's @id rather than
+   repeating a name string, so all content resolves to ONE entity.
+
+   Emitted unconditionally on every page. Do NOT gate this behind a flag -
+   that is exactly how the previous `sameAs` block ended up never rendering.
+
+   Tera notes (Zola 0.21 / Tera 1):
+     * EVERY value goes through `| json_encode | safe`. Without it Tera's HTML
+       autoescape turns "https://x" into "https:&#x2F;&#x2F;x" and every URL in
+       the graph is silently garbage. json_encode also handles quotes and
+       unicode, so no value can break the JSON.
+     * `set` does not escape an if-block, so set_global is used.
+     * `not x is y` does not parse; use `(x is y) == false`.
+--------------------------------------------------------------------------- #}
+{%- set_global person_id = config.extra.person_id | default(value=config.base_url ~ "/about#person") -%}
+{%- set_global org_id = config.extra.organization_id | default(value=config.base_url ~ "/#organization") -%}
+{%- set_global site_id = config.extra.website_id | default(value=config.base_url ~ "/#website") -%}
+
+{%- set_global author_image = config.extra.author_image | default(value="") -%}
+{%- if author_image -%}
+  {%- if (author_image is starting_with("http")) == false -%}
+    {%- set_global author_image = get_url(path=author_image) -%}
+  {%- endif -%}
+{%- endif -%}
+
+{#- Deliberately NOT config.extra.logo: that variable drives the theme nav's
+    <img>, so reusing it here would put a logo above the navigation. -#}
+{%- set_global site_logo = config.extra.organization_logo | default(value="") -%}
+{%- if site_logo -%}
+  {%- if (site_logo is starting_with("http")) == false -%}
+    {%- set_global site_logo = get_url(path=site_logo) -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- set_global author_url = config.extra.author_url | default(value=config.base_url) -%}
+{%- set_global author_mailto = "mailto:" ~ config.extra.author_email | default(value="") -%}
+{%- set_global search_target = config.base_url ~ "?search={search_term_string}" -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": {{ person_id | json_encode | safe }},
+      "name": {{ config.extra.author_name | default(value=config.author) | json_encode | safe }},
+      "url": {{ author_url | json_encode | safe }},
+      "mainEntityOfPage": {{ author_url | json_encode | safe }},
+      {%- if author_image %}
+      "image": {
+        "@type": "ImageObject",
+        "url": {{ author_image | json_encode | safe }}
+      },
+      {%- endif %}
+      {%- if config.extra.author_email %}
+      "email": {{ author_mailto | json_encode | safe }},
+      {%- endif %}
+      {%- if config.extra.author_job_title %}
+      "jobTitle": {{ config.extra.author_job_title | json_encode | safe }},
+      {%- endif %}
+      {%- if config.extra.author_bio %}
+      "description": {{ config.extra.author_bio | json_encode | safe }},
+      {%- endif %}
+      {%- if config.extra.employer_name %}
+      "worksFor": {
+        "@type": "Organization",
+        "name": {{ config.extra.employer_name | json_encode | safe }}
+        {%- if config.extra.employer_url -%}
+        ,
+        "url": {{ config.extra.employer_url | json_encode | safe }}
+        {%- endif %}
+      },
+      {%- endif %}
+      {%- if config.extra.knows_about %}
+      "knowsAbout": {{ config.extra.knows_about | json_encode | safe }},
+      {%- endif %}
+      "sameAs": {{ config.extra.social_profiles | json_encode | safe }}
+    },
+    {
+      "@type": "Organization",
+      "@id": {{ org_id | json_encode | safe }},
+      "name": {{ config.title | json_encode | safe }},
+      "url": {{ config.base_url | json_encode | safe }},
+      {%- if site_logo %}
+      "logo": {
+        "@type": "ImageObject",
+        "url": {{ site_logo | json_encode | safe }}
+      },
+      {%- endif %}
+      "founder": { "@id": {{ person_id | json_encode | safe }} },
+      "sameAs": {{ config.extra.social_profiles | json_encode | safe }}
+    },
+    {
+      "@type": "WebSite",
+      "@id": {{ site_id | json_encode | safe }},
+      "url": {{ config.base_url | json_encode | safe }},
+      "name": {{ config.title | json_encode | safe }},
+      "description": {{ config.extra.desc | json_encode | safe }},
+      "inLanguage": "en-US",
+      "author": { "@id": {{ person_id | json_encode | safe }} },
+      "creator": { "@id": {{ person_id | json_encode | safe }} },
+      "publisher": { "@id": {{ org_id | json_encode | safe }} },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": {{ search_target | json_encode | safe }}
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>

@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+{#- `| safe` on permalink: without it Tera emits https:&#x2F;&#x2F; which is
+    legal XML but needlessly obfuscated. Note that sitemap `entries` are a
+    reduced struct - word_count is NOT available here, so priority cannot be
+    derived from content length. Demote stubs with `draft = true` or an
+    explicit `extra.sitemap_priority` instead. -#}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     {% for p in entries -%}
     <url>
-        <loc>{{ p.permalink }}</loc>
+        <loc>{{ p.permalink | safe }}</loc>
         {% set_global lastmod = p.updated -%}
         {% if p.extra and p.extra.discussion_number -%}
             {% set comment_file = "data/discussion_comments/" ~ p.extra.discussion_number ~ ".json" -%}

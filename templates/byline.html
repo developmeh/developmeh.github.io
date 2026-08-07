@@ -1,0 +1,34 @@
+{#- ---------------------------------------------------------------------------
+    Visible byline.
+
+    Articles previously carried no author, no date, and no <time> element in
+    the rendered HTML - authorship existed only in JSON-LD. This puts the same
+    facts in the document for human readers and for extractive parsers that
+    never look at the structured data.
+
+    Only renders on real articles; landing pages are excluded.
+--------------------------------------------------------------------------- -#}
+{%- set_global b_parts = page.relative_path | split(pat="/") -%}
+{%- set_global b_sec = b_parts[0] -%}
+{%- set_global b_show = false -%}
+{%- if b_sec in config.extra.essay_sections -%}{%- set_global b_show = true -%}{%- endif -%}
+{%- if b_sec in config.extra.tech_article_sections -%}{%- set_global b_show = true -%}{%- endif -%}
+
+{%- if b_show and page.date -%}
+{%- set_global b_updated = "" -%}
+{%- if page.extra and page.extra.updated -%}{%- set_global b_updated = page.extra.updated -%}{%- endif -%}
+{%- if page.updated -%}{%- set_global b_updated = page.updated -%}{%- endif -%}
+<div class="byline">
+  <span class="byline-author">by <a href="{{ config.extra.author_url | safe }}" rel="author">{{ config.extra.author_name | default(value=config.author) }}</a></span>
+  <span class="byline-sep">·</span>
+  <time datetime="{{ page.date }}">{{ page.date | date(format="%B %e, %Y") }}</time>
+  {%- if b_updated and b_updated != page.date %}
+  <span class="byline-sep">·</span>
+  <span class="byline-updated">updated <time datetime="{{ b_updated }}">{{ b_updated | date(format="%B %e, %Y") }}</time></span>
+  {%- endif %}
+  {%- if page.reading_time %}
+  <span class="byline-sep">·</span>
+  <span class="byline-reading">{{ page.reading_time }} min read</span>
+  {%- endif %}
+</div>
+{%- endif -%}

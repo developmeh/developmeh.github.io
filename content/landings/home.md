@@ -6,9 +6,12 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-04-05
+updated = 2026-08-07
 [extra]
-description = "That stuff you don't get to do at work - OpenTelemetry, WebRTC, and more developer experiments"
+# NOTE: was `description`, which no template reads - the homepage was silently
+# falling back to the site-wide description. The key templates look for is `desc`.
+desc = "The workshop of Paul Scarrone - essays, devlogs and working code on agentic AI workflows, developer experience, shell testing and software architecture. That stuff you don't get to do at work."
+keywords = "Paul Scarrone, developmeh, agentic AI, LLM orchestration, kwike, beamlet, wavelet, developer experience, Nix, BATS, bash testing, software architecture, devlog"
 enable_discussions = false
 discussion_number = 26
 discussion_url = "https://github.com/orgs/developmeh/discussions/26"
@@ -122,9 +125,15 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 <div class="callout info">
   <span class="callout-title">Connect</span>
   
-### Everything is on GitHub:
+### The code lives on sourcehut:
+- [git.sr.ht/~ninjapanzer](https://sr.ht/~ninjapanzer/) — where the current work is: [kwike](https://git.sr.ht/~ninjapanzer/kwike), [cando](https://git.sr.ht/~ninjapanzer/cando), [beamlet](https://git.sr.ht/~ninjapanzer/beamlet), [wavelet](https://git.sr.ht/~ninjapanzer/wavelet)
+
+### And some of it on GitHub:
 - <svg class="github-link-icon" height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>[https://github.com/developmeh](https://github.com/developmeh)
 - <svg class="github-link-icon" height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>[https://github.com/ninjapanzer](https://github.com/ninjapanzer)
+
+### Who's writing this
+[About Paul Scarrone](/about)
 
 ### Correspondence
 Please address all hate mail [here](https://github.com/orgs/developmeh/discussions/categories/general)

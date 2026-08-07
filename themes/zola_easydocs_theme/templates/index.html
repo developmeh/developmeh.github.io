@@ -60,6 +60,32 @@
         {% set _ugly_url = "index.html" -%}
     {% endif -%}
 
+
+
+    <article>
+
+        {% if config.build_search_index -%}
+            <div class="search-container">
+                <input id="search" type="search" placeholder="Search as you type...">
+                <div class="search-results">
+                    <div class="search-results__header"></div>
+                    <ul class="search-results__items"></ul>
+                </div>
+            </div>
+        {% endif -%}
+
+        <div id="wrap">
+            {% block content -%}
+                {%- if section.word_count -%}
+                    {{ section.content |safe }}
+                {%- else -%}
+                    {%- include "sec_toc_2_level.html" -%}
+                {% endif -%}
+            {% endblock content %}
+        </div>
+
+    </article>
+
     {%- block nav -%}
         <nav>
             {% if config.extra.logo -%}
@@ -166,33 +192,9 @@
                     <span class="search-text">Search</span>
                 </div>
             {% endif -%}
-            <footer>Copyright: Paul Scarrone {{ now() | date(format="%Y") }}</footer>
+            <footer><a href="{{ config.base_url | safe }}/about{{ _ugly_url }}">About Paul Scarrone</a><br/>Copyright: Paul Scarrone {{ now() | date(format="%Y") }}</footer>
         </nav>
     {% endblock nav -%}
-
-    <article>
-
-        {% if config.build_search_index -%}
-            <div class="search-container">
-                <input id="search" type="search" placeholder="Search as you type...">
-                <div class="search-results">
-                    <div class="search-results__header"></div>
-                    <ul class="search-results__items"></ul>
-                </div>
-            </div>
-        {% endif -%}
-
-        <div id="wrap">
-            {% block content -%}
-                {%- if section.word_count -%}
-                    {{ section.content |safe }}
-                {%- else -%}
-                    {%- include "sec_toc_2_level.html" -%}
-                {% endif -%}
-            {% endblock content %}
-        </div>
-
-    </article>
 </main>
 
 {% if config.build_search_index %}

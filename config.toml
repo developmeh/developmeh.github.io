@@ -1,7 +1,9 @@
 # The URL the site will be built for
 base_url = "https://developmeh.com"
 title = "DevelopMeh"
-author = "paul@scarrone.co"
+# Real human name. This becomes <meta name="author"> and schema.org Person.name
+# on every page. It must be a person, not an email address.
+author = "Paul Scarrone"
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
 
@@ -10,7 +12,10 @@ build_search_index = true
 
 theme = "zola_easydocs_theme"
 
-feed_filenames = ["rss.xml", "atom.xml"]
+# "llms.txt" rides the feed mechanism: Zola renders templates/<name> to the
+# site root for every entry here. That is the only supported way to emit an
+# arbitrary root-level text file without a post-build script.
+feed_filenames = ["rss.xml", "atom.xml", "llms.txt"]
 generate_feeds = true
 
 [markdown]
@@ -24,33 +29,122 @@ highlight_theme = "ruby"
 # Put all your custom variables here
 force_link = false
 favicon = "favicon.ico"
-keywords = "golang, ruby, software-development, devex, software-architecture, education, editorial"
-desc = "Contained within are harebrained ideas that have no commercial value... still here... you are one of the special ones."
-# Default image for Open Graph and Twitter cards if not specified in page frontmatter
-default_og_image = "favicon.ico"
-# Logo for structured data
+keywords = "agentic AI engineering, LLM orchestration, context engineering, developer experience, devex, Nix, reproducible development environments, BATS, bash testing, TAP, software architecture, engineering leadership, golang, ruby"
+desc = "Paul Scarrone's workshop - essays and experiments on agentic AI engineering, developer experience, shell testing, and software architecture. Contained within are harebrained ideas that have no commercial value... still here... you are one of the special ones."
+
+# Default image for Open Graph and Twitter cards if not specified in page frontmatter.
+# Interim: the GitHub avatar. Phase 1 replaces this with per-post 1200x630 cards.
+default_og_image = "https://github.com/ninjapanzer.png"
+# NOTE: `logo` is consumed by the THEME NAV - a non-empty value renders an
+# <img> above the navigation. Leave it empty unless you want that image.
+# Structured data reads `organization_logo` below instead, so the two are
+# independent.
 logo = ""
-# Author information
+# Logo used only for schema.org Organization.logo. Not rendered anywhere.
+organization_logo = "https://github.com/developmeh.png"
+
+# ---------------------------------------------------------------------------
+# Author entity
+#
+# These drive the schema.org Person emitted site-wide by person_entity.html.
+# `person_id` is the stable @id every page's `author` field points at, so all
+# content resolves to ONE entity instead of N anonymous strings. Do not change
+# it casually once crawlers have seen it.
+# ---------------------------------------------------------------------------
+author_name = "Paul Scarrone"
+author_email = "paul@scarrone.co"
 author_url = "https://developmeh.com/about"
-author_image = "favicon.ico"
-author_job_title = "Developer"
-# Social profiles for sameAs in structured data
-social_profiles = [
-  "https://github.com/developmeh",
-  "https://twitter.com/developmeh",
-  "https://bsky.app/profile/developmeh.com"
+author_image = "https://github.com/ninjapanzer.png"
+author_job_title = "Principal Software Engineer"
+author_bio = "Principal software engineer writing about agentic AI workflows, developer experience, and testing the parts of the stack everyone else ignores."
+person_id = "https://developmeh.com/about#person"
+organization_id = "https://developmeh.com/#organization"
+website_id = "https://developmeh.com/#website"
+
+# Employer. Emitted as Person.worksFor. Clear both values to drop the
+# affiliation entirely - the template omits the field when name is empty.
+employer_name = "8th Light"
+employer_url = "https://8thlight.com"
+
+# ---------------------------------------------------------------------------
+# knowsAbout - the field that literally answers "what is this person an expert
+# in". Phrase these the way people ask, not the way you'd title a blog post.
+# ---------------------------------------------------------------------------
+knows_about = [
+  "Agentic AI engineering",
+  "LLM agent orchestration",
+  "Context engineering for coding agents",
+  "Specification-driven agent development",
+  "Multi-agent coordination",
+  "Self-modifying agent systems",
+  "WebAssembly",
+  "Capability-based security",
+  "Sandboxing untrusted code",
+  "Supervision trees and OTP",
+  "Developer experience",
+  "Reproducible development environments",
+  "Nix",
+  "Continuous integration and delivery",
+  "Shell script testing",
+  "BATS (Bash Automated Testing System)",
+  "Test Anything Protocol (TAP)",
+  "Software architecture",
+  "Decoupling patterns",
+  "Event streaming systems",
+  "Engineering leadership",
+  "Go",
+  "Ruby",
 ]
+
+# ---------------------------------------------------------------------------
+# sameAs - how answer engines fuse developmeh.com, GitHub, LinkedIn and the
+# rest into a single identity. Every URL here should link BACK to
+# developmeh.com, or the association is asserted rather than corroborated.
+# ---------------------------------------------------------------------------
+social_profiles = [
+  "https://github.com/ninjapanzer",
+  "https://github.com/developmeh",
+  "https://sr.ht/~ninjapanzer/",
+  "https://www.linkedin.com/in/scarronp/",
+  "https://dev.to/paulscoder",
+  "https://www.youtube.com/channel/UCpjgLE2xw-19Ty0si6cFCNg",
+  "https://bsky.app/profile/developmeh.com",
+]
+
+# ---------------------------------------------------------------------------
+# schema.org type derivation.
+#
+# Posts get a real Article type instead of the generic WebPage, derived from
+# their content section so no per-post front matter is required. A page can
+# still override with `[extra] schema_type = "..."`.
+#
+#   tech_article_sections -> TechArticle  (deep technical / how-it-works)
+#   essay_sections        -> BlogPosting  (opinion, editorial, devlog)
+#   non_article_sections  -> left as WebPage (landing pages)
+# ---------------------------------------------------------------------------
+tech_article_sections = ["tech-dives", "i-made-a-thing", "projects", "software-architecture", "devex"]
+essay_sections = ["soft-wares", "terms-and-afflictions"]
+non_article_sections = ["landings", "home"]
+
+# ---------------------------------------------------------------------------
+# llms.txt - curated entry points, most important first. Paths are relative to
+# content/. Title and description are pulled from each page, so there is
+# nothing to keep in sync here.
+# ---------------------------------------------------------------------------
+llms_featured = [
+  "landings/about.md",
+  "soft-wares/agentic-patterns-elements-of-reusable-context-oriented-determinism.md",
+  "i-made-a-thing/kwike-llm-first-agentic-workflow-composition.md",
+  "projects/beamlet.md",
+  "projects/wavelet.md",
+  "i-made-a-thing/catalyst-orchestrator.md",
+  "tech-dives/a-deterministic-box-for-non-deterministic-engines.md",
+  "tech-dives/bats-testing-bash-like-you-mean-it.md",
+  "tech-dives/taps-not-just-a-report-format.md",
+  "devex/the-perfect-dev-env.md",
+  "i-made-a-thing/recreating-kafka-blind.md",
+]
+
 # Bluesky configuration
 bluesky_handle = "developmeh"
-bluesky_default_image = "favicon.ico"
-# Business information (uncomment and fill if applicable)
-# business_info = true
-# business_type = "Organization" # or other schema.org business types like LocalBusiness, etc.
-# business_email = "contact@example.com"
-# business_telephone = "+1234567890"
-# [extra.business_address]
-# street = "123 Main St"
-# city = "Anytown"
-# region = "State"
-# postal_code = "12345"
-# country = "US"
+bluesky_default_image = "https://github.com/ninjapanzer.png"

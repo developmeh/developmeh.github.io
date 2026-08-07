@@ -18,7 +18,11 @@
         {% endif %}
     {% endif %}
 
+    {% include "byline.html" %}
+
     {{ page.content | safe }}
+
+    {% include "related.html" %}
 
     {# Always show discussion section if discussion_url exists and not explicitly disabled #}
     {% if page.extra.discussion_url %}
@@ -74,5 +78,6 @@
     {% include "head_meta.html" %}
     {% include "additional_meta.html" %}
     {% include "bluesky_meta.html" %}
+    {% include "person_entity.html" %}
     {% include "enhanced_structured_data.html" %}
 {% endblock rss %}

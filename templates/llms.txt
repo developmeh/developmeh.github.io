@@ -1,0 +1,49 @@
+{#- ---------------------------------------------------------------------------
+    /llms.txt - a curated, machine-readable map of this site.
+
+    Rendered because "llms.txt" is listed in `feed_filenames` in config.toml,
+    which makes Zola write templates/llms.txt to the site root. Zola does not
+    autoescape non-HTML templates, so values pass through as written.
+
+    Everything is derived from front matter, so this file cannot go stale.
+    Pages under 150 words are skipped so unfinished stubs stay out.
+--------------------------------------------------------------------------- -#}
+{#- Parallel arrays, not an array of pairs: Tera 1 cannot parse a nested
+    array literal in `set_global`. -#}
+{%- set_global gkeys = ["projects", "i-made-a-thing", "tech-dives", "soft-wares", "devex", "software-architecture", "terms-and-afflictions"] -%}
+{%- set_global gtitles = ["Projects", "Builds and Experiments", "Deep Technical Guides", "Essays on Software Practice", "Developer Experience", "Software Architecture", "Industry Commentary"] -%}
+# {{ config.title }} — {{ config.extra.author_name | default(value=config.author) }}
+
+> {{ config.extra.author_bio }}
+
+{{ config.extra.author_name | default(value=config.author) }} is a {{ config.extra.author_job_title }}{% if config.extra.employer_name %} at {{ config.extra.employer_name }}{% endif %}. This site is his workshop: essays, deep technical guides, and working code, mostly about making tool-using language models behave like programs rather than conversations.
+
+- Canonical author page: {{ config.extra.author_url }}
+- Contact: {{ config.extra.author_email }}
+{% if last_updated is defined %}- Last updated: {{ last_updated }}{% endif %}
+
+## Areas of expertise
+
+{% for topic in config.extra.knows_about %}- {{ topic }}
+{% endfor %}
+## Start here
+
+The highest-signal pages on the site, most important first.
+
+{% for fp in config.extra.llms_featured %}{% set_global fpage = get_page(path=fp) %}- [{{ fpage.title }}]({{ fpage.permalink }}){% if fpage.extra.desc %}: {{ fpage.extra.desc }}{% endif %}
+{% endfor %}
+{% if pages is defined %}{% for gkey in gkeys %}{% set_global gtitle = gtitles[loop.index0] %}{% set_global gcount = 0 %}{% for p in pages %}{% set_global parts = p.relative_path | split(pat="/") %}{% if parts[0] == gkey and p.word_count > 150 %}{% set_global gcount = gcount + 1 %}{% endif %}{% endfor %}{% if gcount > 0 %}
+## {{ gtitle }}
+
+{% for p in pages %}{% set_global parts = p.relative_path | split(pat="/") %}{% if parts[0] == gkey and p.word_count > 150 %}- [{{ p.title }}]({{ p.permalink }}){% if p.extra.desc %}: {{ p.extra.desc }}{% endif %}
+{% endif %}{% endfor %}{% endif %}{% endfor %}{% endif %}
+## Elsewhere
+
+{% for profile in config.extra.social_profiles %}- {{ profile }}
+{% endfor %}
+## Notes for machine readers
+
+- Full content is available at every URL above; nothing here is paywalled or gated.
+- Feeds: {{ config.base_url }}/rss.xml and {{ config.base_url }}/atom.xml
+- Sitemap: {{ config.base_url }}/sitemap.xml
+- Every page carries schema.org JSON-LD. All authorship resolves to a single Person entity at {{ config.extra.person_id }}.

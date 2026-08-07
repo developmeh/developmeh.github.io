@@ -1,37 +1,65 @@
+{#- Open Graph / Twitter.
+
+    og:type is "article" on real posts and "website" on landing pages and
+    sections - it was hardcoded to "website" everywhere before, so no page
+    ever carried article:published_time, article:author or article:tag.
+
+    URLs need `| safe`: Tera autoescape otherwise emits https:&#x2F;&#x2F;
+    which breaks every consumer of these tags.
+-#}
+{%- set_global og_is_article = false -%}
+{%- set_global og_url = config.base_url ~ "/" ~ current_path -%}
+{%- if page is defined -%}
+  {%- set_global og_url = page.permalink -%}
+  {%- set_global path_parts = page.relative_path | split(pat="/") -%}
+  {%- set_global content_section = path_parts[0] -%}
+  {%- if content_section in config.extra.essay_sections -%}{%- set_global og_is_article = true -%}{%- endif -%}
+  {%- if content_section in config.extra.tech_article_sections -%}{%- set_global og_is_article = true -%}{%- endif -%}
+{%- elif section is defined and section.permalink -%}
+  {%- set_global og_url = section.permalink -%}
+{%- endif -%}
+
+{%- set_global og_title = config.title -%}
+{%- if page is defined and page.title -%}{%- set_global og_title = page.title -%}
+{%- elif section is defined and section.title -%}{%- set_global og_title = section.title -%}{%- endif -%}
+
+{%- set_global og_desc = config.extra.desc -%}
+{%- if page is defined and page.extra and page.extra.desc -%}{%- set_global og_desc = page.extra.desc -%}
+{%- elif section is defined and section.description -%}{%- set_global og_desc = section.description -%}{%- endif -%}
+
+{%- set_global og_image = config.extra.default_og_image | default(value="") -%}
+{%- if page is defined and page.extra and page.extra.image -%}
+  {%- set_global og_image = get_url(path=page.extra.image) -%}
+{%- elif og_image -%}
+  {%- if (og_image is starting_with("http")) == false -%}
+    {%- set_global og_image = get_url(path=og_image) -%}
+  {%- endif -%}
+{%- endif -%}
+
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="{{config.base_url | safe}}/{{current_path | safe}}" />
-{% if page.title %}
-<meta property="og:title" content="{{ page.title }}" />
-{% else %}
-<meta property="og:title" content="{{ config.title }}" />
-{% endif %}
-{% if page.extra.desc %}
-<meta property="og:description" content="{{ page.extra.desc }}" />
-{% else %}
-<meta property="og:description" content="{{ config.extra.desc }}" />
-{% endif %}
-{% if page.extra.image %}
-<meta property="og:image" content="{{ get_url(path=page.extra.image) | safe }}" />
-{% elif config.extra.default_og_image %}
-<meta property="og:image" content="{{ get_url(path=config.extra.default_og_image) | safe }}" />
-{% endif %}
+<meta property="og:type" content="{% if og_is_article %}article{% else %}website{% endif %}" />
+<meta property="og:site_name" content="{{ config.title }}" />
+<meta property="og:url" content="{{ og_url | safe }}" />
+<meta property="og:title" content="{{ og_title }}" />
+<meta property="og:description" content="{{ og_desc }}" />
+<meta property="og:locale" content="en_US" />
+{%- if og_image %}
+<meta property="og:image" content="{{ og_image | safe }}" />
+{%- endif %}
+{%- if og_is_article %}
+<meta property="article:published_time" content="{{ page.date }}" />
+<meta property="article:modified_time" content="{{ date_modified | default(value=page.date) }}" />
+<meta property="article:author" content="{{ config.extra.author_name | default(value=config.author) }}" />
+{%- if section is defined and section.title %}
+<meta property="article:section" content="{{ section.title }}" />
+{%- endif %}
+{%- endif %}
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:url" content="{{config.base_url | safe}}/{{current_path | safe}}" />
-{% if page.title %}
-<meta name="twitter:title" content="{{ page.title }}" />
-{% else %}
-<meta name="twitter:title" content="{{ config.title }}" />
-{% endif %}
-{% if page.extra.desc %}
-<meta name="twitter:description" content="{{ page.extra.desc }}" />
-{% else %}
-<meta name="twitter:description" content="{{ config.extra.desc }}" />
-{% endif %}
-{% if page.extra.image %}
-<meta name="twitter:image" content="{{ get_url(path=page.extra.image) | safe }}" />
-{% elif config.extra.default_og_image %}
-<meta name="twitter:image" content="{{ get_url(path=config.extra.default_og_image) | safe }}" />
-{% endif %}
+<meta name="twitter:url" content="{{ og_url | safe }}" />
+<meta name="twitter:title" content="{{ og_title }}" />
+<meta name="twitter:description" content="{{ og_desc }}" />
+{%- if og_image %}
+<meta name="twitter:image" content="{{ og_image | safe }}" />
+{%- endif %}

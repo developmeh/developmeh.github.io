@@ -1,0 +1,37 @@
+{#- ---------------------------------------------------------------------------
+    Related articles.
+
+    Before this, the ONLY internal linking on the site was the global nav tree,
+    which is identical on every page and therefore carries no signal about what
+    relates to what. Sibling links inside a section are a real topical edge.
+
+    Stubs (< 150 words) are excluded so unfinished pages don't get promoted.
+--------------------------------------------------------------------------- -#}
+{%- set_global r_parts = page.relative_path | split(pat="/") -%}
+{%- set_global r_sec = r_parts[0] -%}
+{%- set_global r_show = false -%}
+{%- if r_sec in config.extra.essay_sections -%}{%- set_global r_show = true -%}{%- endif -%}
+{%- if r_sec in config.extra.tech_article_sections -%}{%- set_global r_show = true -%}{%- endif -%}
+
+{%- if r_show -%}
+{%- set_global r_path = r_sec ~ "/_index.md" -%}
+{%- set_global r_section = get_section(path=r_path) -%}
+{%- set_global r_shown = 0 -%}
+{%- set_global r_any = false -%}
+{%- for p in r_section.pages -%}
+  {%- if p.permalink != page.permalink and p.word_count > 150 -%}{%- set_global r_any = true -%}{%- endif -%}
+{%- endfor -%}
+{%- if r_any %}
+<aside class="related">
+  <h3>More in {{ r_section.title }}</h3>
+  <ul>
+  {%- for p in r_section.pages %}
+    {%- if p.permalink != page.permalink and p.word_count > 150 and r_shown < 5 %}
+    {%- set_global r_shown = r_shown + 1 %}
+    <li><a href="{{ p.permalink | safe }}">{{ p.title }}</a>{% if p.extra.desc %} <span class="related-desc">{{ p.extra.desc | truncate(length=110) }}</span>{% endif %}</li>
+    {%- endif -%}
+  {%- endfor %}
+  </ul>
+</aside>
+{%- endif -%}
+{%- endif -%}
