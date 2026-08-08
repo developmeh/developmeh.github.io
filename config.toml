@@ -71,7 +71,7 @@ author_email = "paul@scarrone.co"
 author_url = "https://developmeh.com/about"
 author_image = "paul-scarrone.jpg"
 author_job_title = "Principal Software Engineer"
-author_bio = "Principal software engineer writing about agentic AI workflows, developer experience, and testing the parts of the stack everyone else ignores."
+author_bio = "Principal software engineer working on agentic AI workflows, developer experience, and shell and test tooling."
 person_id = "https://developmeh.com/about#person"
 organization_id = "https://developmeh.com/#organization"
 website_id = "https://developmeh.com/#website"
@@ -148,6 +148,7 @@ non_article_sections = ["landings", "home"]
 # ---------------------------------------------------------------------------
 llms_featured = [
   "landings/about.md",
+  "tech-dives/agentic-ai-engineering.md",
   "soft-wares/agentic-patterns-elements-of-reusable-context-oriented-determinism.md",
   "i-made-a-thing/kwike-llm-first-agentic-workflow-composition.md",
   "projects/beamlet.md",
