@@ -10,16 +10,32 @@ LOCKS_DIR="${REPO_ROOT}/.kwike/locks"
 
 CONTRACT=$(cat)
 STATUS=$(echo "$CONTRACT" | jq -r '.status')
+ORIGINAL_SHA=$(echo "$CONTRACT" | jq -r '.original_commit_sha')
 
-# Only verify approved commits
+# Always remove lock on completion — processing is done regardless of outcome
+LOCK_FILE="${LOCKS_DIR}/${ORIGINAL_SHA}.lock"
+if [[ -f "$LOCK_FILE" ]]; then
+  rm "$LOCK_FILE"
+  echo "Removed lock file: $LOCK_FILE"
+else
+  echo "Note: Lock file not found at $LOCK_FILE (may have been manually removed)"
+fi
+
+# Only verify author for approved commits (rejected = no commit made)
 if [[ "$STATUS" != "approved" ]]; then
+  echo "Status: $STATUS — no commit to verify"
   exit 0
 fi
 
 EXPECTED_AUTHOR="DevelopmehPublishRobot <robot@developmeh.com>"
 CONTRACT_AUTHOR=$(echo "$CONTRACT" | jq -r '.commit_author')
 CONTRACT_SHA=$(echo "$CONTRACT" | jq -r '.commit_sha')
-ORIGINAL_SHA=$(echo "$CONTRACT" | jq -r '.original_commit_sha')
+
+# No-op case: doc-organizer made no changes, commit_sha == original_sha
+if [[ "$CONTRACT_SHA" == "$ORIGINAL_SHA" ]]; then
+  echo "No changes needed — doc-organizer verified content is correct"
+  exit 0
+fi
 
 # Verify contract author matches expected
 if [[ "$CONTRACT_AUTHOR" != "$EXPECTED_AUTHOR" ]]; then
@@ -40,15 +56,6 @@ if [[ "$ACTUAL_AUTHOR" != "$EXPECTED_AUTHOR" ]]; then
   echo "ERROR: Actual commit author '$ACTUAL_AUTHOR' does not match expected '$EXPECTED_AUTHOR'" >&2
   echo "The commit was made with the wrong author. This will cause infinite workflow loops!" >&2
   exit 1
-fi
-
-# Remove lock file (created by post-commit hook using original commit SHA)
-LOCK_FILE="${LOCKS_DIR}/${ORIGINAL_SHA}.lock"
-if [[ -f "$LOCK_FILE" ]]; then
-  rm "$LOCK_FILE"
-  echo "Removed lock file: $LOCK_FILE"
-else
-  echo "Note: Lock file not found at $LOCK_FILE (may have been manually removed)"
 fi
 
 echo "Verification passed: commit $CONTRACT_SHA by $ACTUAL_AUTHOR"

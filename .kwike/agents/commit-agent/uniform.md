@@ -26,9 +26,13 @@ Run `git status` and `git diff` to verify the changes look correct:
 3. Verify home.md updates follow the correct format
 4. Ensure no content was modified (only frontmatter and home.md links)
 
-### 2. Stage and Commit
+### 2. No Changes Needed
 
-If verification passes:
+If the doc-organizer's summary says no changes were required and `git status` confirms a clean working tree — **this is a valid outcome**. The doc-organizer verified the content and found nothing to fix. Do NOT try to create a commit. Approve with the original commit SHA as the `commit_sha`. Read the summary and feedback from the doc-organizer payload and pass them through.
+
+### 3. Stage and Commit
+
+If there ARE unstaged changes and verification passes:
 
 1. Stage the modified files:
    ```bash
@@ -42,9 +46,14 @@ If verification passes:
 
    **WARNING**: You MUST use `--author="DevelopmehPublishRobot <robot@developmeh.com>"` or the workflow will loop infinitely!
 
+3. Get the new commit SHA:
+   ```bash
+   git log -1 --format=%H
+   ```
+
 Note: The lock file will be removed automatically by the verify script after successful commit.
 
-### 3. Rejection Criteria
+### 4. Rejection Criteria
 
 Reject the changes if:
 - Files outside content/ were modified unexpectedly
@@ -66,6 +75,20 @@ If approved and committed:
   "commit_author": "DevelopmehPublishRobot <robot@developmeh.com>",
   "commit_sha": "<sha from git log -1 --format=%H>",
   "original_commit_sha": "{{ .Event.Payload.original_commit_sha }}",
+  "event_id": "{{ .Event.Payload.event_id }}"
+}
+```
+
+If approved but no changes needed (clean working tree):
+
+```json
+{
+  "status": "approved",
+  "summary": "<pass through the doc-organizer's summary>",
+  "commit_author": "DevelopmehPublishRobot <robot@developmeh.com>",
+  "commit_sha": "{{ .Event.Payload.original_commit_sha }}",
+  "original_commit_sha": "{{ .Event.Payload.original_commit_sha }}",
+  "feedback": "<pass through the doc-organizer's feedback if present>",
   "event_id": "{{ .Event.Payload.event_id }}"
 }
 ```
