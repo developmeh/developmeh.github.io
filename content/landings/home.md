@@ -6,7 +6,7 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-08-08
+updated = 2026-08-07
 [extra]
 # NOTE: was `description`, which no template reads - the homepage was silently
 # falling back to the site-wide description. The key templates look for is `desc`.
@@ -98,6 +98,9 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Articles</h3>
 
+- [Judgement-Capable Circuits: What You Write Loops Out Of](/tech-dives/judgement-capable-circuits)
+- [Orchestrating Agents on Amazon Bedrock: When You Cannot Push, Make Completion the Wake](/tech-dives/orchestrating-agents-on-bedrock)
+- [Five Techniques That Keep Paying Off When You Build for LLMs](/tech-dives/techniques-that-keep-paying-off)
 - [Testing Shell Scripts: BATS, TAP, and Treating Bash as a Runtime](/tech-dives/testing-shell-scripts)
 - [Agentic AI Engineering: Building Determinism Around a Non-Deterministic Engine](/tech-dives/agentic-ai-engineering)
 - [Beamlet](/projects/beamlet)
