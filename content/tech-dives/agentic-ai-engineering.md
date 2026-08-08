@@ -40,6 +40,8 @@ a = "Give a separate agent a fresh context, the specification, and the diff, and
 [[extra.faq]]
 q = "How do you run code a model wrote without giving it access to your machine?"
 a = "Run it in a sandbox where the zero-value grant is pure compute and every capability is an explicit, host-side grant enforced by runtime linkage rather than convention. A tool the model authored thirty seconds ago should be physically unable to open a socket or a file it was not given."
+discussion_number = 57
+discussion_url = "https://github.com/orgs/developmeh/discussions/57"
 +++
 
 # Agentic AI Engineering
