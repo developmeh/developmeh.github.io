@@ -35,6 +35,8 @@ a = "No. The models you already have access to arrive as chat, whether over an O
 [[extra.faq]]
 q = "Where should judgement live in an agent circuit?"
 a = "Only where a decision genuinely varies. If an outcome is predictable from a status field, a rule should make it. Model calls cost tokens, latency, a subprocess, and a failure-fallback path, and they buy nothing when the answer never changes."
+discussion_number = 61
+discussion_url = "https://github.com/orgs/developmeh/discussions/61"
 +++
 
 # Judgement-Capable Circuits

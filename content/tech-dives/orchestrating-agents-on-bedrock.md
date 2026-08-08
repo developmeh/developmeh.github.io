@@ -35,6 +35,8 @@ a = "Short-lived credentials from sts:AssumeRole with a session policy, which in
 [[extra.faq]]
 q = "What happens if the wake process dies quietly?"
 a = "Delivery stops until the next turn, which on an idle session is never. The exit code has to carry the signal, and an unreachable daemon must be treated as a reason to wake rather than as silence."
+discussion_number = 59
+discussion_url = "https://github.com/orgs/developmeh/discussions/59"
 +++
 
 # Orchestrating Agents on Amazon Bedrock

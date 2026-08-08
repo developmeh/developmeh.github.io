@@ -35,6 +35,8 @@ a = "Skills are prompts, distilled attention, and they suffer from drift and exh
 [[extra.faq]]
 q = "Why are agents better at writing code than using tools?"
 a = "A long sequence of tool calls is hidden context and procedural order the model has to hold, and LLMs struggle past three or four steps. Iterating in chat to discover a process, then having the model turn a successful run into a script it executes, is more specific semantically and far more repeatable."
+discussion_number = 60
+discussion_url = "https://github.com/orgs/developmeh/discussions/60"
 +++
 
 Having spent around six months building tools for LLMs it's become obvious which techniques keep paying off.
