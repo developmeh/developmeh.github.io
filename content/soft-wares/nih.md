@@ -10,6 +10,9 @@ desc = "Not Invented Here syndrome in software and business — why we keep rein
 keywords = "Not Invented Here, NIH syndrome, software development, open source, standardization, bias"
 discussion_number = 37
 discussion_url = "https://github.com/orgs/developmeh/discussions/37"
+
+[taxonomies]
+topics = ["Software Architecture", "Engineering Leadership"]
 +++
 
 Not Invented Here Syndrome is something that has been entering my world a lot lately.

@@ -10,6 +10,9 @@ desc = "On conformity, originality, and the cycles of rebellion that shape both 
 keywords = "conformity, creativity, originality, software development, corporate culture, individuality, servant leadership"
 discussion_number = 30
 discussion_url = "https://github.com/orgs/developmeh/discussions/30"
+
+[taxonomies]
+topics = ["Engineering Leadership", "Creativity"]
 +++
 
 ## Copying life

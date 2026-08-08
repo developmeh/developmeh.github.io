@@ -18,6 +18,21 @@ theme = "zola_easydocs_theme"
 feed_filenames = ["rss.xml", "atom.xml", "llms.txt"]
 generate_feeds = true
 
+# ---------------------------------------------------------------------------
+# Topic taxonomy.
+#
+# The section names (Soft-Wares, Terms and Afflictions, I Made a Thing) are
+# good personality and terrible semantics - a crawler bucketing by section
+# learns nothing about subject. `topics` is the machine-legible layer that
+# runs across sections, generating /topics/<slug>/ hub pages which concentrate
+# authority instead of scattering it.
+#
+# Keep the vocabulary CONTROLLED. A tag used once is a dead page.
+# ---------------------------------------------------------------------------
+taxonomies = [
+  { name = "topics", feed = true, paginate_by = 0 },
+]
+
 [markdown]
 # Whether to do syntax highlighting
 # Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
@@ -144,6 +159,33 @@ llms_featured = [
   "devex/the-perfect-dev-env.md",
   "i-made-a-thing/recreating-kafka-blind.md",
 ]
+
+# ---------------------------------------------------------------------------
+# Topic hub descriptions. One sentence each, stating the subject plainly -
+# this is the text an answer engine reads to decide what the hub is about.
+# Keys must match the slugified topic name.
+# ---------------------------------------------------------------------------
+[extra.topic_descriptions]
+agentic-ai = "Treating tool-using language models as processes rather than conversations."
+agent-orchestration = "Composing, routing and supervising multiple LLM agents."
+context-engineering = "Deciding what an agent sees, and what it is spared."
+developer-experience = "Making the tools and environments developers work in less hostile."
+nix = "Reproducible, template-able development environments with Nix."
+ci-cd = "Continuous integration, delivery, and why the first matters more."
+shell-testing = "Testing bash and CLI tools with BATS and the Test Anything Protocol."
+testing = "Automated testing practice, from unit assertions to integration harnesses."
+software-architecture = "Decoupling, encapsulation, and the cost of complexity."
+distributed-systems = "Building systems across processes and machines, usually by rebuilding them badly first."
+event-streaming = "Append-only logs, consumer groups, and event-driven design."
+webassembly = "WASM as a sandboxed execution substrate."
+capability-security = "Running untrusted code without granting it the machine."
+engineering-leadership = "Technical leadership, code ownership, and how teams actually work."
+software-ethics = "The moral weight of the software industry and what it builds."
+decentralized-web = "Trust, self-hosting, and taking the internet back from its landlords."
+creativity = "Craft, impostor syndrome, and building things nobody asked for."
+go = "Writing Go."
+ruby = "Writing Ruby."
+rust = "Writing Rust."
 
 # Bluesky configuration
 bluesky_handle = "developmeh"

@@ -10,6 +10,9 @@ desc = "A developer's journey recreating Kafka from scratch to understand event 
 keywords = "Kafka, event streaming, Go, Golang, distributed systems, message broker, log-structured merge, pebble DB, TCP protocol, consumer groups"
 discussion_number = 34
 discussion_url = "https://github.com/orgs/developmeh/discussions/34"
+
+[taxonomies]
+topics = ["Distributed Systems", "Event Streaming", "Go"]
 +++
 
 # Learn Event Streaming by Recreating Kafka

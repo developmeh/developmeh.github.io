@@ -10,6 +10,9 @@ desc = "Exploring the concept of sufficient complexity in software design and ho
 keywords = "software complexity, modules, interfaces, over-engineering, software design, dependencies, architecture"
 discussion_number = 42
 discussion_url = "https://github.com/orgs/developmeh/discussions/42"
+
+[taxonomies]
+topics = ["Software Architecture"]
 +++
 
 ## Sufficient Complexity and Pipe Herding

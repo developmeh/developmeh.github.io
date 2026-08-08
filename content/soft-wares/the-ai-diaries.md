@@ -10,6 +10,9 @@ updated = 2026-03-06
 desc = "Anecdotes and observations from working with AI coding tools - the hype, the reality, and the debt"
 keywords = "AI, coding tools, developer experience, code quality, technical debt"
 enable_discussions = false
+
+[taxonomies]
+topics = ["Agentic AI", "Developer Experience"]
 +++
 
 ## The AI Diaries

@@ -1,0 +1,59 @@
+{% extends "index.html" %}
+
+{% block title %} {{ config.title }} | Topics {% endblock title %}
+
+{% block content %}
+<h1>Topics</h1>
+
+<p>Everything on this site, indexed by subject rather than by section. Written by
+<a href="{{ config.extra.author_url | safe }}" rel="author">{{ config.extra.author_name | default(value=config.author) }}</a>.</p>
+
+<ul class="topic-index">
+{%- for term in terms %}
+  <li>
+    <a href="{{ term.permalink | safe }}">{{ term.name }}</a>
+    <span class="topic-count">{{ term.pages | length }}</span>
+    {%- if config.extra.topic_descriptions and config.extra.topic_descriptions[term.slug] %}
+    <span class="topic-desc">{{ config.extra.topic_descriptions[term.slug] }}</span>
+    {%- endif %}
+  </li>
+{%- endfor %}
+</ul>
+{% endblock content %}
+
+{% block rss %}
+    {{ super() }}
+    {% include "head_meta.html" %}
+    {% include "additional_meta.html" %}
+    {% include "person_entity.html" %}
+{%- set_global topics_url = config.base_url ~ "/topics/" -%}
+{%- set_global l_person = config.extra.person_id | default(value=config.base_url ~ "/about#person") -%}
+{%- set_global l_site = config.extra.website_id | default(value=config.base_url ~ "/#website") -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": {{ topics_url | json_encode | safe }},
+  "url": {{ topics_url | json_encode | safe }},
+  "name": "Topics",
+  "description": "Subject index for developmeh.com",
+  "inLanguage": "en-US",
+  "author": { "@id": {{ l_person | json_encode | safe }} },
+  "isPartOf": { "@id": {{ l_site | json_encode | safe }} },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": {{ terms | length }},
+    "itemListElement": [
+      {%- for term in terms %}
+      {
+        "@type": "ListItem",
+        "position": {{ loop.index }},
+        "url": {{ term.permalink | json_encode | safe }},
+        "name": {{ term.name | json_encode | safe }}
+      }{% if not loop.last %},{% endif %}
+      {%- endfor %}
+    ]
+  }
+}
+</script>
+{% endblock rss %}

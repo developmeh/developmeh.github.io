@@ -10,6 +10,9 @@ desc = "Exploiting tool-using LLMs as processes instead of conversations - patte
 keywords = "AI, LLM, agentic patterns, context management, agent orchestration, coding agents, determinism, vibe coding, Claude, specification-driven development"
 discussion_number = 46
 discussion_url = "https://github.com/orgs/developmeh/discussions/46"
+
+[taxonomies]
+topics = ["Agentic AI", "Context Engineering", "Agent Orchestration"]
 +++
 
 ## Agentic Patterns: Elements of Reusable Context-Oriented Determinism

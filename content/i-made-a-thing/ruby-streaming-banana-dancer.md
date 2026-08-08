@@ -10,6 +10,9 @@ keywords = "ruby, curl, streaming, command-line"
 enable_discussions = true
 discussion_number = 17
 discussion_url = "https://github.com/orgs/developmeh/discussions/17"
+
+[taxonomies]
+topics = ["Ruby", "Nix"]
 +++
 
 **Hey there, fellow coder! Ever seen a parrot dance in your terminal?** 🦜💃

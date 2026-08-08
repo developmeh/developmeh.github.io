@@ -9,6 +9,9 @@ desc = "Breaking down lazy coupling in Ruby on Rails with dependency injection a
 keywords = "Ruby, Rails, SOLID, dependency injection, decoupling, design patterns, Sandi Metz, clean code"
 discussion_number = 25
 discussion_url = "https://github.com/orgs/developmeh/discussions/25"
+
+[taxonomies]
+topics = ["Software Architecture", "Ruby"]
 +++
 
 ## An Uncomplicated Picture

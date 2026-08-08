@@ -10,6 +10,9 @@ desc = "Building a Jetbrains plugin for Beads, an AI agent orchestration workflo
 keywords = "Jetbrains, Beads, AI orchestration, LLM, Claude, agent workflow, IDE plugin, agentic patterns"
 discussion_number = 47
 discussion_url = "https://github.com/orgs/developmeh/discussions/47"
+
+[taxonomies]
+topics = ["Agentic AI", "Agent Orchestration", "Developer Experience"]
 +++
 
 ## Keep Your Eyes on the IDE, and Your Robots on the Tickets

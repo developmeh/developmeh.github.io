@@ -10,6 +10,9 @@ desc = "A critical look at how DevOps is implemented in organizations, examining
 keywords = "DevOps, shift-left, shift-right, infrastructure, developer access, agile, continuous delivery, platform engineering"
 discussion_number = 39
 discussion_url = "https://github.com/orgs/developmeh/discussions/39"
+
+[taxonomies]
+topics = ["Developer Experience", "Engineering Leadership", "CI/CD"]
 +++
 
 ## Do Devs Really Do DevOps in your Org?

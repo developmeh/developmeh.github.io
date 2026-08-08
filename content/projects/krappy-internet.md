@@ -9,6 +9,9 @@ desc = "Building a personal internet from scratch to re-envision how we trust da
 keywords = "decentralized internet, self-hosting, trust, peer-to-peer, content silos, moderation, personal web"
 discussion_number = 22
 discussion_url = "https://github.com/orgs/developmeh/discussions/22"
+
+[taxonomies]
+topics = ["Decentralized Web", "Distributed Systems"]
 +++
 
 ## What if the internet stopped being shit and was instead Krappy?

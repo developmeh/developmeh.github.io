@@ -10,6 +10,9 @@ keywords = "rust, curl, sse, server-sent events, streaming, command-line, actix-
 enable_discussions = true
 discussion_number = 44
 discussion_url = "https://github.com/orgs/developmeh/discussions/44"
+
+[taxonomies]
+topics = ["Rust", "Nix"]
 +++
 
 **Remember that dancing Ruby banana?** 🍌

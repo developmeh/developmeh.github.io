@@ -9,6 +9,9 @@ desc = "Why the obsession with software delivery misses the point — ownership,
 keywords = "software delivery, technical debt, ownership, agile, change management, product development, P vs NP"
 discussion_number = 27
 discussion_url = "https://github.com/orgs/developmeh/discussions/27"
+
+[taxonomies]
+topics = ["Engineering Leadership"]
 +++
 
 I have been hearing a lot lately about the focus on "Delivery," and it has always struck me as somewhat reductionist and linear in its thinking.

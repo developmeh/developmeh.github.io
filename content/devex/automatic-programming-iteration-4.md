@@ -11,6 +11,9 @@ desc = "From looms to LLMs — Grace Hopper dreamed of programs writing themselv
 keywords = "automatic programming, Grace Hopper, COBOL, LLM, code generation, compilers, abstraction"
 discussion_number = 50
 discussion_url = "https://github.com/orgs/developmeh/discussions/50"
+
+[taxonomies]
+topics = ["Agentic AI", "Developer Experience"]
 +++
 
 <img src="/devex/mark1-computer.jpg" alt="Grace Hopper: Mark 1 Computer" style="width: 100%; height: 600px; object-fit: cover; object-position: center calc(50% + 50px);">

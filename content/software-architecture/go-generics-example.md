@@ -10,6 +10,9 @@ desc = "Using Go generics to build pluggable renderer and game world interfaces 
 keywords = "Go, Golang, generics, interfaces, Game of Life, type constraints, software design"
 discussion_number = 24
 discussion_url = "https://github.com/orgs/developmeh/discussions/24"
+
+[taxonomies]
+topics = ["Software Architecture", "Go"]
 +++
 
 ## Go Generics an Example

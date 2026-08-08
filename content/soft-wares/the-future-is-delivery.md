@@ -10,6 +10,9 @@ desc = "Challenging the obsession with delivery culture in software — why owne
 keywords = "software delivery, technical debt, ownership, roadmaps, agile, product development, change management"
 discussion_number = 41
 discussion_url = "https://github.com/orgs/developmeh/discussions/41"
+
+[taxonomies]
+topics = ["Engineering Leadership"]
 +++
 
 I have been hearing a lot lately about the focus on "Delivery," and it has always struck me as somewhat reductionist and linear in its thinking.

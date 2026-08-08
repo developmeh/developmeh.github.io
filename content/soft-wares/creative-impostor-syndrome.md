@@ -10,6 +10,9 @@ desc = "Exploring the complex relationship between creativity, software developm
 keywords = "creativity, impostor syndrome, software development, art, open source, FOSS, creative process, artistic expression, software engineering, creative identity"
 discussion_number = 38
 discussion_url = "https://github.com/orgs/developmeh/discussions/38"
+
+[taxonomies]
+topics = ["Creativity"]
 +++
 
 ## Another Syndrome?!

@@ -10,6 +10,9 @@ desc = "Exploring unconventional ideas about OpenTelemetry, debugging tools, Web
 keywords = "OpenTelemetry, tracing, debugging, GDB, WebRTC, self-hosting, decentralized internet, NAT traversal, dynamic DNS, personal web hosting, p2p connections, Krappy Internet, home hosting"
 discussion_number = 33
 discussion_url = "https://github.com/orgs/developmeh/discussions/33"
+
+[taxonomies]
+topics = ["Decentralized Web", "Distributed Systems", "Developer Experience"]
 +++
 
 # This Week's Crazy Idea

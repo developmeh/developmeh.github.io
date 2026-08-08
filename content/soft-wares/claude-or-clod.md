@@ -9,6 +9,9 @@ updated = 2026-01-23
 enable_discussions = false
 desc = "A year of vibe coding, agent orchestration, and learning to trust what predicts but doesn't think"
 keywords = "AI, LLM, Claude, vibe coding, agents, developer experience, DevEx, pair programming, code generation, software development"
+
+[taxonomies]
+topics = ["Agentic AI", "Developer Experience"]
 +++
 
 First off this might sound like a shitpost, but anecdotally, I chuckle to myself about this all the time when I am vibe coding. Claude is something of a straw tiger here and the title is just for the lolz.

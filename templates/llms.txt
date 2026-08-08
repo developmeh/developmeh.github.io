@@ -37,6 +37,12 @@ The highest-signal pages on the site, most important first.
 
 {% for p in pages %}{% set_global parts = p.relative_path | split(pat="/") %}{% if parts[0] == gkey and p.word_count > 150 %}- [{{ p.title }}]({{ p.permalink }}){% if p.extra.desc %}: {{ p.extra.desc }}{% endif %}
 {% endif %}{% endfor %}{% endif %}{% endfor %}{% endif %}
+## Topics
+
+Subject hubs, each listing every article on that topic.
+
+{% set_global topic_tax = get_taxonomy(kind="topics") %}{% for term in topic_tax.items %}- {{ term.permalink }} — {{ term.name }} ({{ term.pages | length }} article{% if term.pages | length != 1 %}s{% endif %})
+{% endfor %}
 ## Elsewhere
 
 {% for profile in config.extra.social_profiles %}- {{ profile }}

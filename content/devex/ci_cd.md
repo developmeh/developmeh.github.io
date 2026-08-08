@@ -9,6 +9,9 @@ desc = "Why most teams have continuous deployment but not continuous delivery, a
 keywords = "CI/CD, continuous integration, continuous delivery, continuous deployment, testing, E2E, TDD, change management, DevOps"
 discussion_number = 32
 discussion_url = "https://github.com/orgs/developmeh/discussions/32"
+
+[taxonomies]
+topics = ["CI/CD", "Testing", "Developer Experience"]
 +++
 
 ## You have Continuous Deployment, not Continuous Delivery

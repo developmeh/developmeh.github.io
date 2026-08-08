@@ -10,6 +10,9 @@ desc = "A satirical End User Languor Agreement for enterprise software developme
 keywords = "satire, enterprise software, developer experience, corporate culture, EULA, work conditions"
 discussion_number = 28
 discussion_url = "https://github.com/orgs/developmeh/discussions/28"
+
+[taxonomies]
+topics = ["Software Ethics"]
 +++
 
 ## Equipment

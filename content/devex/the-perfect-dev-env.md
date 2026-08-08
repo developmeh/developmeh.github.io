@@ -10,6 +10,9 @@ desc = "Building a reproducible, template-able development environment with Nix 
 keywords = "Nix, development environment, reproducible builds, dependency management, Homebrew, devshell, project templates"
 discussion_number = 31
 discussion_url = "https://github.com/orgs/developmeh/discussions/31"
+
+[taxonomies]
+topics = ["Developer Experience", "Nix"]
 +++
 
 ## The Perfect Development Environment

@@ -8,6 +8,9 @@ desc = "Composable event-driven agent orchestration using Unix primitives"
 keywords = "kwike, event-driven, agent orchestration, Unix philosophy, LLM, Claude, automation"
 discussion_number = 53
 discussion_url = "https://github.com/orgs/developmeh/discussions/53"
+
+[taxonomies]
+topics = ["Agentic AI", "Agent Orchestration", "Event Streaming", "Go"]
 +++
 
 **[View Interactive Site →](/kwike/)**

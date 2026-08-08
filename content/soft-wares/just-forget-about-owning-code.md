@@ -10,6 +10,9 @@ desc = "LLMs and the death of bespoke code - why we should embrace composable, s
 keywords = "LLMs, code ownership, open source, software architecture, FOSS, enshittification"
 discussion_number = 45
 discussion_url = "https://github.com/orgs/developmeh/discussions/45"
+
+[taxonomies]
+topics = ["Software Architecture", "Engineering Leadership", "Software Ethics"]
 +++
 
 <img src="/soft-wares/0204crcv.jpeg" alt="The future is FOSS" style="width: 100%; height: 600px; object-fit: cover; object-position: center calc(50% + 50px);">

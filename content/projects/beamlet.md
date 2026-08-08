@@ -11,6 +11,9 @@ keywords = "beamlet, OTP, WebAssembly, WASM, wazero, Go, supervisor tree, capabi
 categories = "Projects"
 discussion_number = 55
 discussion_url = "https://github.com/orgs/developmeh/discussions/55"
+
+[taxonomies]
+topics = ["Agentic AI", "WebAssembly", "Capability Security", "Go"]
 +++
 
 Beamlet is a minimum viable OTP over WebAssembly: supervised, capability-sandboxed processes running on [wazero](https://wazero.io), in Go. It exists as the substrate for a self-rewriting LLM harness — the model generates tool code, the supervisor hot-deploys it, and crashes feed back into reflection.

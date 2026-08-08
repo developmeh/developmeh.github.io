@@ -10,6 +10,9 @@ desc = "Exploring the concept of servant leadership in software development and 
 keywords = "servant leadership, authority, influence, software teams, NCO, technical leadership, team dynamics"
 discussion_number = 40
 discussion_url = "https://github.com/orgs/developmeh/discussions/40"
+
+[taxonomies]
+topics = ["Engineering Leadership"]
 +++
 
 ## The Good Sergeant

@@ -11,6 +11,9 @@ keywords = "wavelet, Google Wave, multi-agent coordination, agent orchestration,
 categories = "Projects"
 discussion_number = 56
 discussion_url = "https://github.com/orgs/developmeh/discussions/56"
+
+[taxonomies]
+topics = ["Agentic AI", "Agent Orchestration", "Context Engineering", "Go"]
 +++
 
 Wavelet takes Google Wave's data model and repurposes it as a coordination substrate for multiple chat agents.

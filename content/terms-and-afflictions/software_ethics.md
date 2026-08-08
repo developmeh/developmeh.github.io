@@ -10,6 +10,9 @@ desc = "Examining the shifting ethics of internet technology, from early AOL key
 keywords = "software ethics, AI, LLM, internet history, marketing, content creation, morality, technology evolution"
 discussion_number = 29
 discussion_url = "https://github.com/orgs/developmeh/discussions/29"
+
+[taxonomies]
+topics = ["Software Ethics", "Decentralized Web"]
 +++
 
 ![dancing-banana](../dune_slave.jpg)

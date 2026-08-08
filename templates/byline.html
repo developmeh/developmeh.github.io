@@ -30,5 +30,10 @@
   <span class="byline-sep">·</span>
   <span class="byline-reading">{{ page.reading_time }} min read</span>
   {%- endif %}
+  {%- if page.taxonomies and page.taxonomies.topics %}
+  <span class="byline-topics">
+    {%- for t in page.taxonomies.topics %}<a class="topic-chip" href="{{ config.base_url | safe }}/topics/{{ t }}/">{{ t }}</a>{% endfor %}
+  </span>
+  {%- endif %}
 </div>
 {%- endif -%}

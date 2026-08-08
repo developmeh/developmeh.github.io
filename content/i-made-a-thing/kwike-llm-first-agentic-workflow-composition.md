@@ -10,6 +10,9 @@ keywords = "event-driven, reactive flows, LLM orchestration, kwike, eventing, CL
 sitemap_priority = "0.8"
 discussion_number = 53
 discussion_url = "https://github.com/orgs/developmeh/discussions/53"
+
+[taxonomies]
+topics = ["Agentic AI", "Agent Orchestration", "Event Streaming", "Developer Experience", "Go"]
 +++
 
 I've been building [kwike](https://git.sr.ht/~ninjapanzer/kwike), an LLM-first tool for composing agentic workflows using Unix primitives - pipes, append-only logs, and event subscriptions instead of SDKs and harnesses.

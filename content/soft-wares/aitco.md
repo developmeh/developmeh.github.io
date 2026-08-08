@@ -10,6 +10,9 @@ desc = "The self-doubt of getting pushback despite producing good work, and how 
 keywords = "impostor syndrome, perception, wisdom, software development, confidence, communication, self-doubt"
 discussion_number = 36
 discussion_url = "https://github.com/orgs/developmeh/discussions/36"
+
+[taxonomies]
+topics = ["Creativity"]
 +++
 
 The feeling of AITA or "Am I just Crazy" happens to me a lot. I think it might be the core weakness when trying to manifest confidence in my work.

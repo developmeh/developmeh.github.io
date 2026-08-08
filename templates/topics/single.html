@@ -1,0 +1,70 @@
+{% extends "index.html" %}
+
+{% block title %} {{ config.title }} | {{ term.name }} {% endblock title %}
+
+{% block content %}
+<h1>{{ term.name }}</h1>
+
+{%- if config.extra.topic_descriptions and config.extra.topic_descriptions[term.slug] %}
+<p class="topic-intro">{{ config.extra.topic_descriptions[term.slug] }}</p>
+{%- endif %}
+
+<p class="topic-count">{{ term.pages | length }} article{% if term.pages | length != 1 %}s{% endif %} by <a href="{{ config.extra.author_url | safe }}" rel="author">{{ config.extra.author_name | default(value=config.author) }}</a>.</p>
+
+<ul class="topic-list">
+{%- for p in term.pages %}
+  <li>
+    <a href="{{ p.permalink | safe }}">{{ p.title }}</a>
+    {%- if p.date %} <time datetime="{{ p.date }}">{{ p.date | date(format="%B %e, %Y") }}</time>{% endif %}
+    {%- if p.extra.desc %}<span class="topic-desc">{{ p.extra.desc }}</span>{% endif %}
+  </li>
+{%- endfor %}
+</ul>
+
+<p><a href="{{ config.base_url | safe }}/topics/">All topics</a></p>
+{% endblock content %}
+
+{% block rss %}
+    {{ super() }}
+    {% include "head_meta.html" %}
+    {% include "additional_meta.html" %}
+    {% include "person_entity.html" %}
+{%- set_global t_person = config.extra.person_id | default(value=config.base_url ~ "/about#person") -%}
+{%- set_global t_site = config.extra.website_id | default(value=config.base_url ~ "/#website") -%}
+{#- A topic hub is a CollectionPage whose mainEntity is an ItemList of the
+    articles. `about` names the subject explicitly, which is the point of
+    having these pages at all. -#}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": {{ term.permalink | json_encode | safe }},
+  "url": {{ term.permalink | json_encode | safe }},
+  "name": {{ term.name | json_encode | safe }},
+  {%- if config.extra.topic_descriptions and config.extra.topic_descriptions[term.slug] %}
+  "description": {{ config.extra.topic_descriptions[term.slug] | json_encode | safe }},
+  {%- endif %}
+  "about": {
+    "@type": "Thing",
+    "name": {{ term.name | json_encode | safe }}
+  },
+  "inLanguage": "en-US",
+  "author": { "@id": {{ t_person | json_encode | safe }} },
+  "isPartOf": { "@id": {{ t_site | json_encode | safe }} },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": {{ term.pages | length }},
+    "itemListElement": [
+      {%- for p in term.pages %}
+      {
+        "@type": "ListItem",
+        "position": {{ loop.index }},
+        "url": {{ p.permalink | json_encode | safe }},
+        "name": {{ p.title | json_encode | safe }}
+      }{% if not loop.last %},{% endif %}
+      {%- endfor %}
+    ]
+  }
+}
+</script>
+{% endblock rss %}

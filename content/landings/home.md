@@ -98,6 +98,8 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="card">
     <h3>Articles</h3>
 
+- [Wavelet](/projects/wavelet/)
+- [Beamlet](/projects/beamlet/)
 - [kwike: LLM-First Agentic Workflow Composition](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition)
 - [Automatic Programming: Iteration 4](/devex/automatic-programming-iteration-4)
 - [BATS - Testing Bash Like You Mean It](/tech-dives/bats-testing-bash-like-you-mean-it)

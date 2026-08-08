@@ -9,6 +9,9 @@ desc = "A distributed Game of Life implementation in Go using channels, explorin
 keywords = "Game of Life, Go, Golang, distributed systems, channels, NATS, Kafka, simulation, concurrency"
 discussion_number = 23
 discussion_url = "https://github.com/orgs/developmeh/discussions/23"
+
+[taxonomies]
+topics = ["Distributed Systems", "Go"]
 +++
 
 ## Go Channel Based PoC
