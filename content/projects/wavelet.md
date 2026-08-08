@@ -9,6 +9,8 @@ schema_type = "TechArticle"
 desc = "Google Wave's data model repurposed as a coordination substrate for multiple chat agents - forked conversations, cursor-based wake semantics, and deterministic targeted delivery that keeps an agent's context about what concerns it"
 keywords = "wavelet, Google Wave, multi-agent coordination, agent orchestration, MCP, Model Context Protocol, targeted delivery, attention layer, context engineering, wake semantics, turn semantics, conversation store, blackboard architecture, provenance, forked conversation, Go, tmux, Claude Code"
 categories = "Projects"
+discussion_number = 56
+discussion_url = "https://github.com/orgs/developmeh/discussions/56"
 +++
 
 Wavelet takes Google Wave's data model and repurposes it as a coordination substrate for multiple chat agents.
