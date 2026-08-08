@@ -44,6 +44,8 @@ a = "Libraries such as bats-mock provide a DSL over the same underlying mechanis
 [[extra.faq]]
 q = "What should shell tests actually cover?"
 a = "The boundary where the tool is used: argument handling and defaults, which external commands were invoked and with what arguments, files created or removed, exit codes, and behaviour under timeouts and concurrency. Unit tests in the implementation language cannot answer whether the thing works the way it is meant to be used."
+discussion_number = 58
+discussion_url = "https://github.com/orgs/developmeh/discussions/58"
 +++
 
 # Testing Shell Scripts
