@@ -149,6 +149,7 @@ non_article_sections = ["landings", "home"]
 llms_featured = [
   "landings/about.md",
   "tech-dives/agentic-ai-engineering.md",
+  "tech-dives/testing-shell-scripts.md",
   "soft-wares/agentic-patterns-elements-of-reusable-context-oriented-determinism.md",
   "i-made-a-thing/kwike-llm-first-agentic-workflow-composition.md",
   "projects/beamlet.md",
