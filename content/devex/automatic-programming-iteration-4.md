@@ -5,7 +5,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2026-02-08
-updated = 2026-02-08
+updated = 2026-08-07
 [extra]
 desc = "From looms to LLMs — Grace Hopper dreamed of programs writing themselves, and each generation of programmers has resisted the next layer of abstraction."
 keywords = "automatic programming, Grace Hopper, COBOL, LLM, code generation, compilers, abstraction"

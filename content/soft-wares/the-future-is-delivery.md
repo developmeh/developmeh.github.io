@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2024-09-10
-updated = 2024-09-10
+updated = 2026-08-07
 [extra]
 desc = "Challenging the obsession with delivery culture in software — why ownership, pride, and longer roadmaps matter more than shipping speed"
 keywords = "software delivery, technical debt, ownership, roadmaps, agile, product development, change management"

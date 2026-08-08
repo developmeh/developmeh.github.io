@@ -3,7 +3,7 @@ title = "kwike: LLM-First Agentic Workflow Composition"
 template = "page.html"
 weight = 0
 date = 2026-03-07
-updated = 2026-04-05
+updated = 2026-08-07
 [extra]
 desc = "An LLM-first tool for composing agentic workflows using Unix primitives - pipes, append-only logs, and event subscriptions instead of SDKs and harnesses."
 keywords = "event-driven, reactive flows, LLM orchestration, kwike, eventing, CLI, Go, durable events, Unix philosophy, agentic workflows, claude-code"

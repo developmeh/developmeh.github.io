@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2024-09-10
-updated = 2025-06-21
+updated = 2026-08-07
 [extra]
 desc = "A developer's journey recreating Kafka from scratch to understand event streaming, including implementation details, challenges, and lessons learned"
 keywords = "Kafka, event streaming, Go, Golang, distributed systems, message broker, log-structured merge, pebble DB, TCP protocol, consumer groups"

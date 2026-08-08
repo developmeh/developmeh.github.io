@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2026-02-08
-updated = 2026-02-08
+updated = 2026-08-07
 [extra]
 desc = "Building a Jetbrains plugin for Beads, an AI agent orchestration workflow using context graphs and deterministic prompts"
 keywords = "Jetbrains, Beads, AI orchestration, LLM, Claude, agent workflow, IDE plugin, agentic patterns"

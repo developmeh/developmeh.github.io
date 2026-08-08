@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2025-07-01
-updated = 2025-07-01
+updated = 2026-08-07
 [extra]
 desc = "Exploring the concept of sufficient complexity in software design and how to create maintainable, focused modules that avoid common pitfalls of over-engineering"
 keywords = "software complexity, modules, interfaces, over-engineering, software design, dependencies, architecture"

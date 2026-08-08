@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2024-08-10
-updated = 2024-08-10
+updated = 2026-08-07
 [extra]
 desc = "A satirical End User Languor Agreement for enterprise software development — the real terms and conditions of working in tech"
 keywords = "satire, enterprise software, developer experience, corporate culture, EULA, work conditions"

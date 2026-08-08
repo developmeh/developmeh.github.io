@@ -3,7 +3,7 @@ title = "Distributed Game of Life"
 template = "page.html"
 weight = 4
 date = 2025-01-21
-updated = 2025-01-21
+updated = 2026-08-07
 [extra]
 desc = "A distributed Game of Life implementation in Go using channels, exploring state distribution with NATS and Kafka"
 keywords = "Game of Life, Go, Golang, distributed systems, channels, NATS, Kafka, simulation, concurrency"

@@ -3,6 +3,7 @@ title = "Catalyst: An Orchestrator That Stopped Asking and Started Deciding"
 template = "page.html"
 weight = 0
 date = 2026-02-15
+updated = 2026-08-07
 [extra]
 desc = "A devlog tracing catalyst-orchestrator through three architectural revisions — from LLM-driven gate decisions to deterministic routing to daemon-managed fix loops."
 keywords = "catalyst, orchestrator, workflow automation, AI agents, Go, beads, deterministic routing, devlog"

@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2026-01-23
-updated = 2026-01-23
+updated = 2026-08-07
 [extra]
 enable_discussions = false
 desc = "A year of vibe coding, agent orchestration, and learning to trust what predicts but doesn't think"

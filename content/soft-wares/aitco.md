@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2024-10-10
-updated = 2024-10-10
+updated = 2026-08-07
 [extra]
 desc = "The self-doubt of getting pushback despite producing good work, and how perception and wisdom shape our ability to communicate value"
 keywords = "impostor syndrome, perception, wisdom, software development, confidence, communication, self-doubt"

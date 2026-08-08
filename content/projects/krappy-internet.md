@@ -3,7 +3,7 @@ title = "The Krappy Internet"
 template = "page.html"
 weight = 3
 date = 2025-01-29
-updated = 2025-03-02
+updated = 2026-08-07
 [extra]
 desc = "Building a personal internet from scratch to re-envision how we trust data, without blockchains or onion routers"
 keywords = "decentralized internet, self-hosting, trust, peer-to-peer, content silos, moderation, personal web"

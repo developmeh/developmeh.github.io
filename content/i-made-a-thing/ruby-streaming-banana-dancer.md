@@ -3,7 +3,7 @@ title = "Ruby Dancing ANSI Banana for Curl"
 template = "page.html"
 weight = 0
 date = 2024-01-27
-updated = 2025-01-31
+updated = 2026-08-07
 [extra]
 desc = "In celebration of Curl's 25th, a copy of the dancing parot live curl, a dancing bananna written in ruby"
 keywords = "ruby, curl, streaming, command-line"

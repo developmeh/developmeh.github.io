@@ -3,7 +3,7 @@ title = "Rust Dancing ANSI Banana with Server-Sent Events"
 template = "page.html"
 weight = 0
 date = 2026-02-01
-updated = 2026-02-02
+updated = 2026-08-07
 [extra]
 desc = "A Rust implementation of the dancing banana using Server-Sent Events (SSE) instead of chunked transfer encoding"
 keywords = "rust, curl, sse, server-sent events, streaming, command-line, actix-web"

@@ -4,8 +4,8 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2026-02-03
+updated = 2026-08-07
 [extra]
-updated = 2026-02-03
 desc = "LLMs and the death of bespoke code - why we should embrace composable, shared solutions instead of endlessly rebuilding the same things"
 keywords = "LLMs, code ownership, open source, software architecture, FOSS, enshittification"
 discussion_number = 45

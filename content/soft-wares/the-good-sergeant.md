@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2021-12-15
-updated = 2025-06-26
+updated = 2026-08-07
 [extra]
 desc = "Exploring the concept of servant leadership in software development and how authority is earned through trust and influence rather than formal titles"
 keywords = "servant leadership, authority, influence, software teams, NCO, technical leadership, team dynamics"

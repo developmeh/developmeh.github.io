@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2025-06-25
-updated = 2025-06-25
+updated = 2026-08-07
 [extra]
 desc = "Exploring the complex relationship between creativity, software development, and the struggle to find authentic artistic expression in a field dominated by pragmatism and commercial interests"
 keywords = "creativity, impostor syndrome, software development, art, open source, FOSS, creative process, artistic expression, software engineering, creative identity"

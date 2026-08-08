@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2025-07-13
-updated = 2025-07-13
+updated = 2026-08-07
 [extra]
 desc = "On conformity, originality, and the cycles of rebellion that shape both personal growth and how we build software"
 keywords = "conformity, creativity, originality, software development, corporate culture, individuality, servant leadership"

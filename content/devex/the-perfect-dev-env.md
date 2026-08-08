@@ -2,7 +2,7 @@
 title = "The Perfect Development Environment"
 template = "page.html"
 date = 2025-01-28
-updated = 2025-01-28
+updated = 2026-08-07
 weight = 0
 draft = false
 [extra]

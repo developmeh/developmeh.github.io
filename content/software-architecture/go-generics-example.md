@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2025-01-22
-updated = 2025-01-22
+updated = 2026-08-07
 [extra]
 desc = "Using Go generics to build pluggable renderer and game world interfaces for a Game of Life project"
 keywords = "Go, Golang, generics, interfaces, Game of Life, type constraints, software design"

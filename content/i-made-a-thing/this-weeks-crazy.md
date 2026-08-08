@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2025-06-08
-updated = 2025-07-14
+updated = 2026-08-07
 [extra]
 desc = "Exploring unconventional ideas about OpenTelemetry, debugging tools, WebRTC, and reimagining internet technologies for a more personal and less centralized web experience"
 keywords = "OpenTelemetry, tracing, debugging, GDB, WebRTC, self-hosting, decentralized internet, NAT traversal, dynamic DNS, personal web hosting, p2p connections, Krappy Internet, home hosting"

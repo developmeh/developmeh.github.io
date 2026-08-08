@@ -4,7 +4,7 @@ template = "page.html"
 weight = 0
 draft = false
 date = 2024-10-14
-updated = 2024-10-14
+updated = 2026-08-07
 [extra]
 desc = "Examining the shifting ethics of internet technology, from early AOL keywords to LLMs and the repeating cycles of content creation"
 keywords = "software ethics, AI, LLM, internet history, marketing, content creation, morality, technology evolution"

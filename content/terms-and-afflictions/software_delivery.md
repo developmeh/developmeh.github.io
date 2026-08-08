@@ -3,7 +3,7 @@ title = "The Software Delivery Trap"
 template = "page.html"
 weight = 0
 date = 2024-09-13
-updated = 2024-09-13
+updated = 2026-08-07
 [extra]
 desc = "Why the obsession with software delivery misses the point — ownership, change management, and pride in craft matter more than shipping velocity"
 keywords = "software delivery, technical debt, ownership, agile, change management, product development, P vs NP"

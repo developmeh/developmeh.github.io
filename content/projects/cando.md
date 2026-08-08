@@ -3,6 +3,7 @@ title = "Cando"
 template = "page.html"
 weight = 2
 date = 2026-04-05
+updated = 2026-08-07
 [extra]
 desc = "Task-oriented AI agent - spawned for a task, does the work, exits"
 keywords = "cando, AI agent, task automation, software development, LLM, Gemma, Crystal"

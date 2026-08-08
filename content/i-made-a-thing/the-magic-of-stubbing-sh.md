@@ -4,7 +4,7 @@ template = "page.html"
 weight = 1
 draft = false
 date = 2025-10-09
-updated = 2025-10-09
+updated = 2026-08-07
 [extra]
 desc = "Testing sh is as easy as anything else, if testing is about side-effects its easy"
 keywords = "BATS, TAPS, sh, bash, testing, mocking, stubbing, shell script, Bash Automated Testing System"

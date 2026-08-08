@@ -3,6 +3,7 @@ title = "Kwike"
 template = "page.html"
 weight = 1
 date = 2026-03-26
+updated = 2026-08-07
 [extra]
 desc = "Composable event-driven agent orchestration using Unix primitives"
 keywords = "kwike, event-driven, agent orchestration, Unix philosophy, LLM, Claude, automation"
