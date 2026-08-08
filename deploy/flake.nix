@@ -13,7 +13,10 @@
     {
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
-          packages = with pkgs; [ zola ];
+          # zola builds the site; bats/jq/python3 run tests/discoverability.bats
+          # against the build output in CI. Same pinned nixpkgs as the build, so
+          # local and CI agree.
+          packages = with pkgs; [ zola bats jq python3 ];
         };
       });
     };

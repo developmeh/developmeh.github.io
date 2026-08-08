@@ -35,6 +35,39 @@
         api_host: 'https://us.i.posthog.com',
         person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
       })
+
+      // Tag arrivals from answer engines so they are segmentable in PostHog
+      // without hand-filtering referrers. Note this only sees HUMANS who
+      // clicked a citation: crawlers do not run JavaScript, so GPTBot and
+      // friends are invisible here and would need server logs.
+      ;(function () {
+        var SOURCES = [
+          ['chatgpt.com', 'chatgpt'], ['chat.openai.com', 'chatgpt'],
+          ['openai.com', 'openai'],
+          ['perplexity.ai', 'perplexity'],
+          ['claude.ai', 'claude'],
+          ['gemini.google.com', 'gemini'], ['bard.google.com', 'gemini'],
+          ['copilot.microsoft.com', 'copilot'], ['bing.com/chat', 'copilot'],
+          ['you.com', 'you'],
+          ['phind.com', 'phind'],
+          ['duckduckgo.com/aichat', 'ddg-ai'],
+          ['mistral.ai', 'mistral'],
+          ['grok.com', 'grok'], ['x.ai', 'grok']
+        ]
+        var ref = document.referrer || ''
+        if (!ref) return
+        for (var i = 0; i < SOURCES.length; i++) {
+          if (ref.indexOf(SOURCES[i][0]) !== -1) {
+            posthog.register({ ai_referrer: SOURCES[i][1] })
+            posthog.capture('ai_referral', {
+              ai_referrer: SOURCES[i][1],
+              referrer: ref,
+              landing_path: window.location.pathname
+            })
+            return
+          }
+        }
+      })()
     </script>
 </head>
 <body>
