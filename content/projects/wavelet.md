@@ -20,6 +20,14 @@ Wavelet takes Google Wave's data model and repurposes it as a coordination subst
 
 It is not a Wave clone. It keeps the structural model, **wave → wavelet → blip**, and discards what made Wave difficult: operational transformation, character-level sync, and the everything-is-live UX. What remains is a conversation store that is naturally forked, replayable, and cheap to assemble LLM context from.
 
+## Why it exists
+
+The models you already have access to arrive as chat. A Claude subscription over OAuth, an API key, or Bedrock running in your own AWS account all give you single-turn conversation and nothing above it. Orchestration is left as an exercise, and the usual answer is to buy a second thing: an agent platform, a separate API budget, a hosted harness with its own billing relationship.
+
+wavelet takes the other route. It adds complex orchestration on top of the credentials you already hold. A participant is a wrapped Claude session using whatever authentication you already have, and the wave supplies everything the chat interface does not: durable state, forked sub-conversations, delivery rules, provenance, and replay.
+
+That constraint drives real design rather than being a footnote. Sessions on third-party providers, Bedrock among them, have no development-channel surface and cannot be woken by MCP notifications at all, which is why the `watch` and `-hook` transports exist. Supporting the credentials people actually have means supporting the ones that cannot be pushed to.
+
 ## The data model
 
 A conversation involving multiple agents is a forked graph, not a linear transcript.

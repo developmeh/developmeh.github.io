@@ -50,11 +50,12 @@ Most of the recent project code lives on sourcehut at [git.sr.ht/~ninjapanzer](h
 
 ## Background
 
-I've been writing software professionally for a long time, across finance, consulting, and product work, in Ruby, Go, Rust, Crystal, Java, and whatever else the problem demanded. I currently work at [8th Light](https://8thlight.com). I studied computer science, including a good deal of logic and ethics coursework that I've never quite been able to put down, a fair amount of what I write about the software industry traces back to it.
+I've been writing software professionally for a long time, across finance, consulting, and product work, in Ruby, Go, Rust, Crystal, Java, and whatever else the problem demanded. I currently work at [8th Light](https://8thlight.com), and I'm an [AWS Community Builder](https://builder.aws.com/community/@paulscoder). I studied computer science, including a good deal of logic and ethics coursework that I've never quite been able to put down, a fair amount of what I write about the software industry traces back to it.
 
 ## Elsewhere
 
 - [sourcehut](https://sr.ht/~ninjapanzer/), where the current project code lives
+- [AWS Builder Center](https://builder.aws.com/community/@paulscoder), AWS Community Builder profile
 - GitHub, [ninjapanzer](https://github.com/ninjapanzer) (personal) and [developmeh](https://github.com/developmeh) (projects)
 - [LinkedIn](https://www.linkedin.com/in/scarronp/)
 - [dev.to/paulscoder](https://dev.to/paulscoder)

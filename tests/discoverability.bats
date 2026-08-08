@@ -91,6 +91,16 @@ ldjson() {
   [ "$(echo "$person" | jq -r '.url')" = "https://developmeh.com/about" ]
 }
 
+@test "Person declares the AWS Community Builders membership" {
+  # Third-party credentials corroborate expertise in a way self-assertion
+  # cannot, so losing this from the graph is a real regression.
+  local g; g="$(ldjson "$SITE/about/index.html" 1)"
+  local m; m="$(echo "$g" | jq '.["@graph"][] | select(.["@type"]=="Person") | .memberOf')"
+  [ "$(echo "$m" | jq -r '.["@type"]')" = "ProgramMembership" ]
+  [ "$(echo "$m" | jq -r '.programName')" = "AWS Community Builders" ]
+  [ "$(echo "$m" | jq -r '.hostingOrganization.name')" = "Amazon Web Services" ]
+}
+
 @test "every sameAs entry is a well-formed absolute URL" {
   local g; g="$(ldjson "$SITE/about/index.html" 1)"
   local bad

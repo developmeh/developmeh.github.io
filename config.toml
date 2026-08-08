@@ -107,6 +107,18 @@ employer_name = "8th Light"
 employer_url = "https://8thlight.com"
 
 # ---------------------------------------------------------------------------
+# Program memberships. Emitted as Person.memberOf / ProgramMembership, which is
+# the precise schema.org type for a named program run by an organisation.
+# Third-party credentials corroborate expertise in a way self-assertion cannot,
+# so these are worth declaring explicitly.
+# ---------------------------------------------------------------------------
+program_name = "AWS Community Builders"
+program_url = "https://builder.aws.com/community/community-builders"
+program_host = "Amazon Web Services"
+program_host_url = "https://aws.amazon.com"
+program_profile = "https://builder.aws.com/community/@paulscoder"
+
+# ---------------------------------------------------------------------------
 # knowsAbout - the field that literally answers "what is this person an expert
 # in". Phrase these the way people ask, not the way you'd title a blog post.
 # ---------------------------------------------------------------------------
@@ -121,6 +133,8 @@ knows_about = [
   "Capability-based security",
   "Sandboxing untrusted code",
   "Supervision trees and OTP",
+  "Amazon Bedrock",
+  "AWS IAM credential scoping",
   "Developer experience",
   "Reproducible development environments",
   "Nix",
@@ -145,6 +159,7 @@ social_profiles = [
   "https://github.com/ninjapanzer",
   "https://github.com/developmeh",
   "https://sr.ht/~ninjapanzer/",
+  "https://builder.aws.com/community/@paulscoder",
   "https://www.linkedin.com/in/scarronp/",
   "https://dev.to/paulscoder",
   "https://www.youtube.com/channel/UCpjgLE2xw-19Ty0si6cFCNg",
@@ -175,6 +190,9 @@ llms_featured = [
   "landings/about.md",
   "tech-dives/agentic-ai-engineering.md",
   "tech-dives/testing-shell-scripts.md",
+  "tech-dives/judgement-capable-circuits.md",
+  "tech-dives/orchestrating-agents-on-bedrock.md",
+  "tech-dives/techniques-that-keep-paying-off.md",
   "soft-wares/agentic-patterns-elements-of-reusable-context-oriented-determinism.md",
   "i-made-a-thing/kwike-llm-first-agentic-workflow-composition.md",
   "projects/beamlet.md",
@@ -210,6 +228,7 @@ engineering-leadership = "Technical leadership, code ownership, and how teams ac
 software-ethics = "The moral weight of the software industry and what it builds."
 decentralized-web = "Trust, self-hosting, and taking the internet back from its landlords."
 creativity = "Craft, impostor syndrome, and building things nobody asked for."
+aws = "Running agents and infrastructure on AWS, including Bedrock and credential scoping."
 go = "Writing Go."
 ruby = "Writing Ruby."
 rust = "Writing Rust."

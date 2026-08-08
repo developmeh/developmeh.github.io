@@ -81,6 +81,23 @@
         {%- endif %}
       },
       {%- endif %}
+      {%- if config.extra.program_name %}
+      "memberOf": {
+        "@type": "ProgramMembership",
+        "programName": {{ config.extra.program_name | json_encode | safe }},
+        {%- if config.extra.program_url %}
+        "url": {{ config.extra.program_url | json_encode | safe }},
+        {%- endif %}
+        "hostingOrganization": {
+          "@type": "Organization",
+          "name": {{ config.extra.program_host | json_encode | safe }}
+          {%- if config.extra.program_host_url -%}
+          ,
+          "url": {{ config.extra.program_host_url | json_encode | safe }}
+          {%- endif %}
+        }
+      },
+      {%- endif %}
       {%- if config.extra.knows_about %}
       "knowsAbout": {{ config.extra.knows_about | json_encode | safe }},
       {%- endif %}
