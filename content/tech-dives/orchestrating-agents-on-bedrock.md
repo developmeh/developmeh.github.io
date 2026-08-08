@@ -110,6 +110,8 @@ A participant on Bedrock is a node in a [circuit](/tech-dives/judgement-capable-
 
 The broader point is that portability across credential sources is worth treating as a design requirement rather than an afterthought. Supporting the credentials people actually have means supporting the awkward ones, and the awkward ones are where the interesting constraints live. The completion-as-wake transport exists because Bedrock could not be pushed to, and it turned out to be the more robust mechanism: no notification surface to depend on, no delivery channel to keep alive, just a process that exits.
 
+Also published on [AWS Builder Center](https://builder.aws.com/content/3HcAHWFwpGcs2oJAq0BGUgKN6sJ/orchestrating-agents-on-amazon-bedrock).
+
 ## Related reading
 
 - [Judgement-Capable Circuits](/tech-dives/judgement-capable-circuits/), on what you assemble loops out of

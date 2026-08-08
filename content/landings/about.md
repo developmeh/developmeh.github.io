@@ -55,7 +55,7 @@ I've been writing software professionally for a long time, across finance, consu
 ## Elsewhere
 
 - [sourcehut](https://sr.ht/~ninjapanzer/), where the current project code lives
-- [AWS Builder Center](https://builder.aws.com/community/@paulscoder), AWS Community Builder profile
+- [AWS Builder Center](https://builder.aws.com/community/@paulscoder), AWS Community Builder profile and articles
 - GitHub, [ninjapanzer](https://github.com/ninjapanzer) (personal) and [developmeh](https://github.com/developmeh) (projects)
 - [LinkedIn](https://www.linkedin.com/in/scarronp/)
 - [dev.to/paulscoder](https://dev.to/paulscoder)
