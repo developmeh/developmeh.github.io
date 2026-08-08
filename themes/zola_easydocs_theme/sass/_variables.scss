@@ -1,41 +1,64 @@
-// Terminal Palette (ANSI-inspired)
+// ---------------------------------------------------------------------------
+// Palette: one accent, quiet everything else.
+//
+// The old sheet spread five saturated hues (orange, yellow, cyan, magenta,
+// red) across headings, nav and links, which read as a terminal toybox. The
+// identity keeps the warm near-black background and a single orange accent,
+// with the legacy green demoted to a supporting role (code, chips, meta).
+// ---------------------------------------------------------------------------
+
+$background: #0f110c;          // warm near-black, unchanged: this IS the brand
+$surface: #171a12;             // cards, quotes, code wells
+$surface-raised: #1c2016;      // hover states, callouts
+
+$text: #d9d7cc;                // warm off-white body text, readable at length
+$heading: #edebe0;
+$muted: #969c86;               // secondary text, metadata
+$faint: rgba(217, 215, 204, 0.55);
+
+$accent: #e08a3c;              // the orange, slightly desaturated from #e67e22
+$accent-bright: #f0a75f;       // hover
+$green: #8fb573;               // heritage green, accents only
+
+$border: rgba(217, 215, 204, 0.12);
+$border-strong: rgba(217, 215, 204, 0.22);
+
+// --- Legacy variable names, kept so downstream sheets still compile --------
 $term-black: #000000;
-$term-red: #e74c3c;     // Using existing danger color
-$term-green: #2ecc71;   // Using existing success color
-$term-yellow: #f1c40f;  // Using existing warning color
-$term-blue: #3498db;    // Using existing info color
-$term-magenta: #9b59b6;
-$term-cyan: #1abc9c;
+$term-red: #c95a4d;
+$term-green: $green;
+$term-yellow: #cfae4e;
+$term-blue: #6a97bd;
+$term-magenta: #a583b8;
+$term-cyan: #6aab9c;
 $term-white: #ecf0f1;
 
 $baseline: 1.5rem;
 
-$background:#0f110c;
-//$color:#90b471; ##6ea240
-$color:#6ea240;
-$nav-top-color: #e67e22;
-$sub-nav-color: #f1c40f;
+$color: $text;                 // legacy alias: body colour
+$nav-top-color: $accent;
+$sub-nav-color: $muted;        // was yellow
 
-$links: #3498db;
-$hover-links:#e74c3c;
-$visited-links:$nav-top-color;
+$links: $accent;
+$hover-links: $accent-bright;
+$visited-links: $accent;
 
-$font-size: 1.125rem;
+$font-size: 1.0625rem;
 $font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-$line-height: 1.6;
-$code_font: 400 0.9rem 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+$mono-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+$line-height: 1.65;
+$code_font: 400 0.9rem $mono-family;
 
-$quote-bg: #1a1e15;
-$quote-color: #a0aec0;
-$quote-border: #e67e22 4px solid;
+$quote-bg: $surface;
+$quote-color: #b6bba9;
+$quote-border: $accent 3px solid;
 
-// Professional Callout Colors
-$callout-info-bg: #1a2635;
-$callout-info-border: #3498db;
-$callout-warning-bg: #2d2616;
-$callout-warning-border: #f1c40f;
-$callout-danger-bg: #2d1a1a;
-$callout-danger-border: #e74c3c;
-$callout-success-bg: #1a2d1a;
-$callout-success-border: #2ecc71;
-
+// Callouts: same quiet surface, tinted border only. No more traffic lights.
+$callout-info-bg: $surface;
+$callout-info-border: $term-blue;
+$callout-warning-bg: $surface;
+$callout-warning-border: $term-yellow;
+$callout-danger-bg: $surface;
+$callout-danger-border: $term-red;
+$callout-success-bg: $surface;
+$callout-success-border: $green;

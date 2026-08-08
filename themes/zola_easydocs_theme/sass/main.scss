@@ -8,11 +8,11 @@ html {
 
 body {
   margin: 0;
-  font-size:$font-size;
-  font-family:$font-family;
+  font-size: $font-size;
+  font-family: $font-family;
   line-height: $line-height;
-  background:$background;
-  color:$color;
+  background: $background;
+  color: $text;
 }
 
 .highlight-wrapper {
@@ -20,571 +20,584 @@ body {
 }
 
 @keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  50% {
-    opacity: 0.8;
-  }
-
-  100% {
-    opacity: 1;
-  }
+  0% { opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
 }
 
 a {
-  &:link {
-    color:$nav-top-color;
+  &:link,
+  &:visited {
+    color: $links;
     text-decoration: none;
   }
 
   &:hover {
-    color:$hover-links;
+    color: $hover-links;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
+}
 
-  &:visited {
-    color:$visited-links;
-  }
+// --- Headings: hierarchy from size and weight, not from rainbow borders ----
+h1, h2, h3, h4 {
+  color: $heading;
+  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
 h2 {
-  color: $color;
-  border-left: 5px solid $term-cyan;
-  padding-left: 1rem;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  line-height: 1.2;
+  font-size: 1.55rem;
+  margin: 2.5rem 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid $border;
 }
 
 h3 {
-  color: $color;
-  border-left: 4px solid $term-yellow;
-  padding-left: 0.75rem;
-  margin-top: 1.5rem;
-  line-height: 1.2;
+  font-size: 1.2rem;
+  margin: 1.75rem 0 0.75rem;
 }
 
 h4 {
-  color: $color;
-  border-left: 3px solid $term-magenta;
-  padding-left: 0.5rem;
-  margin-top: 1.25rem;
-  line-height: 1.2;
+  font-size: 1.05rem;
+  margin: 1.5rem 0 0.5rem;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.9rem;
 }
 
-h2,
-h3,
-h4 {
+h1, h2, h3, h4 {
   .anchor {
     visibility: hidden;
     text-decoration: none;
     cursor: pointer;
     line-height: 1;
-    color:$color;
+    color: $faint;
   }
 
-  &:hover {
-    .anchor {
-      visibility: visible;
-      animation: fade-in 0.3s ease-in-out;
-      font-family: 'FabricMDL2Icons';
+  &:hover .anchor {
+    visibility: visible;
+    animation: fade-in 0.3s ease-in-out;
+    font-family: $mono-family;
+  }
+}
+
+table {
+  border-collapse: collapse;
+  margin: $baseline 0;
+}
+
+table td, table th {
+  border: 1px solid $border-strong;
+  padding: 0.4rem 0.75rem;
+}
+
+table th {
+  color: $heading;
+  background: $surface;
+}
+
+pre {
+  margin: $baseline 0;
+  border-radius: 6px;
+  border: 1px solid $border;
+  padding: $baseline;
+  overflow: auto;
+  position: relative;
+
+  // Fenced blocks with a language ("```bash") keep true pre formatting and
+  // scroll. Plain indented blocks are usually prose or transcripts, so they
+  // wrap to the reading measure instead of growing a horizontal scrollbar.
+  &:not([class*="language-"]) {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  code {
+    background: transparent;
+
+    &::after {
+      content: attr(data-lang);
+      font-style: italic;
+      line-height: 1;
+      opacity: 0.3;
+      position: absolute;
+      bottom: $baseline;
+      right: $baseline;
+      z-index: 1;
     }
   }
 }
 
-table td, table th {
-  border: 1px solid $color;
-  }
-
-pre {
-  margin:$baseline 0;
-  border-radius: 4px;
-  padding:$baseline;
-  overflow: auto;
-  position: relative;
-
-  code {
-  background:transparent;
-
-  &::after {
-    content: attr(data-lang);
-    font-style: italic;
-    line-height: 1;
-    opacity:0.3;
-    position:absolute;
-    bottom:$baseline;
-    right:$baseline;
-    z-index:1;
-  }
-  }
+code {
+  font: $code_font;
+  line-height: 1px;
+  color: $green;
 }
 
- code {
-    font: $code_font;
-    line-height: 1px;
-  }
+pre code {
+  color: inherit;
+}
 
-  .copy-code-button {
-    font-family: 'FabricMDL2Icons';
-    display:none;
-    background:$background;
-    border-radius: 4px;
-    border:none;
-    cursor: pointer;
-    animation: fade-in 0.3s ease-in-out;
-    font-size: $baseline;
-    color:$color;
-    z-index: 10;
-    position:absolute;
-    top:$baseline;
-    right:$baseline;
-  }
+.copy-code-button {
+  font-family: 'FabricMDL2Icons';
+  display: none;
+  background: $background;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  animation: fade-in 0.3s ease-in-out;
+  font-size: $baseline;
+  color: $text;
+  z-index: 10;
+  position: absolute;
+  top: $baseline;
+  right: $baseline;
+}
 
-  pre:hover .copy-code-button {
-    display: block;
-  }
+pre:hover .copy-code-button {
+  display: block;
+}
 
+// --- Navigation -------------------------------------------------------------
 nav {
-  // The nav now comes AFTER <article> in the DOM so that page content leads
-  // the document instead of ~39 unrelated link titles. `order: -1` restores
-  // the original visual position (left column on desktop, top on mobile).
+  // The nav comes AFTER <article> in the DOM so page content leads the
+  // document. `order: -1` restores the visual position (left column).
   order: -1;
   position: sticky;
   display: flex;
   flex-direction: column;
   height: 92vh;
   top: calc(#{$baseline} * 1.5);
-  left:$baseline;
+  left: $baseline;
   bottom: $baseline;
   padding-right: $baseline;
-  width: 20rem;
-  color: $nav-top-color;
+  width: 17rem;
+  flex-shrink: 0;
+  color: $muted;
+  font-size: 0.95rem;
 
   img {
-    width:128px;
+    width: 128px;
   }
 
   h1 {
-    margin:0;
+    margin: 0;
     line-height: 1;
   }
 
   footer {
     margin-top: auto;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     padding: $baseline 0;
+    color: $faint;
+
+    a { color: $muted; }
+  }
+}
+
+.nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: calc(#{$baseline} / 2);
+}
+
+.brand {
+  display: block;
+  line-height: 1.3;
+
+  .brand-name {
+    font-family: $mono-family;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: $accent;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-tag {
+    display: block;
+    font-size: 0.72rem;
+    color: $faint;
+    font-family: $mono-family;
+  }
+
+  &:hover {
+    text-decoration: none;
+    .brand-name { color: $accent-bright; }
   }
 }
 
 #toc {
-  margin-left:calc(#{$baseline} + #{$font-size});
-  padding:0;
-  margin:0 0 0 $baseline;
-  font-size: 80%;
+  padding: 0;
+  margin: 0.25rem 0 0.25rem $baseline;
+  font-size: 78%;
+  border-left: 1px solid $border;
 
   li {
-    color:$color;
-    margin-left: $font-size;
+    color: $faint;
+    margin-left: calc(#{$font-size} / 2);
+    list-style: none;
+    line-height: 1.3;
 
-  &::before {
-    display: inline-block;
-    content:"";
+    // An empty inline ::before ahead of a block-level link generates a
+    // phantom line box, one full line-height of dead space per item.
+    &::before {
+      display: none;
+    }
+
+    // Dense by default: the block hover target is kept, the padding is not.
+    // A long TOC (pillar pages, beamlet) should scan as a compact outline.
+    a {
+      display: block;
+      color: $muted;
+      padding: 0.08rem 0.4rem;
+      border-left: none;
+      border-radius: 4px;
+    }
+
+    a:hover {
+      color: $accent-bright;
+      background: $surface-raised;
+      text-decoration: none;
+    }
+
+    ul { padding: 0; }
   }
-
-  ul {
-    padding:0;
-  }
-
-}
-
 }
 
 main {
   display: flex;
   flex-flow: row nowrap;
   animation: fade-in 0.4s ease-in-out;
+  max-width: 90rem;
+  margin: 0 auto;
 }
 
 #release {
   text-align: left;
-  margin:$baseline 0;
+  margin: $baseline 0;
 
-&::before {
-  display: inline-block;
-  content: "\EE2E";
-  font-family: 'FabricMDL2Icons';
-  margin-right:calc(#{$baseline} / 8);
+  &::before {
+    display: inline-block;
+    content: "\EE2E";
+    font-family: 'FabricMDL2Icons';
+    margin-right: calc(#{$baseline} / 8);
+  }
 }
+
+nav label {
+  display: block;
 }
 
-@keyframes slideIn {
-  0% {
-   max-height:0;
-   opacity:0
-  }
-  100% {
-   max-height:999px;
-   opacity:1
-  }
- }
- @keyframes slideOut {
-  0% {
-   height:auto;
-   opacity:1
-  }
-  100% {
-   height:0;
-   opacity:0
-  }
- }
-
- nav label {
-  display:block;
- }
-
- #trees {
+#trees {
   overflow-y: auto;
   flex: 1;
   height: 80%;
 
   a.tree-toggle-label {
-    font-weight: bold;
-    color:$nav-top-color;
-    &::before {
-      content:"🔗";
-    }
-  }
- }
+    font-weight: 600;
+    color: $muted;
 
- .subtree {
-  overflow:hidden;
-  margin:calc(#{$baseline} / 8) 0;
+    &:hover { color: $accent-bright; text-decoration: none; }
+  }
+}
+
+.subtree {
+  overflow: hidden;
+  margin: calc(#{$baseline} / 8) 0;
   transition: overflow 0.2s ease-in-out;
   padding: 0;
- }
+}
 
- .tree-toggle-label {
-  user-select:none;
-  cursor:pointer;
- }
+.tree-toggle-label {
+  user-select: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: $muted;
+  padding: 0.15rem 0;
 
- .tree-toggle-label::before {
-  display:inline-block;
-  content:"\E970";
-  font-family:'FabricMDL2Icons';
-  font-size:.75rem;
-  transform:rotate(0deg);
-  transform-origin:50% 50% 0px;
-  transition:transform 0.1s linear 0s;
-  margin-right: 2px;
- }
+  &:hover { color: $accent-bright; }
+}
 
+.tree-toggle-label::before {
+  display: inline-block;
+  content: "\E970";
+  font-family: 'FabricMDL2Icons';
+  font-size: 0.6rem;
+  opacity: 0.5;
+  transform: rotate(0deg);
+  transform-origin: 50% 50% 0px;
+  transition: transform 0.1s linear 0s;
+  margin-right: 6px;
+}
 
- .tree-toggle {
-  position:absolute;
-  opacity:0;
-  z-index:-1;
- }
+.tree-toggle {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
 
- .tree-toggle:checked+.tree-toggle-label::before {
-  content:"\E970";
-  font-family:'FabricMDL2Icons';
-  font-size:.75rem;
-  transform:rotate(90deg);
-  transform-origin:50% 50% 0px;
-  transition:transform 0.1s linear 0s;
-  margin-right: 2px;
- }
+.tree-toggle:checked + .tree-toggle-label::before {
+  content: "\E970";
+  font-family: 'FabricMDL2Icons';
+  font-size: 0.6rem;
+  transform: rotate(90deg);
+  transform-origin: 50% 50% 0px;
+  transition: transform 0.1s linear 0s;
+  margin-right: 6px;
+}
 
- .tree-toggle:checked+.tree-toggle-label {
-  font-weight:bold;
- }
+.tree-toggle:checked + .tree-toggle-label {
+  color: $heading;
+}
 
- .tree-toggle+.tree-toggle-label+.subtree {
-  animation-name:slideOut;
-  animation-duration:0.25s;
-  animation-fill-mode:both;
- }
+// Deterministic collapse: only the checked (current) section shows its pages.
+// The old animation-based hide left every subtree expanded until the
+// animation ran, which read as a forcefully expanded tree.
+.tree-toggle + .tree-toggle-label + .subtree {
+  display: none;
+}
 
- .tree-toggle:checked+.tree-toggle-label+.subtree {
-  animation-name:slideIn;
-  animation-duration:0.25s;
-  animation-fill-mode:both;
- }
+.tree-toggle:checked + .tree-toggle-label + .subtree {
+  display: block;
+}
 
-
- .subtree li {
+.subtree li {
   list-style-type: none;
-  margin-left: $baseline;
+  margin: 0 0 2px calc(#{$baseline} * 0.5);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  padding: 0;
 
-
+  // Each item is a padded block, so a title that wraps reads as one unit and
+  // the gap between items is visibly larger than the gap between wrapped
+  // lines. Hover lights the whole row.
   a {
-    color:$sub-nav-color;
+    display: block;
+    color: $muted;
+    padding: 0.3rem 0.5rem 0.3rem 0.65rem;
+    border-left: 2px solid $border;
+    border-radius: 0 6px 6px 0;
+
+    &:hover {
+      color: $accent-bright;
+      background: $surface-raised;
+      text-decoration: none;
+    }
   }
 
+  // Same phantom-line-box hazard as #toc: never leave an inline ::before
+  // in front of the block-level link.
   &::before {
-    content: "\E7C3";
-    font-family:'FabricMDL2Icons';
-    font-size:0.75rem;
+    display: none;
   }
-
 }
 
-.active a {
-  font-weight: bold;
+// Child combinator matters: the page TOC now nests inside the active <li>,
+// and its links must not inherit the active-page treatment.
+.active > a,
+.subtree li.active > a {
+  font-weight: 600;
+  color: $accent;
+  border-left-color: $accent;
+  background: $surface;
 }
 
-
+// --- Article ----------------------------------------------------------------
 article {
-  width: calc(100% - (#{$baseline} * 4 + 20rem));
-  margin-left:calc(#{$baseline} * 2);
+  width: calc(100% - (#{$baseline} * 4 + 17rem));
+  margin-left: calc(#{$baseline} * 2);
   padding-top: calc(#{$baseline} * 1.5);
 
-  img {
-    max-width:100%;
+  // Links in running text are underlined so color is not the only cue
+  // (WCAG 1.4.1, axe link-in-text-block). Chips and nav links opt out.
+  p a:not(.topic-chip),
+  li a:not(.topic-chip) {
+    text-decoration: underline;
+    text-decoration-color: rgba($accent, 0.55);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+
+    &:hover { text-decoration-color: $accent-bright; }
   }
 
-  .hero-section {
-    h2 {
-      color: $nav-top-color;
-      border: none;
-      margin: 0;
-      padding-bottom: 0;
-      padding-left: 0;
-      font-size: 2.5rem;
-      background: transparent;
-    }
+  img {
+    max-width: 100%;
+    border-radius: 6px;
+  }
 
-    h3 {
-      color: $sub-nav-color;
-      border: none;
-      padding-left: 0;
-      margin: 0;
-    }
+  #wrap {
+    max-width: 47rem;
+  }
+
+  // Homepage and other wide layouts get the full column.
+  #wrap:has(.home-layout) {
+    max-width: 72rem;
   }
 
   ul:not(#toc), ol {
-    list-style-type: none;
-    padding-left: 0;
+    padding-left: 1.4rem;
     margin: $baseline 0;
 
     li {
-      position: relative;
-      padding-left: 1.5rem;
-      margin-bottom: 0.5rem;
-      margin-left: 0;
+      margin-bottom: 0.4rem;
 
-      &::before {
-        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231abc9c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='16 18 22 12 16 6'%3E%3C/polyline%3E%3Cpolyline points='8 6 2 12 8 18'%3E%3C/polyline%3E%3C/svg%3E");
-        position: absolute;
-        left: 0;
-        top: 0.2rem;
-        opacity: 0.6;
+      &::marker {
+        color: $faint;
       }
     }
   }
 
   .card-stack, .callout {
-    ul, ol {
-      margin: 0;
-    }
+    ul, ol { margin: 0; }
   }
 
   .devlog-entry {
     margin: $baseline 0;
     padding: $baseline 0;
-    border-bottom: 1px solid rgba($color, 0.1);
+    border-bottom: 1px solid $border;
 
-    &:last-of-type {
-      border-bottom: none;
-    }
+    &:last-of-type { border-bottom: none; }
 
     h3 {
       margin-top: 0;
-      color: $nav-top-color;
-      border-left: 5px solid $term-cyan;
+      color: $heading;
     }
 
     h4 {
-      color: $sub-nav-color;
-      border-left: none;
-      padding-left: 0;
+      color: $muted;
       font-style: italic;
+      text-transform: none;
+      letter-spacing: 0;
     }
   }
-
 }
 
 #mobile {
   display: none;
 }
 
-
-@media screen and (max-width: 1023px) {
-  .home-layout {
-    flex-direction: column;
-  }
-
-  .hero-section {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  main {
-    flex-flow: column nowrap;
-    width: 100%;
-  }
-
-  nav {
-    position: inherit;
-    height:auto;
-    margin:$baseline $baseline 0 $baseline;
-  }
-
-  article {
-    width: calc(100% - (#{$baseline} * 2));
-    margin:0 $baseline;
-    padding-top: 0;
-    z-index:1;
-  }
-
-  #mobile {
-    font-family: 'FabricMDL2Icons';
-    cursor: pointer;
-    font-size: $baseline;
-    margin:0 $baseline 0 0;
-    display: block;
-    color:$color;
-  }
-
-  #trees {
-    display: none;
-    position:absolute;
-    background: $background;
-    height:auto;
-    width:100vw;
-    z-index:10;
-    box-shadow: 0 2px 0 rgba(0,0,0,.1);
-  }
-
-  #on_right {
-    margin-top:$baseline;
-  }
-}
-
+// --- Blockquote and callouts ------------------------------------------------
 blockquote {
   border-left: $quote-border;
   margin: $baseline 0;
   background-color: $quote-bg;
   padding: calc(#{$baseline} / 2) $baseline;
-  color:$quote-color;
-  border-radius: 0 4px 4px 0;
+  color: $quote-color;
+  border-radius: 0 6px 6px 0;
+  overflow-wrap: break-word;
 
-  p {
-    margin: 0;
-  }
+  p { margin: 0; }
 }
 
 .callout {
   margin: $baseline 0;
   padding: calc(#{$baseline} * 0.75);
-  border-left: 5px solid;
-  border-radius: 0 4px 4px 0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: $surface;
+  border: 1px solid $border;
+  border-left: 3px solid;
+  border-radius: 0 6px 6px 0;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-
-  &.info {
-    background-color: $callout-info-bg;
-    border-color: $callout-info-border;
-  }
-
-  &.warning {
-    background-color: $callout-warning-bg;
-    border-color: $callout-warning-border;
-  }
-
-  &.danger {
-    background-color: $callout-danger-bg;
-    border-color: $callout-danger-border;
-  }
-
-  &.success {
-    background-color: $callout-success-bg;
-    border-color: $callout-success-border;
-  }
+  &.info { border-left-color: $callout-info-border; }
+  &.warning { border-left-color: $callout-warning-border; }
+  &.danger { border-left-color: $callout-danger-border; }
+  &.success { border-left-color: $callout-success-border; }
 
   .callout-title {
-    font-weight: bold;
+    font-weight: 600;
     margin-bottom: calc(#{$baseline} / 2);
     display: block;
     text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 1px;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: $muted;
   }
 }
 
-  .hero-section {
-    padding: 0 $baseline calc(#{$baseline} * 1.5) $baseline;
-    border-bottom: 1px solid rgba($color, 0.2);
-    margin-bottom: calc(#{$baseline} * 2);
-    box-shadow: -4px -4px 12px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    gap: $baseline;
+// --- Homepage ---------------------------------------------------------------
+.hero-section {
+  padding: calc(#{$baseline} * 1.5) 0 calc(#{$baseline} * 1.5) 0;
+  border-bottom: 1px solid $border;
+  margin-bottom: calc(#{$baseline} * 1.5);
+  display: flex;
+  align-items: center;
+  gap: calc(#{$baseline} * 1.25);
 
-    .hero-logo {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      border: 2px solid $nav-top-color;
+  .hero-logo {
+    width: 96px;
+    height: 96px;
+    border-radius: 20px;
+    border: 1px solid $border-strong;
+  }
+
+  .hero-content { flex: 1; }
+
+  h1, h2 {
+    font-size: 2.4rem;
+    margin: 0;
+    color: $heading;
+    border: none;
+    background: transparent;
+    padding-bottom: 0;
+    font-family: $mono-family;
+    letter-spacing: -0.03em;
+  }
+
+  h3 {
+    color: $muted;
+    margin: 0;
+  }
+
+  .subtitle {
+    font-family: $mono-family;
+    font-size: 1rem;
+    color: $accent;
+    margin: 0.15rem 0 0.6rem;
+  }
+
+  p {
+    margin: 0;
+    color: $text;
+    max-width: 40rem;
+  }
+}
+
+.hero-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: $baseline;
+
+  a {
+    display: inline-block;
+    padding: 0.3rem 0.9rem;
+    border: 1px solid $border-strong;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    color: $text;
+
+    &:hover {
+      border-color: $accent;
+      color: $accent-bright;
+      text-decoration: none;
     }
 
-    .hero-content {
-      flex: 1;
-    }
-
-    h2 {
-      font-size: 2.5rem;
-      margin: 0;
-      color: $nav-top-color;
-      border: none;
-      background: transparent;
-      padding-bottom: 0;
-    }
-
-    h3 {
-      color: $sub-nav-color;
-      margin: 0;
-    }
-
-    .subtitle {
-      font-style: italic;
-      font-size: 1.25rem;
-      color: $sub-nav-color;
-      margin-bottom: calc(#{$baseline} / 2);
-    }
-
-    p {
-      margin: 0;
+    &.primary {
+      border-color: $accent;
+      color: $accent;
     }
   }
+}
 
 .home-layout {
   display: flex;
   gap: calc(#{$baseline} * 2);
 
-  .main-column {
-    flex: 2;
-  }
-
-  .side-column {
-    flex: 1;
-  }
+  .main-column { flex: 2; min-width: 0; }
+  .side-column { flex: 1; min-width: 0; }
 }
 
 .github-link-icon {
@@ -601,63 +614,116 @@ blockquote {
 }
 
 .card {
-  background: $quote-bg;
-  padding: calc(#{$baseline} * 0.75);
-  border-radius: 8px;
-  border: 1px solid rgba($color, 0.1);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  background: $surface;
+  padding: calc(#{$baseline} * 0.9);
+  border-radius: 10px;
+  border: 1px solid $border;
 
-  &:hover {
-    transform: translateY(-2px);
-    border-color: rgba($nav-top-color, 0.4);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-
-  h3 {
+  // Card headings are h2 for document outline (h1 hero, then sections), but
+  // render at h3 scale without the global h2 rule line.
+  h2, h3 {
     margin-top: 0;
     margin-bottom: calc(#{$baseline} / 2);
-    color: $sub-nav-color;
+    font-size: 1.2rem;
+    color: $heading;
     border: none;
     padding-left: 0;
+    padding-bottom: 0;
   }
 }
 
-@import "fabric-icons-inline";
-@import "search";
+// Post lists on the homepage: title left, date right, quiet rules between.
+.post-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: $baseline;
+    padding: 0.45rem 0;
+    margin: 0;
+    border-bottom: 1px solid $border;
+
+    &:last-child { border-bottom: none; }
+
+    &::marker { content: ""; }
+  }
+
+  time, .post-meta {
+    font-family: $mono-family;
+    font-size: 0.78rem;
+    color: $faint;
+    white-space: nowrap;
+  }
+
+  // Same tone as body copy, but underlined so a link still reads as a link.
+  a:link, a:visited {
+    color: $text;
+    text-decoration: underline;
+    text-decoration-color: rgba($accent, 0.55);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    color: $accent-bright;
+    text-decoration-color: $accent-bright;
+  }
+}
+
+article .post-list {
+  padding-left: 0;
+
+  li { margin-bottom: 0; }
+}
+
+details.archive {
+  margin: calc(#{$baseline} / 2) 0;
+
+  summary {
+    cursor: pointer;
+    color: $muted;
+    font-size: 0.88rem;
+    user-select: none;
+
+    &:hover { color: $accent-bright; }
+  }
+}
 
 // --- Byline -----------------------------------------------------------------
 .byline {
   font-size: 0.85rem;
-  color: $sub-nav-color;
+  color: $muted;
   margin: 0 0 calc(#{$baseline} * 1.5) 0;
   padding-bottom: calc(#{$baseline} / 2);
-  border-bottom: 1px solid rgba($color, 0.12);
+  border-bottom: 1px solid $border;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   align-items: baseline;
 
   .byline-sep { opacity: 0.4; }
-  a { font-weight: bold; }
+  a { font-weight: 600; }
 }
 
 // --- Related articles -------------------------------------------------------
 .related {
   margin-top: calc(#{$baseline} * 2);
   padding-top: $baseline;
-  border-top: 1px solid rgba($color, 0.15);
+  border-top: 1px solid $border;
 
   h3 {
     margin-top: 0;
-    color: $sub-nav-color;
-    border-left: 4px solid $term-yellow;
+    color: $heading;
   }
 
   .related-desc {
     display: block;
     font-size: 0.8rem;
-    color: $sub-nav-color;
-    opacity: 0.8;
+    color: $muted;
   }
 }
 
@@ -665,28 +731,114 @@ blockquote {
 .topic-chip {
   display: inline-block;
   font-size: 0.75rem;
-  padding: 0.05rem 0.5rem;
+  padding: 0.05rem 0.55rem;
   margin-right: 0.3rem;
-  border: 1px solid rgba($term-cyan, 0.4);
-  border-radius: 999px;
-  color: $term-cyan;
-  &:link, &:visited { color: $term-cyan; }
-  &:hover { background: rgba($term-cyan, 0.12); }
+  border: 1px solid rgba($green, 0.4);
+  // 10px on a chip this short clamps to a full capsule, which is exactly the
+  // pill look being retired. 6px renders as actual corners at this height.
+  border-radius: 6px;
+  color: $green;
+
+  &:link, &:visited { color: $green; }
+  &:hover {
+    background: rgba($green, 0.12);
+    text-decoration: none;
+  }
 }
 
-.topic-count { color: $sub-nav-color; opacity: 0.8; }
+.topic-count { color: $muted; }
 
 .topic-list li, .topic-index li {
   margin-bottom: calc(#{$baseline} / 2);
 
-  time { font-size: 0.8rem; color: $sub-nav-color; opacity: 0.7; margin-left: 0.4rem; }
+  time {
+    font-size: 0.8rem;
+    color: $faint;
+    margin-left: 0.4rem;
+    font-family: $mono-family;
+  }
 }
 
 .topic-desc {
   display: block;
   font-size: 0.85rem;
-  color: $sub-nav-color;
-  opacity: 0.85;
+  color: $muted;
 }
 
-.topic-intro { font-size: 1.05rem; color: $sub-nav-color; }
+.topic-intro {
+  font-size: 1.05rem;
+  color: $muted;
+}
+
+// --- Responsive -------------------------------------------------------------
+@media screen and (max-width: 1023px) {
+  .home-layout { flex-direction: column; }
+
+  .hero-section {
+    flex-direction: column;
+    text-align: center;
+
+    .hero-links { justify-content: center; }
+
+    p { margin: 0 auto; }
+  }
+
+  main {
+    flex-flow: column nowrap;
+    width: 100%;
+  }
+
+  nav {
+    position: inherit;
+    height: auto;
+    width: auto;
+    margin: $baseline $baseline 0 $baseline;
+    padding-right: 0;
+
+    footer { display: none; }
+  }
+
+  .nav-header { padding-bottom: 0; }
+
+  article {
+    width: calc(100% - (#{$baseline} * 2));
+    margin: 0 $baseline;
+    padding-top: 0;
+    z-index: 1;
+  }
+
+  #mobile {
+    font-family: 'FabricMDL2Icons';
+    cursor: pointer;
+    font-size: $baseline;
+    margin: 0;
+    display: block;
+    color: $muted;
+  }
+
+  #trees {
+    display: none;
+    position: absolute;
+    background: $background;
+    height: auto;
+    width: 100vw;
+    left: 0;
+    padding: $baseline;
+    box-sizing: border-box;
+    z-index: 10;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid $border;
+  }
+
+  #on_right { margin-top: $baseline; }
+}
+
+@import "fabric-icons-inline";
+@import "search";
+
+// Visible seam between the scrollable tree and the fixed search/footer rows,
+// so tree content no longer appears to slide behind the search control.
+#nav-search {
+  border-top: 1px solid $border;
+  padding-top: calc(#{$baseline} / 2);
+}

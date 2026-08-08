@@ -18,9 +18,9 @@ sitemap_changefreq = "monthly"
 
 # About Paul Scarrone
 
-I build things that aren't useful. Not useful to most people, anyway. I build to learn, to capture just enough knowledge to work out why I'm an utter imbecile, and then waste an ungodly amount of time getting genuinely good at something no market asked for. This site is where that lands.
+I build to learn. I capture just enough knowledge to work out why I'm an utter imbecile, and then waste an ungodly amount of time getting good at it purely for the joy of the thing. This site is where that lands.
 
-The joke in the name is real but the work isn't a joke. After enough seasons of this industry you either become a tradesman or you keep picking at the thing until it tells you how it works. I picked the second one. What follows is the boring version, for the people, and the machines, that need it spelled out.
+After enough seasons of this industry you either become a tradesman or you keep picking at the thing until it tells you how it works. I picked the second one. What follows is the boring version, for the people, and the machines, that need it spelled out.
 
 ## What I work on
 

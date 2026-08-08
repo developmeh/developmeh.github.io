@@ -22,7 +22,7 @@ It's the language people write when they can't figure out how to do something in
 
 This is bullshit.
 
-Bash is core to every Unix-like operating system. It's the glue between tools. It's the orchestration layer for distributed systems. If you're building CLI tools meant to be composed, piped, and chained together—bash isn't a workaround, it's the runtime.
+Bash is core to every Unix-like operating system. It's the glue between tools. It's the orchestration layer for distributed systems. If you're building CLI tools meant to be composed, piped, and chained together, bash is the runtime.
 
 I built a distributed job queue CLI. The components were solid Go with good unit tests. But unit tests couldn't answer the real question: does this thing actually work when you're using it the way it's meant to be used? In bash. From the command line. With real files and processes and timing issues.
 
