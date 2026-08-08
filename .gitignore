@@ -1,5 +1,6 @@
 .direnv
 site/
+_site/
 .test/bats
 .kwike/events.jsonl
 .kwike/acks.jsonl

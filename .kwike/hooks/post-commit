@@ -24,6 +24,12 @@ fi
 # Get list of changed content files with rename detection
 COMMIT_SHA=$(git rev-parse HEAD)
 
+# The commit's author date, YYYY-MM-DD. The doc-organizer needs a date for the
+# `updated` field and has no reliable clock of its own; asking a model what day
+# it is produces confident wrong answers. Sourcing it here also makes a replayed
+# or resumed event produce the same output as the first run.
+COMMIT_DATE=$(git log -1 --format='%as')
+
 # Get file status with rename detection (-M)
 # Format: status\told_path\tnew_path (for renames) or status\tpath (for add/modify/delete)
 FILE_STATUS=$(git diff-tree --no-commit-id -r -M --name-status "$COMMIT_SHA" | grep '^[AMDR].*content/' | grep -v 'content/landings/' || true)
@@ -37,7 +43,7 @@ fi
 ADDED_FILES=()
 MODIFIED_FILES=()
 DELETED_FILES=()
-RENAMED_FILES=()  # Array of "old_path -> new_path"
+RENAMED_FILES=()  # Array of "old_path|new_path"
 
 while IFS=$'\t' read -r status old_path new_path; do
   case "$status" in
@@ -57,7 +63,8 @@ while IFS=$'\t' read -r status old_path new_path; do
   esac
 done <<< "$FILE_STATUS"
 
-# Convert to JSON arrays
+# Expanding an empty array under `set -u` is an error on bash before 4.4, so
+# every expansion below uses the ${arr[@]+...} guard.
 to_json_array() {
   local arr=("$@")
   if [[ ${#arr[@]} -eq 0 ]]; then
@@ -67,9 +74,9 @@ to_json_array() {
   fi
 }
 
-ADDED_JSON=$(to_json_array "${ADDED_FILES[@]}")
-MODIFIED_JSON=$(to_json_array "${MODIFIED_FILES[@]}")
-DELETED_JSON=$(to_json_array "${DELETED_FILES[@]}")
+ADDED_JSON=$(to_json_array ${ADDED_FILES[@]+"${ADDED_FILES[@]}"})
+MODIFIED_JSON=$(to_json_array ${MODIFIED_FILES[@]+"${MODIFIED_FILES[@]}"})
+DELETED_JSON=$(to_json_array ${DELETED_FILES[@]+"${DELETED_FILES[@]}"})
 
 # Convert renames to JSON array of objects
 if [[ ${#RENAMED_FILES[@]} -eq 0 ]]; then
@@ -83,15 +90,18 @@ else
 fi
 
 # Build combined files_changed for backward compat (all touched files)
-ALL_FILES=("${ADDED_FILES[@]}" "${MODIFIED_FILES[@]}")
-for rename in "${RENAMED_FILES[@]}"; do
+ALL_FILES=()
+ALL_FILES+=(${ADDED_FILES[@]+"${ADDED_FILES[@]}"})
+ALL_FILES+=(${MODIFIED_FILES[@]+"${MODIFIED_FILES[@]}"})
+for rename in ${RENAMED_FILES[@]+"${RENAMED_FILES[@]}"}; do
   ALL_FILES+=("${rename#*|}")  # Add the new path
 done
-FILES_JSON=$(to_json_array "${ALL_FILES[@]}")
+FILES_JSON=$(to_json_array ${ALL_FILES[@]+"${ALL_FILES[@]}"})
 
 PAYLOAD=$(jq -c -n \
   --arg commit_sha "$COMMIT_SHA" \
   --arg commit_author "$COMMIT_AUTHOR" \
+  --arg commit_date "$COMMIT_DATE" \
   --arg commit_message "$(git log -1 --format='%s')" \
   --argjson files_changed "$FILES_JSON" \
   --argjson files_added "$ADDED_JSON" \
@@ -101,6 +111,7 @@ PAYLOAD=$(jq -c -n \
   '{
     commit_sha: $commit_sha,
     commit_author: $commit_author,
+    commit_date: $commit_date,
     commit_message: $commit_message,
     files_changed: $files_changed,
     files_added: $files_added,

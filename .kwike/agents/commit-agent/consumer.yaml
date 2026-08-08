@@ -1,7 +1,8 @@
-# Commit Agent - Verification & Robot Commit
+# Commit Agent - Gate, Verification & Robot Commit
 #
-# Receives doc-organizer output, verifies changes, commits as DevelopmehPublishRobot.
-# Uses verify_script to ensure commit author is correct.
+# Receives doc-organizer output, runs gate.sh (zola build + internal link audit
+# + discoverability suite), commits as DevelopmehPublishRobot on a green gate.
+# Uses verify_script to ensure the commit author is correct.
 #
 # Usage:
 #   kwike consume --config ./consumer.yaml
@@ -25,6 +26,9 @@ llm:
   args:
     - "--print"
     - "--model"
+    # haiku is sufficient because gate.sh makes the pass/fail decision. If this
+    # agent starts mis-copying gate output into feedback or mangling the
+    # contract, raise to sonnet rather than loosening the gate.
     - "haiku"
     - "--permission-mode"
     - "dontAsk"
@@ -32,12 +36,18 @@ llm:
     - "Read"
     - "Bash(git diff *)"
     - "Bash(git log *)"
-    - "Bash(git status)"
+    # Widened from `git status` so `git status --porcelain` is permitted.
+    - "Bash(git status*)"
     - "Bash(git add *)"
     - "Bash(git commit *)"
+    # The gate. Without this the agent has no way to verify anything it claims
+    # to verify, which was the state this workflow shipped in.
+    - "Bash(.kwike/agents/commit-agent/gate.sh*)"
     - "--add-dir"
     - "${KWIKE_WORKING_DIR}"
-  timeout: 10m
+  # Raised from 10m: a cold `zola build` plus the bats suite is slower than a
+  # diff read, and a timeout mid-gate looks like a failure rather than a retry.
+  timeout: 15m
   resume_flag: true
   schema: ./schema.json
   schema_max_retries: 3

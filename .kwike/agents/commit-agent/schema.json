@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Commit Agent Output Contract",
-  "description": "Output contract for the commit-agent that verifies and commits changes",
+  "description": "Output contract for the commit-agent that gates, verifies and commits changes",
   "type": "object",
   "required": ["status"],
   "properties": {
@@ -13,6 +13,11 @@
     "summary": {
       "type": "string",
       "description": "Brief description of what was done"
+    },
+    "gate_result": {
+      "type": "string",
+      "enum": ["passed", "failed", "inconclusive"],
+      "description": "Outcome of gate.sh. 'inconclusive' means the gate could not run (exit 2) and is never grounds for approval."
     },
     "commit_author": {
       "type": "string",
@@ -34,7 +39,17 @@
     },
     "feedback": {
       "type": "string",
-      "description": "Feedback for doc-organizer when rejecting"
+      "description": "Feedback for doc-organizer when rejecting. Should contain the verbatim FAIL lines from gate.sh."
+    },
+    "config_requests": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Passed through from the doc-organizer unchanged. Requests for config.toml changes a human must make, for example a new topic_descriptions entry or an llms_featured candidate."
+    },
+    "faq_suggested": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Passed through from the doc-organizer unchanged. Paths that would benefit from an [[extra.faq]] block, which only the author can write."
     }
   },
   "allOf": [
@@ -43,10 +58,14 @@
         "properties": { "status": { "const": "approved" } }
       },
       "then": {
-        "required": ["commit_author", "commit_sha", "original_commit_sha", "event_id"],
+        "required": ["commit_author", "commit_sha", "original_commit_sha", "event_id", "gate_result"],
         "properties": {
           "commit_author": {
             "const": "DevelopmehPublishRobot <robot@developmeh.com>"
+          },
+          "gate_result": {
+            "const": "passed",
+            "description": "Approval requires a green gate. A failed or inconclusive gate must be a rejection."
           }
         }
       }
