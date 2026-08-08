@@ -33,8 +33,8 @@ keywords = "agentic AI engineering, LLM orchestration, context engineering, deve
 desc = "Paul Scarrone's workshop - essays and experiments on agentic AI engineering, developer experience, shell testing, and software architecture. Contained within are harebrained ideas that have no commercial value... still here... you are one of the special ones."
 
 # Default image for Open Graph and Twitter cards if not specified in page frontmatter.
-# Interim: the GitHub avatar. Phase 1 replaces this with per-post 1200x630 cards.
-default_og_image = "https://github.com/ninjapanzer.png"
+# 1200x630 card served from this domain. Per-post cards are still future work.
+default_og_image = "og-card.png"
 # NOTE: `logo` is consumed by the THEME NAV - a non-empty value renders an
 # <img> above the navigation. Leave it empty unless you want that image.
 # Structured data reads `organization_logo` below instead, so the two are
@@ -54,7 +54,7 @@ organization_logo = "https://github.com/developmeh.png"
 author_name = "Paul Scarrone"
 author_email = "paul@scarrone.co"
 author_url = "https://developmeh.com/about"
-author_image = "https://github.com/ninjapanzer.png"
+author_image = "paul-scarrone.jpg"
 author_job_title = "Principal Software Engineer"
 author_bio = "Principal software engineer writing about agentic AI workflows, developer experience, and testing the parts of the stack everyone else ignores."
 person_id = "https://developmeh.com/about#person"
@@ -147,4 +147,4 @@ llms_featured = [
 
 # Bluesky configuration
 bluesky_handle = "developmeh"
-bluesky_default_image = "https://github.com/ninjapanzer.png"
+bluesky_default_image = "og-card.png"
