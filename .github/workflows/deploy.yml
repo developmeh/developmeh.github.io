@@ -52,6 +52,16 @@ jobs:
           fi
       - name: Build release
         run: nix develop ./deploy --command zola build --output-dir ./_site
+      - name: Verify discoverability layer
+        # Asserts the machine-readable layer answer engines depend on: the
+        # Person entity with its sameAs/knowsAbout/memberOf, articles
+        # referencing it by @id, article typing, FAQPage on pillars, llms.txt,
+        # robots.txt crawler entries, sitemap topic coverage, topic chips
+        # resolving, and DOM order. Runs before upload so a broken entity graph
+        # fails the deploy instead of shipping.
+        env:
+          SITE: ./_site
+        run: nix develop ./deploy --command bats tests/discoverability.bats
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - name: Upload artifact
         # Automatically uploads an artifact from the './_site' directory by default
@@ -66,3 +76,15 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Notify IndexNow
+        # Bing and Yandex accept push submission; Google does not participate
+        # and retired its sitemap ping in 2023. Reads the LIVE sitemap, so it
+        # can only submit URLs that are actually published. Best-effort by
+        # design: it never fails a deploy that has already succeeded.
+        env:
+          INDEXNOW_KEY: 914c94d67f890941f28055c2e000476d
+        run: |
+          curl -fsSL -o /tmp/indexnow.sh \
+            https://raw.githubusercontent.com/${{ github.repository }}/main/.scripts/indexnow.sh
+          chmod +x /tmp/indexnow.sh
+          /tmp/indexnow.sh
