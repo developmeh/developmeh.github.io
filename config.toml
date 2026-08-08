@@ -33,6 +33,31 @@ taxonomies = [
   { name = "topics", feed = true, paginate_by = 0 },
 ]
 
+# ---------------------------------------------------------------------------
+# Link checker.
+#
+# `zola check` verifies external links with a plain HTTP client, and several
+# hosts reject non-browser user agents. These URLs are valid in a browser;
+# they just cannot be machine-verified.
+#
+#   git.sr.ht        -> 418 "I'm a teapot" for any non-browser agent
+#   linkedin.com     -> 999 for bots
+#   washingtonpost   -> connection refused to the checker
+#
+# skip_anchor_prefixes covers GitHub, whose rendered READMEs generate anchor
+# ids client-side, so #fragment checks report false failures.
+# ---------------------------------------------------------------------------
+[link_checker]
+skip_prefixes = [
+  "https://git.sr.ht/",
+  "https://www.linkedin.com/",
+  "https://linkedin.com/",
+  "https://www.washingtonpost.com/",
+]
+skip_anchor_prefixes = [
+  "https://github.com/",
+]
+
 [markdown]
 # Whether to do syntax highlighting
 # Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
