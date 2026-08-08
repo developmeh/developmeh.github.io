@@ -67,13 +67,10 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 - [11-02-2026 Catalyst Orchestrator (The Haiku Decides)](/i-made-a-thing/catalyst-orchestrator#11-02-2026)
 - [08-02-2026 The AI Diaries (80/20 Rule Still Applies)](/soft-wares/ai-diaries#08-02-2026)
 - [03-02-2026 The AI Diaries (Composable Code Future)](/soft-wares/ai-diaries#03-02-2026)
-- [02-02-2026 The AI Diaries (Browser Extensions and Manifest Woes)](/soft-wares/ai-diaries#02-02-2026)
-- [02-02-2026 Krappy Internet (WASM is the way in)](/projects/krappy-internet/#02-02-2026)
 - [02-02-2026 Rust Dancing Banana (SSE vs Chunked Encoding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026)
 - [02-02-2026 Rust Dancing Banana (Rust's Async Streams)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026-1)
 - [01-02-2026 Rust Dancing Banana (Compile-Time Frame Embedding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#01-02-2026)
 - [01-02-2026 Rust Dancing Banana (Nix for Rust)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#01-02-2026-1)
-- [30-01-2026 The AI Diaries (Comparing Coding Models)](/soft-wares/ai-diaries#30-01-2026)
 - [28-01-2026 The AI Diaries (Eager Intern Problem)](/soft-wares/ai-diaries#28-01-2026)
 - [27-01-2026 The AI Diaries (Throughput over Precision)](/soft-wares/ai-diaries#27-01-2026)
 - [20-01-2026 The AI Diaries (AI-generated Code Debt)](/soft-wares/ai-diaries#20-01-2026)
@@ -85,7 +82,6 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 - [08-06-2025 This Week's Crazy Idea (Decentralized DynamicDns Krappy-DynDns)](/i-made-a-thing/this-weeks-crazy#08-06-2025)
 - [24-02-2025 Krappy Internet (Working around the browser)](/projects/krappy-internet/#24-02-2025)
 - [11-02-2025 Krappy Internet (An Ideal World)](/projects/krappy-internet/#11-02-2025)
-- [06-02-2025 Krappy Internet (Getting over the Browser)](/projects/krappy-internet/#06-02-2025)
 - [31-01-2025 Streaming Dancing Banana (Nix Cross Platform Improvements)](/i-made-a-thing/ruby-streaming-banana-dancer/#31-01-2025)
 - [29-01-2025 The Krappy Internet (Protocol Servers)](/projects/krappy-internet/#devlog)
 - [27-01-2025 Streaming Dancing Banana (Nix Build and Deploy to K8s)](/i-made-a-thing/ruby-streaming-banana-dancer/#27-01-2025)
@@ -96,32 +92,12 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
 - [25-12-2024 Krappy Kafka (k0s Deployment)](/i-made-a-thing/recreating-kafka-blind/#25-12-2024)
 - [22-12-2024 Krappy Kafka (Handler Cleanup and Func Interface)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
 - [05-11-2024 Krappy Kafka (Shared Consumer Groups)](/i-made-a-thing/recreating-kafka-blind/#22-12-2024)
-- [11-09-2024 Krappy Kafka (Connection Handshake and Context State)](/i-made-a-thing/recreating-kafka-blind/#11-09-2024)
-- [10-09-2024 Krappy Kafka (LSM Compaction and PebbleDB)](/i-made-a-thing/recreating-kafka-blind/#10-09-2024)
 
 </div>
 
   <div class="card">
     <h3>Articles</h3>
 
-- [Cando](/projects/cando)
-- [Catalyst: An Orchestrator That Stopped Asking and Started Deciding](/i-made-a-thing/catalyst-orchestrator)
-- [The AI Diaries](/soft-wares/ai-diaries)
-- [Copying Life](/devex/copying-life)
-- [This Week's Crazy Idea](/i-made-a-thing/this-weeks-crazy)
-- [The Krappy Internet](/projects/krappy-internet)
-- [Go Generics Example](/software-architecture/go-generics-example)
-- [An Internet of Changing Morality](/terms-and-afflictions/software_ethics)
-- [Am I the Crazy One?](/soft-wares/aitco)
-- [Not Invented Here](/soft-wares/nih)
-- [The Software Delivery Trap](/terms-and-afflictions/software_delivery)
-- [We Do Delivery Now Eh?](/soft-wares/the-future-is-delivery)
-- [Decoupling Patterns in Ruby: Overview](/software-architecture/decoupling_patterns_in_ruby_overview)
-- [End User Languor Agreement](/terms-and-afflictions/eula)
-- [CI Over CD](/devex/ci_cd)
-- [Ruby Dancing ANSI Banana for Curl](/i-made-a-thing/ruby-streaming-banana-dancer)
-- [Wavelet](/projects/wavelet/)
-- [Beamlet](/projects/beamlet/)
 - [kwike: LLM-First Agentic Workflow Composition](/i-made-a-thing/kwike-llm-first-agentic-workflow-composition)
 - [Automatic Programming: Iteration 4](/devex/automatic-programming-iteration-4)
 - [BATS - Testing Bash Like You Mean It](/tech-dives/bats-testing-bash-like-you-mean-it)
@@ -150,7 +126,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <span class="callout-title">Connect</span>
   
 ### The code lives on sourcehut:
-- [git.sr.ht/~ninjapanzer](https://sr.ht/~ninjapanzer/) — where the current work is: [kwike](https://git.sr.ht/~ninjapanzer/kwike), [cando](https://git.sr.ht/~ninjapanzer/cando), [beamlet](https://git.sr.ht/~ninjapanzer/beamlet), [wavelet](https://git.sr.ht/~ninjapanzer/wavelet)
+- [git.sr.ht/~ninjapanzer](https://sr.ht/~ninjapanzer/), where the current work is: [kwike](https://git.sr.ht/~ninjapanzer/kwike), [cando](https://git.sr.ht/~ninjapanzer/cando), [beamlet](https://git.sr.ht/~ninjapanzer/beamlet), [wavelet](https://git.sr.ht/~ninjapanzer/wavelet)
 
 ### And some of it on GitHub:
 - <svg class="github-link-icon" height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>[https://github.com/developmeh](https://github.com/developmeh)

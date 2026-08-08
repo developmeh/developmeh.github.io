@@ -56,6 +56,7 @@
 {%- if page.extra and page.extra.schema_type -%}{%- set_global schema_type = page.extra.schema_type -%}{%- endif -%}
 
 {%- set_global page_webpage_id = page.permalink ~ "#webpage" -%}
+{%- set_global page_faq_id = page.permalink ~ "#faq" -%}
 {%- set_global is_article = false -%}
 {%- if schema_type == "BlogPosting" or schema_type == "Article" or schema_type == "TechArticle" -%}
   {%- set_global is_article = true -%}
@@ -99,6 +100,32 @@
   "isPartOf": { "@id": {{ site_id | json_encode | safe }} }
 }
 </script>
+
+{%- if page.extra and page.extra.faq %}
+<!-- FAQPage: disproportionately extracted by answer engines. Driven entirely
+     from front matter, so any page can opt in with [[extra.faq]] q/a pairs. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": {{ page_faq_id | json_encode | safe }},
+  "isPartOf": { "@id": {{ page_webpage_id | json_encode | safe }} },
+  "author": { "@id": {{ person_id | json_encode | safe }} },
+  "mainEntity": [
+    {%- for item in page.extra.faq %}
+    {
+      "@type": "Question",
+      "name": {{ item.q | json_encode | safe }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ item.a | json_encode | safe }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {%- endfor %}
+  ]
+}
+</script>
+{%- endif %}
 
 {%- if is_article %}
 <!-- Breadcrumbs for articles -->
