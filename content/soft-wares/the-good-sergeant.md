@@ -15,8 +15,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/40"
 topics = ["Engineering Leadership"]
 +++
 
-## The Good Sergeant
-
+# The Good Sergeant
 As I age in my software development career, I find myself falling into unofficial management roles. Analogous to a Product Owner who also acts as a Business Analyst. If you are like me, you spend a lot of time interacting with people at work. There is an expectation that as you move forward in your career as a software developer, you will naturally make more decisions about process than you did the year before. It's the benefit of experience, and hopefully, as you have aged, you have gained some wisdom. If not, that's not the end of the world, and I think that's why job titles are simultaneously very important and the least important in this domain.
 
 I often find myself aware of the opportunity to make decisions that drive change for my teams. I would classify myself as "intense" and "opinionated," I apply influence to my teams and though my confidence, which gives them the safety to follow along. It's critical to remember that this isn't about giving permission but providing opportunity. You are their servant, it's a collaborative act, and it's a matter of trust. Servant leadership is the marriage of different (attractive) and expert authority.

@@ -15,8 +15,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/47"
 topics = ["Agentic AI", "Agent Orchestration", "Developer Experience"]
 +++
 
-## Keep Your Eyes on the IDE, and Your Robots on the Tickets
-
+# Keep Your Eyes on the IDE, and Your Robots on the Tickets
 _Initial Scene:_
 
     Narrator: Bead Manager?! What does that even mean... let's start back at the beginning:

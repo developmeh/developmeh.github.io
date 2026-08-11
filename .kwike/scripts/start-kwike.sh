@@ -113,8 +113,16 @@ status() {
   echo "Kwike Status:"
   echo "============="
 
-  if [[ -S "$DAEMON_SOCKET" ]]; then
-    echo "Daemon: RUNNING (socket: $DAEMON_SOCKET)"
+  # Socket-file existence is not liveness: the file survives crashes and
+  # reboots. Report the daemon from its pid, and call out a stale socket.
+  if is_running "${PID_DIR}/daemon.pid"; then
+    if [[ -S "$DAEMON_SOCKET" ]]; then
+      echo "Daemon: RUNNING (PID $(cat "${PID_DIR}/daemon.pid"), socket: $DAEMON_SOCKET)"
+    else
+      echo "Daemon: RUNNING but socket missing, restart recommended"
+    fi
+  elif [[ -S "$DAEMON_SOCKET" ]]; then
+    echo "Daemon: DEAD (stale socket at $DAEMON_SOCKET, run '$0 restart')"
   else
     echo "Daemon: STOPPED"
   fi

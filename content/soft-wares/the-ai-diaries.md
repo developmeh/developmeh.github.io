@@ -15,8 +15,7 @@ enable_discussions = false
 topics = ["Agentic AI", "Developer Experience"]
 +++
 
-## The AI Diaries
-
+# The AI Diaries
 > As soon as it works, no one calls it AI anymore - John McCarthy
 
 So I tend to avoid using the term AI but it's sometimes unavoidable. Right now I am being forced to spend considerable time using coding tools. And sometimes I like it, sometimes I think it's a bore, and almost always it wastes some of my time. At a minimum it makes up for all the time it wastes but it always creates more noise than value. I have a lot of anecdotes working in this space so I will land them here, at the edge of obscurity.

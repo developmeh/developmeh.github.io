@@ -6,6 +6,7 @@ draft = false
 date = 2026-02-06
 updated = 2026-08-07
 [extra]
+seo_title = "Agentic Patterns: Context-Oriented Determinism"
 desc = "Exploiting tool-using LLMs as processes instead of conversations - patterns for keeping context focused and outputs deterministic"
 keywords = "AI, LLM, agentic patterns, context management, agent orchestration, coding agents, determinism, vibe coding, Claude, specification-driven development"
 discussion_number = 46
@@ -15,8 +16,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/46"
 topics = ["Agentic AI", "Context Engineering", "Agent Orchestration"]
 +++
 
-## Agentic Patterns: Elements of Reusable Context-Oriented Determinism
-
+# Agentic Patterns: Elements of Reusable Context-Oriented Determinism
 While not as exhaustive as the title might indicate but aligned with my focus on enforcing as much determinism as possible from any given LLM ala Article let's take a look at exploiting tool using LLMs as a process instead of as a conversation. As I posed in the linked article much of the failures we experience are related to attention and confusion which is the progressive noise we introduce as we try to convince the model to perform an action.
 
 

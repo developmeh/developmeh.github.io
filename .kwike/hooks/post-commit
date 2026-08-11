@@ -7,9 +7,27 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 KWIKE_SOCKET="${REPO_ROOT}/.kwike/daemon.sock"
 
-# Check if daemon is running
+# Check if daemon is running. Socket-file existence is not liveness: unix
+# socket files survive daemon crashes and reboots, so a stale socket used to
+# make this hook dispatch into a dead daemon. Verify the pid is alive too.
 if [[ ! -S "$KWIKE_SOCKET" ]]; then
-  # Daemon not running, skip
+  # No socket at all: daemon intentionally not running, skip quietly
+  exit 0
+fi
+
+DAEMON_ALIVE=0
+for pidfile in "${REPO_ROOT}/.kwike/daemon.pid" "${REPO_ROOT}/.kwike/pids/daemon.pid"; do
+  if [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
+    DAEMON_ALIVE=1
+    break
+  fi
+done
+
+if [[ "$DAEMON_ALIVE" -eq 0 ]]; then
+  echo "kwike: daemon.sock exists but no daemon process is alive (stale socket)." >&2
+  echo "kwike: skipping publish.commit dispatch for this commit." >&2
+  echo "kwike: run ./.kwike/scripts/start-kwike.sh restart, then re-trigger with:" >&2
+  echo "kwike:   git commit --amend --no-edit" >&2
   exit 0
 fi
 
@@ -120,7 +138,11 @@ PAYLOAD=$(jq -c -n \
     files_renamed: $files_renamed
   }')
 
-# Create lock file to block push while agents work
+# Create lock file to block push while agents work. The lock must exist
+# before the event is dispatched or a fast agent could finish (and try to
+# clear the lock) before it appears; a failed dispatch therefore has to
+# clean up its own lock, or every failure leaves a stale lock that blocks
+# the next push for five minutes.
 LOCKS_DIR="${REPO_ROOT}/.kwike/locks"
 mkdir -p "$LOCKS_DIR"
 LOCK_FILE="${LOCKS_DIR}/${COMMIT_SHA}.lock"
@@ -129,6 +151,12 @@ echo "Created lock file: $LOCK_FILE"
 
 # Dispatch to kwike daemon (uses .kwike/config.yaml for socket path)
 cd "$REPO_ROOT"
-echo "$PAYLOAD" | kwike dispatch --type publish.commit --daemon local
+if ! echo "$PAYLOAD" | kwike dispatch --type publish.commit --daemon local; then
+  rm -f "$LOCK_FILE"
+  echo "kwike: dispatch failed, removed lock file so pushes are not blocked." >&2
+  echo "kwike: check the daemon (./.kwike/scripts/start-kwike.sh status) and" >&2
+  echo "kwike: re-trigger with: git commit --amend --no-edit" >&2
+  exit 0
+fi
 
 echo "Dispatched publish.commit event for $COMMIT_SHA"

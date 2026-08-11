@@ -15,8 +15,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/30"
 topics = ["Engineering Leadership", "Creativity"]
 +++
 
-## Copying life
-
+# Copying life
 With a stated unawareness of times prior to my own experiences, but with my present perspective that while times change human nature is very repeatable.
 At some inflection point more concern was given to the consideration of others than the self. While this is possibly quite a natural process of aging,
 it is also possible it was influence. That pressure that you have to grow into a specific thing, in business it feels like all final destinations are

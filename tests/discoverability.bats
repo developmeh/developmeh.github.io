@@ -231,6 +231,20 @@ ldjson() {
   [ "$art" -lt "$nav" ]
 }
 
+@test "every page carries exactly one h1" {
+  # Bing flagged 45 pages with no h1 (2026-08-11 scan). page.html injects one
+  # from the title when the content lacks its own; more than one is a
+  # regression in that logic or a content heading fighting the injection.
+  local bad=0
+  while IFS= read -r f; do
+    case "$f" in */kwike/*|*/cando/*) continue ;; esac
+    local n
+    n="$(grep -o '<h1' "$f" | wc -l)"
+    [ "$n" -eq 1 ] || { echo "h1 count $n: $f"; bad=$((bad+1)); }
+  done < <(find "$SITE" -name index.html)
+  [ "$bad" -eq 0 ]
+}
+
 @test "articles show a byline with a machine-readable date" {
   local f="$SITE/tech-dives/bats-testing-bash-like-you-mean-it/index.html"
   grep -q 'class="byline"' "$f"

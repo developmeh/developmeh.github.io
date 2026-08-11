@@ -17,7 +17,7 @@ topics = ["Software Architecture", "Engineering Leadership", "Software Ethics"]
 
 <img src="/soft-wares/0204crcv.jpeg" alt="The future is FOSS" style="width: 100%; height: 600px; object-fit: cover; object-position: center calc(50% + 50px);">
 
-## Just Forget About Owning Code
+# Just Forget About Owning Code
 ### Why keep making versions of the same thing?
 
 So let's think about how LLMs are trained. I have, mostly because I have been reading [Build a Large Language Model (From Scratch)](https://sebastianraschka.com/llms-from-scratch/) and I was reminded of the nature of supervised / deep learning systems and their implication on how models are refined. Let's think about how LLMs got to this point, using this Wash Post article as an idea [Destroying and Scanning Books](https://www.washingtonpost.com/technology/2026/01/27/anthropic-ai-scan-destroy-books/), well it needs stuff to read and according to this article to get some of this volume it cut the bindings off books and scanned them. What the LLM produces is a highly advanced predictive generation of those sources. It's completely true that the model doesn't quite know the source of the information after training and because it's a sophisticated predictive engine it does better when creating something similar to what it trained on.

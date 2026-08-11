@@ -1,7 +1,10 @@
 {% extends "index.html" %}
 {% import "discussion_macros.html" as discussion_macros %}
 
-{% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
+{# Keyword-first titles for search snippets. extra.seo_title overrides verbatim
+   for pages whose real title alone exceeds Bing's ~65 char comfort zone; the
+   site suffix is dropped automatically on long titles. #}
+{% block title %}{% if page.extra.seo_title %}{{ page.extra.seo_title }}{% elif page.path == "/" %}{{ config.title }}, the workshop of Paul Scarrone{% elif page.title | length > 50 %}{{ page.title }}{% else %}{{ page.title }} | {{ config.title }}{% endif %}{% endblock title %}
 
 {% block content %}
     {# Discussion link at the top #}
@@ -19,6 +22,12 @@
     {% endif %}
 
     {% include "byline.html" %}
+
+    {# Pages whose markdown does not open with its own h1 get one from the
+       title, so every page carries exactly one h1 (Bing flagged 45 without). #}
+    {% if (page.content is containing("<h1")) == false %}
+        <h1>{{ page.title }}</h1>
+    {% endif %}
 
     {{ page.content | safe }}
 

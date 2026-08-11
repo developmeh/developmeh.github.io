@@ -15,8 +15,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/31"
 topics = ["Developer Experience", "Nix"]
 +++
 
-## The Perfect Development Environment
-
+# The Perfect Development Environment
 Let's be clear, this is all opinions and while this serves equally for those who focus on a single technology chain, it is optimized for those whom work on multiple projects with varied exacting dependencies and runtimes.
 
 For example just in Ruby alone I may have a a legacy ruby 1.9 project on the same machine where I have multiple ruby 3.x projects. You might not see any conflict here and you would be right. Given each ruby project has a unique ruby version we don't really have any annoyances. But the moment I have 2 ruby 3.2 projects with various verisons of imagemagick I will find myself fighting. Of course this is related to a nuance of gems that bind to static libs and are somewhat opinionated about which exact version they need while that need is being provided by a system level package manager like Homebrew.

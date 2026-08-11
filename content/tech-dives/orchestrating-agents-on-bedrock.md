@@ -11,6 +11,7 @@ slug = "orchestrating-agents-on-bedrock"
 topics = ["AWS", "Agentic AI", "Agent Orchestration", "Capability Security"]
 
 [extra]
+seo_title = "Orchestrating Agents on Amazon Bedrock"
 schema_type = "TechArticle"
 desc = "Multi-agent designs assume push delivery, which Bedrock-hosted sessions cannot receive. Making process completion the wake signal, and scoping agent credentials with session policies so blast radius is a property of the credential rather than the prompt."
 keywords = "Amazon Bedrock, Bedrock agents, multi-agent orchestration AWS, agent fleet AWS, MCP notifications, asyncRewake hook, cursor delivery, sts AssumeRole, session policy, scoped credentials for AI agents, IAM least privilege agents, Claude on Bedrock, agent supervision, wavelet"

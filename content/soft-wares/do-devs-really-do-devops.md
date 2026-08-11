@@ -15,8 +15,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/39"
 topics = ["Developer Experience", "Engineering Leadership", "CI/CD"]
 +++
 
-## Do Devs Really Do DevOps in your Org?
-
+# Do Devs Really Do DevOps in your Org?
 Recently, I learned the more formal definition of shift-right and shift-left in terms of Agile DevOps. For a brief refresher and for brevity it goes a little something like this:
 
 - Shift Right -> Validation and testing in production
