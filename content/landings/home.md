@@ -6,12 +6,12 @@ draft = false
 
 path = "/"
 date = 2025-06-06
-updated = 2026-08-08
+updated = 2026-08-11
 [extra]
 # NOTE: was `description`, which no template reads - the homepage was silently
 # falling back to the site-wide description. The key templates look for is `desc`.
-desc = "The workshop of Paul Scarrone - essays, devlogs and working code on agentic AI workflows, developer experience, shell testing and software architecture. That stuff you don't get to do at work."
-keywords = "Paul Scarrone, developmeh, agentic AI, LLM orchestration, kwike, beamlet, wavelet, developer experience, Nix, BATS, bash testing, software architecture, devlog"
+desc = "The workshop of Paul Scarrone - essays, devlogs and working code on agentic AI workflows, decentralized communication, digital identity and security, developer experience, shell testing and software architecture. That stuff you don't get to do at work."
+keywords = "Paul Scarrone, developmeh, agentic AI, LLM orchestration, kwike, beamlet, wavelet, delayednet, krappy internet, decentralized internet, peer-to-peer, NAT traversal, digital identity, WebAuthn, passkeys, developer experience, Nix, BATS, bash testing, software architecture, devlog"
 enable_discussions = false
 discussion_number = 26
 discussion_url = "https://github.com/orgs/developmeh/discussions/26"
@@ -22,7 +22,7 @@ discussion_url = "https://github.com/orgs/developmeh/discussions/26"
   <div class="hero-content">
     <h1>Developmeh</h1>
     <div class="subtitle">Develop ¯\_(ツ)_/¯</div>
-    <p>The workshop of Paul Scarrone. Harebrained ideas, built for the joy of it: agentic AI workflows, developer experience, shell testing, and software architecture, taken apart until they explain themselves.</p>
+    <p>The workshop of Paul Scarrone. Harebrained ideas, built for the joy of it: agentic AI workflows, decentralized communication topologies, digital identity and security, developer experience, shell testing, and software architecture, taken apart until they explain themselves.</p>
     <div class="hero-links">
       <a href="/about" class="primary">About Paul</a>
       <a href="/projects">Projects</a>
@@ -86,12 +86,12 @@ This is a safe space for all ideas; the point is to have fun with it. And every 
   <h2>Devlogs</h2>
 
 <ul class="post-list">
+  <li><a href="/projects/krappy-internet/#11-08-2026">Krappy Internet (delayednet, and the ceremony was the problem)</a><time datetime="2026-08-11">11-08-2026</time></li>
   <li><a href="/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#05-04-2026">kwike (Fan-Out Gets a Collector)</a><time datetime="2026-04-05">05-04-2026</time></li>
   <li><a href="/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#04-04-2026">kwike (v0.1.0)</a><time datetime="2026-04-04">04-04-2026</time></li>
   <li><a href="/i-made-a-thing/kwike-llm-first-agentic-workflow-composition#03-04-2026">kwike (Live Reload and Test Stability)</a><time datetime="2026-04-03">03-04-2026</time></li>
   <li><a href="/soft-wares/ai-diaries#06-03-2026">The AI Diaries (My Own Ideas)</a><time datetime="2026-03-06">06-03-2026</time></li>
   <li><a href="/i-made-a-thing/catalyst-orchestrator#14-02-2026">Catalyst Orchestrator (The Daemon Creates Steps at Runtime)</a><time datetime="2026-02-14">14-02-2026</time></li>
-  <li><a href="/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026">Rust Dancing Banana (SSE vs Chunked Encoding)</a><time datetime="2026-02-02">02-02-2026</time></li>
 </ul>
 
 <details class="archive">
@@ -105,6 +105,8 @@ This is a safe space for all ideas; the point is to have fun with it. And every 
 - [11-02-2026 Catalyst Orchestrator (The Haiku Decides)](/i-made-a-thing/catalyst-orchestrator#11-02-2026)
 - [08-02-2026 The AI Diaries (80/20 Rule Still Applies)](/soft-wares/ai-diaries#08-02-2026)
 - [03-02-2026 The AI Diaries (Composable Code Future)](/soft-wares/ai-diaries#03-02-2026)
+- [02-02-2026 Krappy Internet (WASM is the way in)](/projects/krappy-internet/#02-02-2026)
+- [02-02-2026 Rust Dancing Banana (SSE vs Chunked Encoding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026)
 - [02-02-2026 Rust Dancing Banana (Rust's Async Streams)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#02-02-2026-1)
 - [01-02-2026 Rust Dancing Banana (Compile-Time Frame Embedding)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#01-02-2026)
 - [01-02-2026 Rust Dancing Banana (Nix for Rust)](/i-made-a-thing/rust-streaming-banana-dancer-server-sent-events#01-02-2026-1)
@@ -146,6 +148,7 @@ Current work lives on sourcehut at [~ninjapanzer](https://sr.ht/~ninjapanzer/):
 - [cando](https://git.sr.ht/~ninjapanzer/cando)
 - [beamlet](https://git.sr.ht/~ninjapanzer/beamlet)
 - [wavelet](https://git.sr.ht/~ninjapanzer/wavelet)
+- [delayednet](https://git.sr.ht/~ninjapanzer/delayednet)
 
 And some of it on GitHub:
 

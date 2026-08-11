@@ -3,15 +3,15 @@ title = "The Krappy Internet"
 template = "page.html"
 weight = 3
 date = 2025-01-29
-updated = 2026-08-07
+updated = 2026-08-11
 [extra]
 desc = "Building a personal internet from scratch to re-envision how we trust data, without blockchains or onion routers"
-keywords = "decentralized internet, self-hosting, trust, peer-to-peer, content silos, moderation, personal web"
+keywords = "decentralized internet, self-hosting, trust, peer-to-peer, content silos, moderation, personal web, delayednet, NAT traversal, CGNAT, WebRTC, WebTransport, WASM components, delay-tolerant networking"
 discussion_number = 22
 discussion_url = "https://github.com/orgs/developmeh/discussions/22"
 
 [taxonomies]
-topics = ["Decentralized Web", "Distributed Systems"]
+topics = ["Decentralized Web", "Distributed Systems", "WebAssembly"]
 +++
 
 ## What if the internet stopped being shit and was instead Krappy?
@@ -72,6 +72,25 @@ A persistent connection multiplexing TCP protocol server library. Since everythi
 - [ ] Figure out how to test connection management is working as expected.
 
 ## DevLog
+
+<div class="devlog-entry">
+
+### 11 08 2026
+#### delayednet, and the ceremony was the problem
+
+I realized I never mentioned delayednet on this site, which is funny because it is the most krappy-internet thing I have built so far. The idea: a server running on a phone, on cellular, behind CGNAT, and browsers connect to it without me renting any infrastructure. Discovery had to come from internet topology primitives, static files and DNS. What I landed on was WebRTC where the offer gets encoded as CBOR and published to GitHub Pages by krappy-dyndns, the browser fetches it, posts its answer back through an ntfy.sh topic the phone subscribes to, and pion does the ICE dance until a DataChannel opens. It works, and it proved the topology. The repo is at [git.sr.ht/~ninjapanzer/delayednet](https://git.sr.ht/~ninjapanzer/delayednet).
+
+It also inherited everything I dislike about WebRTC. The published offer expires in minutes, so the artifact on the bulletin board is a perishable. One offer pairs with one answer, so rooms exist to paper over multiple clients. Every connection mints throwaway DTLS certs, so a client that trusted me yesterday starts over today. And ntfy sits in the path of every connection, even the ones that could have connected directly.
+
+This week I tore the design apart and wrote two specs, now in the repo under docs/ and wit/.
+
+KRAP-1 keeps ICE as the punching mechanism and deletes the ceremony around it. The published artifact becomes a Dial Record, a signed CBOR blob carrying the node's ed25519 identity, static ICE credentials, a long lived DTLS fingerprint, and the current endpoints. It stays valid for days and serves unlimited clients, because the address of a service should be a fact you can write down. Clients walk a ladder. First WebTransport direct with serverCertificateHashes, which is raw QUIC from a stock browser to a self signed cert with no CA anywhere in the loop, and it remains criminally underused. Then dialing a held open NAT binding, where the client fabricates the remote SDP locally from the record, the same munging trick libp2p uses for webrtc-direct, while the phone keeps a STUN mapping alive the way dyndns keeps an A record fresh. Only when the NAT filtering is hostile does the client drop a postcard, about 150 bytes of candidates and credentials, through a mailbox so the phone can punch back out. ntfy gets demoted from load bearing to fallback.
+
+KRAP-2 is the part I am most excited about and it is basically webOS. Palm had the right architecture, apps as disposable cards, real logic in background services, everything over the luna bus, and a card could be tossed because its state never lived in the card. In my version apps are WASM components written against a small WIT world: bus, outbox, identity, store. A SharedWorker in the browser is one host, wasmtime on the node is another, and the same component runs in both without knowing which, because it has no ambient authority. Queues went client-local, both ends hold their own outbox and a connection is just a sync event, like Scuttlebutt, or meeting a friend who owes you letters. And since a component is bytes with a hash, apps are content in the content linker. The node serves its own client software, install is pin, and the library lends you the software along with the book.
+
+Next is measurement. How long a CGNAT binding survives on a real carrier under keepalives decides how honest the middle rung is, and after that a walking skeleton of the browser host.
+
+</div>
 
 <div class="devlog-entry">
 
