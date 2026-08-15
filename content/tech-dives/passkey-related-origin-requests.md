@@ -43,6 +43,8 @@ a = "Common causes beyond the label budget are the wrong Content-Type, since the
 [[extra.faq]]
 q = "Are localhost and IP address origins allowed in .well-known/webauthn?"
 a = "They are skipped. An origin with no registrable domain, which covers IP addresses, localhost, and bare public suffixes such as co.uk, produces no label and is passed over rather than matched or rejected."
+discussion_number = 63
+discussion_url = "https://github.com/orgs/developmeh/discussions/63"
 +++
 
 # Related Origin Requests - We Could All Use Some Validation

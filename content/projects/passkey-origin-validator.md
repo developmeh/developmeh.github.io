@@ -14,6 +14,8 @@ schema_type = "TechArticle"
 desc = "A Go CLI that ports Chromium's Related Origin Requests check, counting eTLD+1 labels in a .well-known/webauthn file and answering whether a given caller origin would actually be authorised."
 keywords = "passkey origin validator, .well-known/webauthn, Related Origin Requests, ROR, WebAuthn, passkeys, eTLD+1, public suffix list, Chromium webauthn, Go CLI, RP ID validation"
 categories = "Projects"
+discussion_number = 62
+discussion_url = "https://github.com/orgs/developmeh/discussions/62"
 +++
 
 Passkey Origin Validator is a Go CLI that checks a `.well-known/webauthn` file the way a browser does. It counts the eTLD+1 labels the file consumes, and it answers the one question that matters on the day something breaks: would this specific caller origin be authorised?
