@@ -53,6 +53,7 @@ skip_prefixes = [
   "https://www.linkedin.com/",
   "https://linkedin.com/",
   "https://www.washingtonpost.com/",
+  "https://source.chromium.org/",
 ]
 skip_anchor_prefixes = [
   "https://github.com/",
@@ -199,6 +200,7 @@ llms_featured = [
   "tech-dives/judgement-capable-circuits.md",
   "tech-dives/orchestrating-agents-on-bedrock.md",
   "tech-dives/techniques-that-keep-paying-off.md",
+  "tech-dives/passkey-related-origin-requests.md",
   "soft-wares/agentic-patterns-elements-of-reusable-context-oriented-determinism.md",
   "i-made-a-thing/kwike-llm-first-agentic-workflow-composition.md",
   "projects/beamlet.md",
@@ -210,6 +212,12 @@ llms_featured = [
   "devex/the-perfect-dev-env.md",
   "i-made-a-thing/recreating-kafka-blind.md",
 ]
+
+# Bluesky configuration. These MUST stay above [extra.topic_descriptions]:
+# any key after a table header belongs to that table, so placing them below it
+# made them extra.topic_descriptions.bluesky_handle and left the real keys unset.
+bluesky_handle = "developmeh"
+bluesky_default_image = "og-card.png"
 
 # ---------------------------------------------------------------------------
 # Topic hub descriptions. One sentence each, stating the subject plainly -
@@ -238,7 +246,4 @@ aws = "Running agents and infrastructure on AWS, including Bedrock and credentia
 go = "Writing Go."
 ruby = "Writing Ruby."
 rust = "Writing Rust."
-
-# Bluesky configuration
-bluesky_handle = "developmeh"
-bluesky_default_image = "og-card.png"
+webauthn = "Passkeys, relying party IDs, and the Related Origin Requests rules browsers actually enforce."

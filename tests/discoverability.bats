@@ -261,3 +261,31 @@ ldjson() {
   done
   [ "$bad" -eq 0 ]
 }
+
+# ---------------------------------------------------------------------------
+# Config table nesting
+#
+# These two guard the same class of bug: a key that silently belongs to the
+# wrong TOML table. Any key placed after a [extra.<table>] header joins that
+# table, so appending to config.toml's [extra] section without checking what
+# precedes it detaches the key from the template reading it. Both of these
+# were broken in exactly that way.
+# ---------------------------------------------------------------------------
+
+@test "topic hubs render their description from config" {
+  # config.extra.topic_descriptions is looked up by term.slug. A hub with no
+  # description is the thin page the table exists to prevent.
+  local missing=0
+  while IFS= read -r d; do
+    local slug; slug="$(basename "$d")"
+    grep -q 'class="topic-intro"' "$d/index.html" || { echo "no description: $slug"; missing=$((missing+1)); }
+  done < <(find "$SITE/topics" -mindepth 1 -maxdepth 1 -type d)
+  [ "$missing" -eq 0 ]
+}
+
+@test "bluesky handle reaches the atproto meta tag" {
+  # bluesky_handle sat under [extra.topic_descriptions] for a while, which left
+  # config.extra.bluesky_handle undefined and this tag absent from every page.
+  run grep -c 'property="atproto:handle"' "$SITE/index.html"
+  [ "$output" -ge 1 ]
+}

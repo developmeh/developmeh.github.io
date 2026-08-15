@@ -79,8 +79,11 @@ note() { report+="$1"$'\n'; }
 # ---------------------------------------------------------------------------
 # Gate 1: build
 # ---------------------------------------------------------------------------
+# --force is required: zola refuses to build into an existing --output-dir, so
+# without it the gate passes once and then fails on every subsequent run, which
+# would reject every batch after the first.
 log="$(mktemp)"
-if run zola build --output-dir "$OUT" >"$log" 2>&1; then
+if run zola build --force --output-dir "$OUT" >"$log" 2>&1; then
   note "PASS  zola build"
 else
   note "FAIL  zola build"
