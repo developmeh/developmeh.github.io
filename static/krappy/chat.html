@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>krappy chat</title>
+<!-- Inline, because the alternative is a 404 in the console of a demo whose
+     whole job is to look like nothing went wrong. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='13'%3E%F0%9F%93%AF%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #fbfbfa; --fg: #16150f; --muted: #6b6960; --line: #dedcd3;
+    --mine: #e8f0e4; --theirs: #f0eeea;
+    --accent: #085;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14140f; --fg: #eceade; --muted: #918e82; --line: #2e2d26;
+      --mine: #1e2a1c; --theirs: #22211b; --accent: #6c9;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--bg); color: var(--fg);
+    margin: 0; height: 100dvh; display: flex; flex-direction: column;
+  }
+  header { padding: .8rem 1rem; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0 0 .2rem; font-size: .95rem; letter-spacing: .01em; }
+  #status { color: var(--muted); font-size: .8rem; }
+  #status.up { color: var(--accent); }
+  #status.bad { color: #c33; }
+  #log { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: .4rem; }
+  .msg { padding: .35rem .6rem; border-radius: .4rem; max-width: min(46rem, 85%); white-space: pre-wrap; word-break: break-word; }
+  .me { background: var(--mine); align-self: flex-end; }
+  .them { background: var(--theirs); align-self: flex-start; }
+  .note { color: var(--muted); font-size: .8rem; align-self: center; text-align: center; }
+  .who { color: var(--muted); font-size: .75rem; display: block; }
+  form { display: flex; gap: .5rem; padding: .8rem 1rem; border-top: 1px solid var(--line); }
+  input, button {
+    font: inherit; padding: .45rem .6rem; border-radius: .35rem;
+    border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  }
+  input { flex: 1; }
+  input:disabled, button:disabled { opacity: .45; }
+  button { cursor: pointer; }
+  details { padding: 0 1rem 1rem; }
+  summary { color: var(--muted); cursor: pointer; font-size: .8rem; }
+  pre { white-space: pre-wrap; font-size: .75rem; color: var(--muted); max-height: 14rem; overflow-y: auto; }
+</style>
+</head>
+<body>
+
+<!--
+  A chat whose connection is established through a Krappy Board and whose
+  messages are not.
+
+  That distinction is the entire point of the demo, so it is worth stating
+  before anyone reads the code: the board carries ONE sealed postcard, ~150
+  bytes of ICE candidates the browser could not otherwise hand to a node it
+  has never met. Everything typed below travels over the punched DataChannel,
+  peer to peer. If you stop the board after the channel opens, the
+  conversation continues — which is the difference between this and every
+  chat app whose server is on the path of every message.
+
+  The sequence is web/browser-check/dial.html's, unmodified: resolve the
+  record from this origin (§4.3), verify it against the NodeID, mint a
+  throwaway host key, read the board out of the record, and dial. What is new
+  is only what happens after `dial()` returns: the channel is kept and wired
+  to an input box instead of being used once for an echo assertion.
+
+    ?node=<nodeid>   which node to talk to (defaults to ?node= in the URL the
+                     demo script prints)
+    &allowLocal=1    let loopback candidates into the postcard — needed when
+                     the node is on this same machine, never on a real network
+    &stun=<csv>      ICE servers; empty means none, which on a real network
+                     means the browser has nothing routable to offer
+-->
+
+<header>
+  <h1>krappy chat</h1>
+  <div id="status">starting…</div>
+</header>
+
+<div id="log"></div>
+
+<form id="composer">
+  <input id="text" placeholder="connecting…" autocomplete="off" disabled>
+  <button id="send" disabled>send</button>
+</form>
+
+<details>
+  <summary>dial trace</summary>
+  <pre id="trace"></pre>
+</details>
+
+<script type="module">
+import { resolveRecord } from './resolve.js';
+import { BoardClient } from './board.js';
+import { boardsFromRecord } from './wire.js';
+import { dial } from './punch.js';
+import { Keystore } from './identity.js';
+import { MemoryStorage } from './storage.js';
+
+// A STUN server is not optional and this default is not a convenience.
+//
+// Every browser a person actually opens has mDNS obfuscation on, so every host
+// candidate it gathers is a `<uuid>.local` name that `postcardCandidates`
+// drops — a node cannot resolve one. With no STUN the dial fails at `gather`
+// having never reached the board. The alternative is asking people to launch
+// their browser with a privacy feature disabled, which is not an alternative.
+//
+// It is named here rather than hidden because it IS a third party on the happy
+// path of every dial, exactly like the board. `punch.thirdParties()` prints it,
+// and the trace below shows what it returned. Override with `?stun=` (empty
+// string for none) or point it at your own — it is ~80 lines of node:dgram,
+// running here from `web/browser-check/stun.mjs`.
+//
+// AND IT IS THE WRONG DEFAULT ON LOOPBACK, which is not a detail. A public
+// STUN server tells the browser its NAT's *external* address, so that is the
+// only candidate the postcard carries once the mDNS ones are dropped. When the
+// node is on this same machine, its punch then has to hairpin back in through
+// the home router — which usually fails, and fails as "no data channel within
+// 30000ms" thirty seconds later rather than as anything that names STUN.
+// Measured, not guessed: with the public server a same-machine dial gathered
+// exactly `73.79.241.123:54510` and timed out.
+//
+// So a loopback page gets no default at all; `scripts/chat-demo.sh` starts a
+// LOCAL stun.mjs and passes `?stun=`, and a local server answers a loopback
+// request with 127.0.0.1, which `--allow-local` then lets through.
+const onLoopback = /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(location.hostname);
+const DEFAULT_STUN = onLoopback ? '' : 'stun:bb.developmeh.com:3478';
+
+const q = new URLSearchParams(location.search);
+const nodeId = q.get('node');
+const stunServers = (q.get('stun') ?? DEFAULT_STUN).split(',').map((s) => s.trim()).filter(Boolean);
+const allowLocalCandidates = q.get('allowLocal') === '1';
+const timeoutMs = Number(q.get('timeoutMs') ?? 30_000);
+
+const logEl = document.getElementById('log');
+const statusEl = document.getElementById('status');
+const traceEl = document.getElementById('trace');
+const inputEl = document.getElementById('text');
+const sendEl = document.getElementById('send');
+
+const traceLines = [];
+const put = (...parts) => {
+  traceLines.push(parts.map((p) => (typeof p === 'string' ? p : JSON.stringify(p))).join(' '));
+  traceEl.textContent = traceLines.join('\n');
+};
+const logger = { debug: (...a) => put('debug', ...a), info: (...a) => put('info ', ...a), warn: (...a) => put('warn ', ...a) };
+
+function bubble(kind, text, who) {
+  const el = document.createElement('div');
+  el.className = `msg ${kind}`;
+  if (who) {
+    const w = document.createElement('span');
+    w.className = 'who';
+    w.textContent = who;
+    el.append(w);
+  }
+  el.append(document.createTextNode(text));
+  logEl.append(el);
+  // Only stick to the bottom if the reader is already there, so scrolling up
+  // to re-read something is not undone by the next message arriving.
+  const nearBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 120;
+  if (nearBottom) logEl.scrollTop = logEl.scrollHeight;
+}
+const note = (text) => bubble('note', text);
+
+function status(text, cls = '') {
+  statusEl.textContent = text;
+  statusEl.className = cls;
+}
+
+async function connect() {
+  if (!nodeId) throw new Error('no ?node=<nodeid> in the URL');
+  if (typeof RTCPeerConnection !== 'function') {
+    throw new Error(`no RTCPeerConnection (secureContext=${globalThis.isSecureContext})`);
+  }
+
+  status('resolving the record…');
+  // The record host is untrusted and `expectId` inside resolveRecord is what
+  // makes that safe: the bytes are checked against the NodeID being dialed,
+  // so a hostile mirror can serve stale or nothing, never forged.
+  const record = await resolveRecord(nodeId, location.origin);
+  put('record', { nodeId: record.nodeId, seq: Number(record.seq), boards: boardsFromRecord(record) });
+
+  const boards = boardsFromRecord(record);
+  if (boards.length === 0) throw new Error('the record lists no mailbox to dial through');
+
+  status(`dialing through ${new URL(boards[0]).host}…`);
+  const keystore = await Keystore.open(new MemoryStorage());
+  put('host key', keystore.nodeId);
+
+  const board = new BoardClient(boards[0]);
+  const policy = await board.policy();
+  put('board', { origin: board.origin, tenancy: policy.tenancy, minPoWBits: policy.minPoWBits });
+  note(`board: ${board.origin} — it carries the postcard and nothing after it`);
+
+  const t0 = performance.now();
+  const { punch, channel, topic } = await dial({
+    record, board, keystore, stunServers, allowLocalCandidates, timeoutMs, logger,
+  });
+  put('topic', topic);
+  put('third parties on this dial', punch.thirdParties());
+
+  // Attach the listener HERE — before the pair polling below, which can take
+  // four seconds — and park anything that arrives until the UI is ready for
+  // it. A peer that speaks first lands in the gap otherwise, and a
+  // DataChannel message dispatched with no listener is gone with no error.
+  // This repo has been bitten by that exact shape twice: once by a handler
+  // registered after a top-level await in a worker, and once by punch.js
+  // resolving on `open` and then awaiting getStats() before the caller could
+  // subscribe. `--chat` only sends when a human types, which makes this a
+  // race you would lose rarely and confusingly rather than never.
+  const parked = [];
+  let sink = (text) => parked.push(text);
+  channel.addEventListener('message', (ev) => {
+    sink(typeof ev.data === 'string' ? ev.data : new TextDecoder().decode(ev.data));
+  });
+
+  // Asked after the channel opens, and retried: Chrome fills the selected
+  // pair a beat late, and reporting `null` for a pair that exists would
+  // misrepresent the one number that says this was a punch.
+  let pair = null;
+  for (let i = 0; i < 40 && !pair; i++) {
+    pair = await punch.selectedPair();
+    if (!pair) await new Promise((r) => setTimeout(r, 100));
+  }
+  put('selected pair', pair);
+
+  // Handing the sink over and draining what parked must happen in one go, with
+  // no await between them, or a message arriving mid-handover is dropped by
+  // the same race this block exists to close.
+  const attach = (fn) => {
+    sink = fn;
+    for (const text of parked.splice(0)) fn(text);
+  };
+
+  return { channel, pair, attach, ms: Math.round(performance.now() - t0), board: board.origin };
+}
+
+connect().then(
+  ({ channel, pair, attach, ms, board }) => {
+    status(`connected in ${ms}ms — ${pair?.text ?? 'no pair reported'}`, 'up');
+    note('channel open. From here the board is out of the path — these messages go peer to peer.');
+
+    // Takes the parked messages too, so anything the node said while the pair
+    // was being resolved shows up in order rather than not at all.
+    attach((text) => bubble('them', text, 'node'));
+
+    channel.addEventListener('close', () => {
+      status('channel closed', 'bad');
+      note('the node hung up');
+      inputEl.disabled = sendEl.disabled = true;
+    });
+
+    inputEl.disabled = sendEl.disabled = false;
+    inputEl.placeholder = 'say something';
+    inputEl.focus();
+
+    document.getElementById('composer').addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const text = inputEl.value.trim();
+      if (!text) return;
+      if (channel.readyState !== 'open') {
+        note('not connected');
+        return;
+      }
+      channel.send(text);
+      bubble('me', text, 'you');
+      inputEl.value = '';
+    });
+  },
+  (e) => {
+    status(`failed: ${e?.message ?? e}`, 'bad');
+    note(`${e?.name ?? 'Error'}${e?.kind ? ` (${e.kind})` : ''}: ${e?.message ?? e}`);
+    put('error', { name: e?.name, kind: e?.kind, message: e?.message, status: e?.status ?? null });
+  },
+);
+</script>
+</body>
+</html>
