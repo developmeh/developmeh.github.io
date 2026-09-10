@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>burl — the merkle merge, as a working model</title>
+<style>
+  :root{
+    --bg:#e8e8e8; --panel:#f5f5f5; --line:#838383; --line-soft:#c9c9c9;
+    --text:#2b2b2b; --muted:#5c5c5c; --strong:#1a1a1a;
+    --blue:#0492c7; --blue-bg:#eef8fd; --warn:#b06a00; --warn-bg:#fdf5ea;
+    --t-same:#f5f5f5; --t-mine:#e9f2e6; --t-theirs:#e6eef7; --t-diff3:#eef3dc;
+    --t-queued:#fbe7e2; --t-resurrect:#f1e6f7; --t-deleted:#e0e0e0; --t-remint:#fdf0d5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 24px 80px;background:var(--bg);color:var(--text);
+       font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:-.01em;color:var(--strong)}
+  h2{font-size:17px;margin:48px 0 8px;color:var(--strong);border-bottom:1px solid var(--line-soft);padding-bottom:4px}
+  h3{font-size:14px;margin:26px 0 6px;color:var(--strong)}
+  p,li{max-width:80ch}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:80ch}
+  .cite{font-size:11.5px;color:var(--muted);margin:4px 0 0;max-width:90ch}
+  .cite code{font-size:11px}
+  .note{border-left:3px solid var(--blue);background:var(--blue-bg);padding:10px 14px;margin:14px 0;font-size:13px;color:#33586b;max-width:90ch}
+  .warn{border-left:3px solid var(--warn);background:var(--warn-bg);padding:10px 14px;margin:14px 0;font-size:13px;color:#6b4f2a;max-width:90ch}
+  code,pre,textarea,.mono{font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace}
+  code{font-size:12.5px;background:#efefef;padding:0 3px;border-radius:2px}
+  pre{background:var(--panel);border:1px solid var(--line-soft);padding:10px 12px;font-size:12px;overflow-x:auto;max-width:100%;white-space:pre-wrap;word-break:break-all}
+  pre.bytes{white-space:pre-wrap}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:var(--panel);border:1px solid var(--line-soft)}
+  th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  th{font-weight:600;color:var(--strong);background:#ececec}
+  td.mono,th.mono{font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .h{cursor:pointer;background:#efefef;border-radius:2px;padding:0 3px;font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;white-space:nowrap}
+  .h.full{white-space:normal;word-break:break-all}
+  .id{color:#4a5a6a}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .pane{background:var(--panel);border:1px solid var(--line-soft);padding:10px 12px}
+  .pane h4{margin:0 0 6px;font-size:13px;color:var(--strong)}
+  textarea{width:100%;min-height:120px;font-size:12.5px;padding:6px 8px;border:1px solid var(--line);background:#fff;color:var(--text);resize:vertical}
+  label.mode{display:block;font-size:12px;color:var(--muted);margin:6px 0 0}
+  button{font:inherit;font-size:12.5px;padding:3px 10px;border:1px solid var(--line);background:#fff;cursor:pointer;border-radius:2px}
+  button:hover{background:#eef8fd;border-color:var(--blue)}
+  button.on{background:#c9effe;border-color:var(--blue)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;margin:8px 0}
+  .legend span{display:inline-block;padding:1px 8px;border:1px solid var(--line-soft)}
+  tr.same td{background:var(--t-same)} tr.mine td{background:var(--t-mine)} tr.theirs td{background:var(--t-theirs)}
+  tr.diff3 td{background:var(--t-diff3)} tr.queued td{background:var(--t-queued)} tr.resurrect td{background:var(--t-resurrect)}
+  tr.deleted td{background:var(--t-deleted);color:var(--muted);text-decoration:line-through} tr.remint td{background:var(--t-remint)}
+  .legend .same{background:var(--t-same)} .legend .mine{background:var(--t-mine)} .legend .theirs{background:var(--t-theirs)}
+  .legend .diff3{background:var(--t-diff3)} .legend .queued{background:var(--t-queued)} .legend .resurrect{background:var(--t-resurrect)}
+  .legend .deleted{background:var(--t-deleted)} .legend .remint{background:var(--t-remint)}
+  .tl{list-style:none;margin:0;padding:0;border-left:2px solid var(--line);margin-left:10px}
+  .tl>li{margin:0 0 14px 0;padding-left:16px;position:relative}
+  .tl>li::before{content:"";position:absolute;left:-7px;top:6px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--line)}
+  .tl>li.drain::before{background:var(--blue);border-color:var(--blue)}
+  .tl>li.conf::before{background:var(--warn);border-color:var(--warn)}
+  .tl .what{font-weight:600;color:var(--strong)}
+  .tl .rows{font-size:12.5px;margin:3px 0 0;padding-left:16px}
+  .tl details{margin:4px 0 0}
+  .tl summary{cursor:pointer;font-size:12.5px;color:#33586b}
+  .kind{display:inline-block;font-size:11px;padding:0 6px;border:1px solid var(--line-soft);border-radius:8px;background:#fff;margin-right:4px}
+  .kind.live{border-color:var(--blue)} .kind.pin{border-color:#6a3fb5} .kind.history{border-color:var(--warn)} .kind.checkpoint{border-color:#4a8a4a}
+  .conflict{border:1px solid #d99a8a;background:#fff;padding:8px 10px;margin:8px 0}
+  .conflict .sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:6px 0}
+  .conflict .side{background:var(--panel);padding:6px 8px;font-size:12px}
+  .conflict .side b{display:block;font-size:11px;color:var(--muted)}
+  .ov{background:#ffd9c9}
+  .small{font-size:12px;color:var(--muted)}
+  dl.words dt{font-weight:600;color:var(--strong);margin-top:8px}
+  dl.words dd{margin:0 0 0 0;max-width:85ch}
+  .status{font-size:12px;color:var(--muted);margin:6px 0 0}
+  .status.bad{color:#a33}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:760px){.two{grid-template-columns:1fr}}
+  .lineno{color:var(--muted);width:2em;display:inline-block}
+  .side-tabs button{margin-right:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>burl: the merkle merge, as a working model</h1>
+
+<noscript>
+  <div class="warn"><strong>This page needs JavaScript.</strong> It is not an article about
+  hashing &mdash; it is a working model that computes every value it shows. The hashes are real
+  SHA-256 digests taken in your browser over the exact bytes burl hashes, and the tree diagrams,
+  the block-by-block merge table and the timeline of root hashes are all built from those digests
+  as you edit the sample text. With scripting off there is nothing left to build them from, so
+  only the prose and the headings below will appear. Nothing is fetched from the network either
+  way.</div>
+</noscript>
+<p class="sub">How a task note breaks into hashes, how the history of root hashes is kept, and what
+happens block by block when a copy of a notebook is merged back into the notebook it came from.
+Everything below the words section is <em>computed</em> on this page, not drawn: every hash is a
+real SHA-256 over the exact bytes burl hashes, so a value here can be checked against a real
+<code>.burl</code> file with <code>sqlite3</code> (<a href="#verify">how, at the end</a>).
+Edit the Mine and Theirs text and everything recomputes.</p>
+
+<p class="small">Line numbers cite burl at commit <code>5ddb31ef</code>. Where the page could not
+verify a rule it says so in place rather than guessing. The one behaviour on this page that had no
+test under it before it was drawn now has one: <code>backend/spec/import_remint_spec.cr</code>.</p>
+
+<div id="selftest" class="status">SHA-256 self-test: running…</div>
+
+<h2>Words this page uses</h2>
+<p>burl is a note-taking program whose notebook is one SQLite file, <code>something.burl</code>.
+One sentence each for the terms that follow, in the order they are needed.</p>
+<dl class="words">
+  <dt>note</dt><dd>One entry in the notebook: a title, a format (this page's note is a <code>todotxt</code> task list), some settings, and a body of text.</dd>
+  <dt>block</dt><dd>One line of a note's body; the body is exactly the blocks' texts joined with newlines, and a blank line is a block whose text is empty.</dd>
+  <dt>stable id</dt><dd>A random 32-hex-character identity every note and every block carries, so two files can talk about "the same block" without comparing text or position.</dd>
+  <dt>object</dt><dd>A fixed byte string describing one block, one note, or the whole tree, stored under the SHA-256 of itself in an append-only table; the hash <em>is</em> the object's name.</dd>
+  <dt>tag</dt><dd>The first field of every object, naming its kind and version (<code>burl-block-v1</code>, <code>burl-note-v3</code>, <code>burl-tree-v2</code>), so a reader can never mistake one kind for another.</dd>
+  <dt>root</dt><dd>The one object at the top: it lists the hashes of the top-level notes, so its hash summarises the entire notebook and changes whenever anything under it changes.</dd>
+  <dt>named roots (<code>merkle_roots</code>)</dt><dd>A table of names pointing at root hashes; a root that nothing names is garbage and gets collected, so these names are what keeps history alive.</dd>
+  <dt><code>live</code></dt><dd>The one name that always points at the current tree; it is replaced in place on every edit and never retired.</dd>
+  <dt><code>checkpoint</code></dt><dd>A name written automatically every time <code>live</code> moves, later thinned out by age; it is how "an earlier state of this file" exists at all after a plain edit.</dd>
+  <dt><code>history</code></dt><dd>A name written on purpose just before something destructive (a delete, a merge), with a reason attached, so the operation can be undone.</dd>
+  <dt><code>pin</code></dt><dd>A name that marks a point two files agreed on, kept until the operation that needs it is finished and then retired.</dd>
+  <dt>published copy</dt><dd>A second <code>.burl</code> file burl wrote from this one, stamped in both files with a shared <em>copy id</em> and a <em>fork pin</em> naming the root they parted at.</dd>
+  <dt>drain (import)</dt><dd>Merging a published copy's changes back into the notebook that published it, using the fork pin's tree as the common ancestor of a three-way merge.</dd>
+  <dt>base, mine, theirs</dt><dd>The three sides of that merge: the tree at the fork pin, this notebook's current tree, and the copy's current tree.</dd>
+  <dt><code>merge_conflicts</code></dt><dd>The queue a drain leaves behind: one row per block it could not merge, holding the three sides' object hashes, with mine left in the note.</dd>
+  <dt><code>write_conflicts</code></dt><dd>The <em>other</em> queue, for when two programs write the same open file at the same moment (a person typing and an assistant writing the same line), holding the losing text itself.</dd>
+</dl>
+
+<!-- ============================================================ 1 -->
+<h2>1. A task note becomes hashes</h2>
+<p>Start with a todo.txt note, five lines. burl splits the body on newlines, and each line is a block
+with its own stable id. The block's bytes are a fixed sequence of <em>netstrings</em> —
+<code>&lt;byte length&gt;:&lt;bytes&gt;,</code> — beginning with the tag; a field that may be absent is written
+as <code>-</code> when absent and <code>+</code> followed by a netstring when present. The block's hash is the
+SHA-256 of exactly those bytes. Note that the stable id is <em>inside</em> the hash: two blocks with the same
+text and different ids are different blocks, which is what lets a merge tell "one line retyped" from "one
+line moved".</p>
+<p class="cite">Split and join: <code>backend/src/burl/blocks.cr:12-22,131-140</code>. Ids:
+<code>blocks.cr:204-206</code> (UUIDv7 as 32 lowercase hex). Netstrings and the <code>+</code>/<code>-</code>
+marker: <code>backend/src/burl/merkle.cr:340-369</code>. Block bytes: <code>merkle.cr:414-421</code>.
+Digest: <code>merkle.cr:461</code> (<code>Digest::SHA256.hexdigest</code>). ADR-0016 part 3 and its
+2026-08-15 addendum.</p>
+
+<div class="side-tabs" style="margin:10px 0 6px">
+  Show the breakdown for:
+  <button data-view="base" class="on">base</button>
+  <button data-view="mine">mine</button>
+  <button data-view="theirs">theirs</button>
+  <button data-view="merged">merged</button>
+  <span class="small">(the texts come from section 3; base is the published state)</span>
+</div>
+
+<h3>Blocks</h3>
+<table id="blocks-table">
+  <thead><tr><th>#</th><th>stable id</th><th>text</th><th>hash</th></tr></thead>
+  <tbody></tbody>
+</table>
+<p class="small">Click any hash or id to see the whole value. Ids on this page are illustrative 32-hex strings;
+real ones are time-ordered UUIDv7 and cannot be predicted from the text.</p>
+<details><summary>The exact bytes of block #1, and what each field is</summary>
+<pre class="bytes" id="block-bytes"></pre>
+</details>
+
+<h3>The note object</h3>
+<p>A note's bytes are its scalar fields, then the count and hashes of its blocks in order, then the count and
+hashes of its child notes. No row ids and no timestamps: a wall-clock value in the hash would make two devices
+disagree about nothing. Editing one line therefore changes one block hash, which changes the note hash, which
+changes every ancestor's hash, which changes the root.</p>
+<p class="cite">Field order: <code>merkle.cr:371-405</code> (<code>burl-note-v3</code>: stable id, parent's stable
+id, sort key, title, format, extension, icon, rich spans, blocks, children). Rehash-on-write:
+<code>merkle.cr:1026-1034</code> (<code>touch!</code>). Which fields a diff compares:
+<code>backend/src/burl/merkle_diff.cr:188-213</code>.</p>
+<pre class="bytes" id="note-bytes"></pre>
+<p>Note hash: <span id="note-hash"></span></p>
+
+<h3>The root</h3>
+<p>burl's notes are a forest (many notes have no parent), so the root is a synthetic object over the top-level
+notes' hashes, with one optional field before them for the file's pinned settings (absent here, so
+<code>-</code>). This example has one note.</p>
+<p class="cite">Root bytes: <code>merkle.cr:437-443</code>; the settings field is ADR-0040 §5. Storage:
+<code>backend/db/schema.sql:798</code> (<code>objects</code>), <code>:878</code> (<code>object_edges</code>,
+parent→children so garbage collection never parses an object), <code>:894</code> (<code>note_hashes</code>).</p>
+<pre class="bytes" id="root-bytes"></pre>
+<p>Root hash: <span id="root-hash"></span></p>
+
+<!-- ============================================================ 2 -->
+<h2>2. How the history of root hashes is kept</h2>
+<p>Objects are never edited, only added, so every tree that ever existed is still in the store — until garbage
+collection removes what nothing names. The names live in one table, <code>merkle_roots(name, hash, kind)</code>,
+and the rows differ only in lifecycle:</p>
+<ul>
+  <li><span class="kind live">live</span> the current tree. Exactly one row (a partial unique index says so); replaced in place on every write.</li>
+  <li><span class="kind checkpoint">checkpoint</span> written every time <code>live</code> moves, unless the newest checkpoint already has that hash; thinned into hourly/daily/weekly tiers by <code>compact!</code>.</li>
+  <li><span class="kind history">history</span> written by <code>retain!</code> before a destructive write, with a <code>reason</code>; pruned by count and age.</li>
+  <li><span class="kind pin">pin</span> a fork point or an import's base/theirs tree; advanced or retired by the operation that consumes it. A <code>pin</code> with no live import is a checkable leak.</li>
+</ul>
+<p>A drain is an event that both <em>consumes</em> named roots and <em>produces</em> one. It records itself in a second
+table, <code>imports</code>, with four roots: <code>fork_root</code> (the base it merged against), <code>theirs_root</code>
+(the copy's tree), <code>pre_import_root</code> (this file's tree just before, also retained as a <code>history</code> row),
+and <code>merged_root</code> (the result). Afterwards the fork pin advances to <em>theirs'</em> root, not the merged root:
+the merged root is not an ancestor of the copy, and diffing the next drain against it would read every home-side
+change as a deletion on the copy's side.</p>
+<p class="cite">Kinds and lifecycles: <code>schema.sql:905-956</code>, ADR-0026. <code>live</code>+<code>checkpoint</code>:
+<code>merkle.cr:1188-1233</code> (<code>publish_root!</code>, <code>checkpoint!</code>). <code>pin!</code>:
+<code>merkle.cr:1242</code>; <code>retain!</code>: <code>:1296</code>; pruning: <code>:1315,1358</code>. The drain's
+writes: <code>backend/src/burl/import.cr:600-620</code> (history root, <code>imports</code> row, <code>merged_root</code>),
+<code>:634-635</code> (fork pin advance), <code>:705-708</code> (base/theirs pins, only when something queued),
+<code>:711-716</code> (<code>published_copies.consumed_root</code>). Why theirs' root and not the merged one:
+<code>import.cr:156-165</code>. What retires each pin: the table in <code>backend/src/burl/conflicts.cr</code>,
+<code>retire_pins_if_drained</code>. The drain writes <code>live</code> through <code>Merkle#rebuild!</code>
+(<code>merkle.cr:1995</code>), which does <em>not</em> name a checkpoint; the next ordinary save does.</p>
+
+<h3>The timeline for this page's example</h3>
+<p class="small">Driven by section 3's texts. The drain is collapsed; open it to see the four roots it consumed and produced.
+Resolving a queued conflict in section 3 appends to this list.</p>
+<ul class="tl" id="timeline"></ul>
+
+<h3><code>merkle_roots</code> as it stands now</h3>
+<table id="roots-table"><thead><tr><th>name</th><th>kind</th><th>hash</th><th>reason / note</th></tr></thead><tbody></tbody></table>
+<p class="small">Garbage collection walks from every row here regardless of kind, and additionally from the three hashes of
+every unresolved <code>merge_conflicts</code> row (<code>conflicts.cr:13-23</code>, ticket #361). Nothing reachable from
+those is ever collected.</p>
+
+<!-- ============================================================ 3 -->
+<h2>3. A sample task-note merge, block by block</h2>
+<p>Home published a copy of the note; both then edited it; now home drains the copy back. The diff between two
+trees descends only where hashes differ and matches notes by stable id, so a note nobody touched costs one string
+comparison. For a note both sides touched, its scalar fields merge per field and its body merges per block, in
+three tiers:</p>
+<ol>
+  <li><b>One side changed it</b> — take that side. Not a conflict.</li>
+  <li><b>Both changed it, in different places within the line</b> — compose the two edits (<code>Diff3</code>). Not a conflict.</li>
+  <li><b>Both changed the same characters</b> — keep mine in the note, queue theirs. A conflict, and it never stops the drain.</li>
+</ol>
+<p>Two more rules apply in both directions: <b>deletion loses to edit</b> (a block one side deleted and the other edited
+comes back with the edit), and a block only one side ever had is kept.</p>
+<p class="cite">Diff walk: <code>merkle_diff.cr:1-28,101-163</code>. Tier table: <code>import.cr:117-155</code>. Per-note plan:
+<code>import.cr:1929-1958</code>; scalar fields: <code>:1979-2008</code>. Per-block: <code>import.cr:2034-2105</code>.
+<code>Diff3</code> rule: <code>backend/src/burl/diff3.cr:1-28</code>; <code>merge</code> <code>:55-69</code>; hunks
+<code>:78-144</code>; what counts as overlap <code>:151-154</code>; compose <code>:176-210</code>. ADR-0016 §6 and its
+2026-09-08 amendment.</p>
+
+<div class="grid">
+  <div class="pane"><h4>Base (what both files held at the fork pin)</h4>
+    <textarea id="base-text" spellcheck="false"></textarea>
+    <label class="mode small">Line <i>n</i> here is block <i>n</i>, with a fixed id. Editing the base re-seeds the example.</label>
+  </div>
+  <div class="pane"><h4>Mine (home, after the fork)</h4>
+    <textarea id="mine-text" spellcheck="false"></textarea>
+    <label class="mode"><input type="radio" name="mine-mode" value="editor" checked> editor edit (<code>set_text</code>): line <i>n</i> keeps block <i>n</i>'s id; a blank line deletes it; extra lines are new blocks</label>
+    <label class="mode"><input type="radio" name="mine-mode" value="body"> whole-body write (<code>set_body</code>): a changed line gets a <em>new</em> id; a blank line is a real block</label>
+  </div>
+  <div class="pane"><h4>Theirs (the copy, after the fork)</h4>
+    <textarea id="theirs-text" spellcheck="false"></textarea>
+    <label class="mode"><input type="radio" name="theirs-mode" value="editor" checked> editor edit (<code>set_text</code>)</label>
+    <label class="mode"><input type="radio" name="theirs-mode" value="body"> whole-body write (<code>set_body</code>)</label>
+  </div>
+</div>
+<p style="margin:10px 0">
+  <button id="load-d">Load the worked example</button>
+  <button id="load-remint">Load the re-mint edge (the spec's scenario)</button>
+  <span class="small">Whole-body writers are the MCP server's <code>burl_note_set_body</code> without a base, the CLI, and importers; burl's own editor is the editor path.</span>
+</p>
+<p class="cite">Identity rules: editor path keeps the id (<code>blocks.cr:213-219</code>, <code>reconcile</code>); whole-body
+path re-mints a changed line's id in the same slot (<code>blocks.cr:640-668</code>, the identity-rule comment above
+<code>Notes#set_body</code> at <code>backend/src/burl/notes.cr:490</code>). The page models the whole-body rule exactly:
+identical text at the same index keeps the id, anything else is a new id, and extra or missing trailing lines are
+adds or deletes.</p>
+
+<div class="legend">
+  <span class="same">unchanged / identical on both</span><span class="mine">mine only</span><span class="theirs">theirs only</span>
+  <span class="diff3">Diff3 composed</span><span class="queued">queued — mine kept</span><span class="resurrect">deletion lost to edit</span>
+  <span class="deleted">deleted</span><span class="remint">re-mint: both survive, no conflict</span>
+</div>
+
+<h3>Outcome per block</h3>
+<div id="drain-status" class="status"></div>
+<table id="merge-table">
+  <thead><tr><th>#</th><th>base</th><th>mine</th><th>theirs</th><th>result</th><th>rule</th></tr></thead>
+  <tbody></tbody>
+</table>
+<p>Merged body:</p>
+<pre id="merged-body"></pre>
+<p class="small" id="order-note"></p>
+
+<h3>What is conflict-free, and what is not</h3>
+<p><b>Free of conflicts by construction:</b> different notes; different fields of one note; different blocks of one note;
+disjoint character spans of one block; identical edits made on both sides. Most of what a whole-note or whole-file sync
+would have flagged is in this list. <b>Not free, and queued:</b> overlapping spans of one block; a scalar field
+(title, parent, icon, format, extension, note-level formatting) changed differently on both sides — mine is kept and the
+note itself is queued; a block with rich-text formatting on either side (no text merge can reposition the spans, so it
+is not attempted). <b>Not free, and not queued either:</b> both sides reordering the same note's blocks differently —
+mine's order stands and the drain <em>reports</em> the declined reorder rather than queueing it, because a conflict row's
+three sides are objects that carry no ordering and would show a person two identical lines to choose between.
+The rule throughout is that <b>a conflict never blocks the drain</b>: the queue is a to-do list, not a modal.</p>
+<p class="cite">Scalar collisions: <code>import.cr:1979-2008</code>. Rich spans: <code>import.cr:2076-2083</code>.
+Reorders: <code>import.cr:2128-2167</code> (the four answers; "why the last one is a rule and not a queued row").
+Never blocks: <code>import.cr:151-155</code>, <code>conflicts.cr:6-10</code>. This page simulates the block tiers and the
+re-mint edge; it does not simulate scalar fields, rich spans, or reorders.</p>
+
+<h3>The fourth case: the re-mint edge</h3>
+<p>The three tiers are defined over block <em>identity</em>. A whole-body write (<code>set_body</code>) gives a changed line a
+fresh stable id, so if <em>both</em> files rewrite the same line that way, the drain never sees one block with two edits.
+It sees the base block gone on both sides and one unknown block added on each — and an added block has no base to
+compare with. Both survive as two lines, <code>Diff3</code> never runs, and <b>nothing is queued</b>: the drain reports zero
+conflicts and the note holds both versions. Press "Load the re-mint edge" above to watch it. The same two texts through
+the editor path (identity kept) produce one block and one queued conflict.</p>
+<p class="cite">Evidence: <code>backend/spec/import_remint_spec.cr</code> — two examples, the second a control through
+<code>set_text</code>, 0 failures. The branches that produce it: <code>import.cr:2087</code> ("mine added it, theirs never
+saw it") and <code>:2096-2102</code> ("theirs added it"). Ordinal collision between the two survivors is re-keyed by
+<code>import.cr:2213</code> (<code>rekey_collisions</code>); their relative order there is decided by comparing device-suffixed
+sort keys, which this page cannot know, so it shows mine first and says so.</p>
+
+<h3>Resolving what was queued</h3>
+<p>Every row in <code>merge_conflicts</code> names three objects by hash (base, mine, theirs), never text, and an
+unresolved row is itself a garbage-collection root. What the resolver <em>shows</em> as mine is read live from the note,
+because the block goes on being edited while the row waits. The person has three answers, and none of them is chosen for
+them: <b>Mine</b> writes nothing at all (mine is already in the note); <b>Theirs</b> writes theirs' text over the block;
+<b>Edited</b> writes text the person typed, seeded with the best composition the engine could make and the colliding span
+highlighted. There is no "keep both": an engine has no basis to pick an ordering, so that was dropped once a person could
+type instead. The assistant-facing MCP server can list both queues and resolve neither (ticket #149).</p>
+<p class="cite">Hashes, GC root: <code>conflicts.cr:13-23</code>, <code>schema.sql:1023</code>. Mine read live:
+<code>conflicts.cr:41-63</code> (#384). <code>Resolution = Mine | Theirs | Edited</code>: <code>conflicts.cr:188-192</code>;
+<code>resolve!</code>: <code>:365-412</code>. The seed for Edited: <code>diff3.cr:274-335</code>
+(<code>compose_partial</code>), ADR-0027. No keep-both: ADR-0016 amendment 2026-09-08. MCP read-only: ADR-0015, ADR-0027.</p>
+<div id="conflicts"></div>
+
+<!-- ============================================================ sidebar -->
+<h2>Sidebar: the second queue, <code>write_conflicts</code></h2>
+<p>Everything above happens between two <em>files</em>. burl also lets two <em>programs</em> write one open file — the
+person typing in burl and an assistant writing through the MCP server — and a collision there has none of a drain's
+shape: no import to reference, no fork pin, and the losing text was never stored as an object, so there is no hash to
+name. It gets its own table. The rules are the same three tiers, applied by <code>Blocks#merge_buffer</code> against the
+block list the buffer was loaded from; what differs is what a collision does: the body keeps the version belonging to the
+person at the screen (the caller says which side that is — there is no default), the incoming version is stored
+<em>as text</em> in <code>write_conflicts</code>, the line carries a mark in the editor's gutter, and hovering the mark shows
+both. A line can collect several incoming versions, so rows are numbered 1..N per line and answering one supersedes the
+others. Before this table existed the collision wrote both versions into the body, one under the other, silently and
+permanently — which is exactly the "keep both" the drain's resolver also refuses.</p>
+<p>The two queues are separate tables and separate counts: the drain's queue says nothing about the live one and
+vice versa, which is how ticket #365 was found. Neither auto-resolves.</p>
+<p class="cite"><code>backend/src/burl/write_conflicts.cr:1-60,121-135</code>; <code>schema.sql:1115</code>;
+<code>blocks.cr:942-950</code> (<code>Side</code>), <code>:1000-1020</code> (the tiers), <code>:1211,1276</code>
+(<code>Diff3</code> then <code>queue!</code>). A re-minted line carries its marks with it: <code>blocks.cr:657-668</code>.
+Tickets #338, #365.</p>
+
+<!-- ============================================================ verify -->
+<h2 id="verify">Checking this page against a real <code>.burl</code></h2>
+<p>The hashes here are honest only if they are the same function of the same bytes as burl's. Two checks, both with stock
+<code>sqlite3</code>:</p>
+<pre># 1. any object's hash is the SHA-256 of its body, byte for byte
+sqlite3 -noheader notes.burl "SELECT hash, kind FROM objects LIMIT 3"
+sqlite3 -noheader notes.burl "SELECT body FROM objects WHERE hash = '&lt;one of them&gt;'" | head -c -1 | sha256sum
+#   (head -c -1 strips the newline sqlite3 appends; the body itself contains none)
+
+# 2. the named roots, and that 'live' names a root object whose children are the top-level notes
+sqlite3 -header notes.burl "SELECT name, kind, substr(hash,1,8) AS h, reason, created_at FROM merkle_roots ORDER BY created_at"
+sqlite3 -noheader notes.burl "SELECT body FROM objects WHERE hash = (SELECT hash FROM merkle_roots WHERE kind = 'live')"</pre>
+<p>Or paste an <code>objects.body</code> value here; the page hashes it with the same function it used above, and the result
+must equal that row's <code>hash</code>:</p>
+<textarea id="verify-in" spellcheck="false" placeholder="paste the body column of one objects row"></textarea>
+<p>SHA-256: <span id="verify-out" class="mono"></span></p>
+<p class="small">The field order in section 1 is transcribed from <code>merkle.cr</code>; if a future tag version changes it,
+the comparison above is what will say so.</p>
+
+</div>
+<script>
+(function(){
+'use strict';
+
+// ------------------------------------------------------------------ SHA-256
+// A plain, synchronous SHA-256 so every value on the page is computed the
+// same way, whether or not `crypto.subtle` exists (it needs a secure context;
+// file:// counts in current browsers, plain http:// does not). The self-test
+// at the top of the page checks this implementation against the FIPS 180-4
+// vectors and, when available, against `crypto.subtle` on this page's own
+// root bytes.
+var K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function rotr(x,n){ return (x>>>n)|(x<<(32-n)); }
+function sha256Bytes(msg){
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var l=msg.length, padLen=((l+9+63)>>6)<<6;
+  var buf=new Uint8Array(padLen); buf.set(msg); buf[l]=0x80;
+  var dv=new DataView(buf.buffer);
+  dv.setUint32(padLen-4,(l*8)>>>0); dv.setUint32(padLen-8,Math.floor(l/0x20000000));
+  var W=new Uint32Array(64);
+  for(var off=0;off<padLen;off+=64){
+    for(var i=0;i<16;i++) W[i]=dv.getUint32(off+i*4);
+    for(i=16;i<64;i++){
+      var s0=rotr(W[i-15],7)^rotr(W[i-15],18)^(W[i-15]>>>3);
+      var s1=rotr(W[i-2],17)^rotr(W[i-2],19)^(W[i-2]>>>10);
+      W[i]=(W[i-16]+s0+W[i-7]+s1)>>>0;
+    }
+    var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(i=0;i<64;i++){
+      var S1=rotr(e,6)^rotr(e,11)^rotr(e,25), ch=(e&f)^(~e&g);
+      var t1=(h+S1+ch+K[i]+W[i])>>>0;
+      var S0=rotr(a,2)^rotr(a,13)^rotr(a,22), maj=(a&b)^(a&c)^(b&c);
+      var t2=(S0+maj)>>>0;
+      h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+    H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+  }
+  var out=''; for(i=0;i<8;i++) out+=('00000000'+H[i].toString(16)).slice(-8);
+  return out;
+}
+var enc=new TextEncoder();
+function sha(s){ return sha256Bytes(enc.encode(s)); }
+
+// ------------------------------------------------------- the bytes burl hashes
+// Transcribed from backend/src/burl/merkle.cr: tags at 189-193, `net`/`opt` at
+// 353-369, serialize_note 382-405, serialize_block 414-421, serialize_root
+// 437-443. Byte length, not character length, before each field.
+var BLOCK_TAG='burl-block-v1', NOTE_TAG='burl-note-v3', ROOT_TAG='burl-tree-v2';
+function net(s){ return enc.encode(s).length+':'+s+','; }
+function opt(s){ return (s===null||s===undefined) ? '-' : '+'+net(s); }
+function blockBytes(id,text,spans){ return net(BLOCK_TAG)+net(id)+net(text)+opt(spans); }
+function noteBytes(n,blockHashes,children){
+  var s=net(NOTE_TAG)+net(n.stable_id)+opt(n.parent)+net(n.sort_key)+net(n.title)+net(n.format)
+    +opt(n.extension)+opt(n.icon)+opt(n.rich_spans)+net(String(blockHashes.length));
+  blockHashes.forEach(function(h){ s+=net(h); });
+  s+=net(String(children.length));
+  children.forEach(function(h){ s+=net(h); });
+  return s;
+}
+function rootBytes(children,settings){
+  var s=net(ROOT_TAG)+opt(settings)+net(String(children.length));
+  children.forEach(function(h){ s+=net(h); });
+  return s;
+}
+
+// ---------------------------------------------------------------- identities
+// Illustrative 32-hex ids. Real ones are UUIDv7 (time-ordered, random tail);
+// these are derived from a label so the page is stable while you type.
+function fakeId(label){ return '0199'+sha('burl-explainer:'+label).slice(0,28); }
+var NOTE={stable_id:fakeId('note:Groceries'), parent:null, sort_key:'V1a4kQz', title:'Groceries',
+          format:'todotxt', extension:null, icon:null, rich_spans:null};
+var COPY_ID=fakeId('copy'), IMPORT_ID=fakeId('import'), HISTORY_ID=fakeId('history');
+
+// ---------------------------------------------------------------- Diff3 port
+// backend/src/burl/diff3.cr. `hunks` 78-144, `overlapping?` 151-154,
+// `stitch` 161-171, `compose` 176-210, `compose_partial` 274-335, `merge` 55-69.
+var MAX_CHARS=5000, MAX_TABLE_CELLS=4000000;
+function hunks(base,other){
+  var prefix=0, maxP=Math.min(base.length,other.length);
+  while(prefix<maxP && base[prefix]===other[prefix]) prefix++;
+  var suffix=0, maxS=Math.min(base.length,other.length)-prefix;
+  while(suffix<maxS && base[base.length-1-suffix]===other[other.length-1-suffix]) suffix++;
+  var bMid=base.slice(prefix,base.length-suffix), oMid=other.slice(prefix,other.length-suffix);
+  if(bMid.length===0 && oMid.length===0) return [];
+  if(bMid.length===0 || oMid.length===0) return [{start:prefix,stop:prefix+bMid.length,text:oMid}];
+  if((bMid.length+1)*(oMid.length+1)>MAX_TABLE_CELLS) return null;
+  var rows=bMid.length+1, cols=oMid.length+1, table=new Int32Array(rows*cols), i, j;
+  for(i=bMid.length-1;i>=0;i--) for(j=oMid.length-1;j>=0;j--)
+    table[i*cols+j] = bMid[i]===oMid[j] ? table[(i+1)*cols+j+1]+1 : Math.max(table[(i+1)*cols+j],table[i*cols+j+1]);
+  var found=[]; i=0; j=0;
+  while(i<bMid.length || j<oMid.length){
+    if(i<bMid.length && j<oMid.length && bMid[i]===oMid[j]){ i++; j++; continue; }
+    var start=i, text=[];
+    while(i<bMid.length || j<oMid.length){
+      if(i<bMid.length && (j>=oMid.length || table[(i+1)*cols+j]>=table[i*cols+j+1])) i++;
+      else if(j<oMid.length){ text.push(oMid[j]); j++; }
+      if(i<bMid.length && j<oMid.length && bMid[i]===oMid[j]) break;
+    }
+    found.push({start:prefix+start,stop:prefix+i,text:text});
+  }
+  return found;
+}
+function overlapping(a,b){
+  if(a.stop>b.start && b.stop>a.start) return true;
+  return a.start===b.start && a.start===a.stop && b.start===b.stop;
+}
+function hunkEq(a,b){ return a.start===b.start && a.stop===b.stop && a.text.join('')===b.text.join(''); }
+function leq(m,t){ return m.start<t.start || (m.start===t.start && m.stop<=t.stop); }
+function stitch(base,merged){
+  var out='', pos=0;
+  merged.forEach(function(h){ out+=base.slice(pos,h.start).join('')+h.text.join(''); pos=h.stop; });
+  return out+base.slice(pos).join('');
+}
+function compose(base,mine,theirs){
+  var merged=[], i=0, j=0;
+  while(i<mine.length || j<theirs.length){
+    var m=i<mine.length?mine[i]:null, t=j<theirs.length?theirs[j]:null;
+    var takeMine = (m&&t) ? leq(m,t) : (m!==null);
+    var current = takeMine?m:t, other = takeMine?t:m;
+    if(other){
+      if(hunkEq(current,other)){ i++; j++; merged.push(current); continue; }
+      if(overlapping(current,other)) return null;
+    }
+    merged.push(current);
+    if(takeMine) i++; else j++;
+  }
+  return stitch(base,merged);
+}
+function reconstruct(base,hs,start,stop){
+  var chars=[], pos=start;
+  hs.forEach(function(h){ chars=chars.concat(base.slice(pos,h.start),h.text); pos=h.stop; });
+  return chars.concat(base.slice(pos,stop));
+}
+function composePartial(base,mine,theirs){
+  var merged=[], overlaps=[], i=0, j=0;
+  while(i<mine.length || j<theirs.length){
+    var m=i<mine.length?mine[i]:null, t=j<theirs.length?theirs[j]:null;
+    if(m&&t&&hunkEq(m,t)){ merged.push(m); i++; j++; continue; }
+    if(m&&t&&overlapping(m,t)){
+      var cm=[m], ct=[t]; i++; j++;
+      var end=Math.max(m.stop,t.stop);
+      for(;;){
+        var nm=i<mine.length?mine[i]:null, nt=j<theirs.length?theirs[j]:null;
+        if(nm && nm.start<end){ cm.push(nm); end=Math.max(end,nm.stop); i++; }
+        else if(nt && nt.start<end){ ct.push(nt); end=Math.max(end,nt.stop); j++; }
+        else break;
+      }
+      cm.forEach(function(mh){ ct.forEach(function(th){ if(overlapping(mh,th)) overlaps.push({mine:mh,theirs:th}); }); });
+      var cs=Math.min(cm[0].start,ct[0].start);
+      merged.push({start:cs,stop:end,text:reconstruct(base,cm,cs,end),cluster:true});
+      continue;
+    }
+    if(m && (t===null || leq(m,t))){ merged.push(m); i++; } else { merged.push(t); j++; }
+  }
+  return {merged:stitch(base,merged), overlaps:overlaps, hunks:merged};
+}
+function diff3Merge(base,mine,theirs){
+  if(mine===theirs) return mine;
+  if(base===mine) return theirs;
+  if(base===theirs) return mine;
+  var B=Array.from(base), M=Array.from(mine), T=Array.from(theirs);
+  if(B.length>MAX_CHARS||M.length>MAX_CHARS||T.length>MAX_CHARS) return null;
+  var mh=hunks(B,M); if(mh===null) return null;
+  var th=hunks(B,T); if(th===null) return null;
+  return compose(B,mh,th);
+}
+
+// ----------------------------------------------------------- block identity
+// base line n is block n with a fixed id. A side's block list is derived
+// from its text under one of two rules (section 3's radio buttons).
+function baseBlocks(text){
+  return text.split('\n').map(function(t,i){ return {id:fakeId('base:'+i),text:t,pos:i,slot:i,minted:false}; });
+}
+function sideBlocks(base,text,mode,side){
+  var lines=text.split('\n'), out=[], n=Math.min(base.length,lines.length), i;
+  for(i=0;i<n;i++){
+    if(mode==='body'){
+      // Blocks#replace_all: same text at the same index keeps the id,
+      // anything else is a new id in the same slot (blocks.cr:640-668).
+      if(lines[i]===base[i].text) out.push(base[i]);
+      else out.push({id:fakeId(side+':remint:'+i),text:lines[i],pos:i,slot:i,minted:true});
+    } else {
+      // set_text keeps the id whatever the text (blocks.cr:213-219). A
+      // blank line is this page's convention for "deleted".
+      if(lines[i]==='') continue;
+      out.push({id:base[i].id,text:lines[i],pos:i,slot:i,minted:false});
+    }
+  }
+  for(i=n;i<lines.length;i++) out.push({id:fakeId(side+':new:'+i),text:lines[i],pos:i,slot:null,minted:true});
+  return out;
+}
+
+// ------------------------------------------------------ merge_blocks port
+// backend/src/burl/import.cr:2034-2105, text tiers only. Ordinals: the page
+// orders rows by base position, mine before theirs on a tie; the code
+// compares device-suffixed fractional keys (import.cr:2213 re-keys ties).
+var RULES={
+  unchanged:{cls:'same',rule:'unchanged on both sides: one string comparison',cite:'import.cr:2069'},
+  both_same:{cls:'same',rule:'both sides made the identical edit: one edit',cite:'import.cr:2069'},
+  theirs_only:{cls:'theirs',rule:'base == mine, so theirs’ text is taken (tier 1)',cite:'import.cr:2071'},
+  mine_only:{cls:'mine',rule:'base == theirs, so mine’s edit stands (tier 1)',cite:'import.cr:2073'},
+  diff3:{cls:'diff3',rule:'both edited disjoint spans: Diff3 composed them (tier 2)',cite:'import.cr:2084; diff3.cr:55-69,176-210'},
+  queued:{cls:'queued',rule:'both edited the same span: mine kept, theirs queued (tier 3)',cite:'import.cr:2086-2088; diff3.cr:151-154'},
+  mine_added:{cls:'mine',rule:'mine added it; theirs never saw it',cite:'import.cr:2087'},
+  mine_over_delete:{cls:'resurrect',rule:'theirs deleted a block mine edited: deletion loses to edit',cite:'import.cr:2091-2092'},
+  theirs_deleted:{cls:'deleted',rule:'theirs deleted a block mine left alone: the delete wins',cite:'import.cr:2089-2090'},
+  theirs_added:{cls:'theirs',rule:'theirs added it',cite:'import.cr:2096-2102'},
+  theirs_over_delete:{cls:'resurrect',rule:'mine deleted a block theirs edited: theirs’ version comes back',cite:'import.cr:2096-2102'},
+  mine_deleted:{cls:'deleted',rule:'mine deleted a block theirs left alone: stays deleted',cite:'import.cr:2098'},
+  remint:{cls:'remint',rule:'both rewrote this line through set_body: two new ids, no base for either, both kept, nothing queued',cite:'import.cr:2087,2096-2102; spec import_remint_spec.cr'}
+};
+function mergeBlocks(base,mine,theirs){
+  var baseBy={}, mineBy={}, theirsBy={};
+  base.forEach(function(b){ baseBy[b.id]=b; });
+  mine.forEach(function(b){ mineBy[b.id]=b; });
+  theirs.forEach(function(b){ theirsBy[b.id]=b; });
+  var rows=[], queued=[];
+  mine.forEach(function(m){
+    var b=baseBy[m.id], t=theirsBy[m.id];
+    if(t){
+      if(m.text===t.text) rows.push(row(b&&b.text===m.text?'unchanged':'both_same',m.id,m.pos,b,m,t,m.text));
+      else if(b && b.text===m.text) rows.push(row('theirs_only',m.id,m.pos,b,m,t,t.text));
+      else if(b && b.text===t.text) rows.push(row('mine_only',m.id,m.pos,b,m,t,m.text));
+      else {
+        var merged = b ? diff3Merge(b.text,m.text,t.text) : null;
+        if(merged!==null) rows.push(row('diff3',m.id,m.pos,b,m,t,merged));
+        else {
+          rows.push(row('queued',m.id,m.pos,b,m,t,m.text));
+          queued.push({id:m.id,pos:m.pos,base_text:b?b.text:null,mine_text:m.text,theirs_text:t.text,
+            base_hash:b?sha(blockBytes(m.id,b.text,null)):null,
+            mine_hash:sha(blockBytes(m.id,m.text,null)),
+            theirs_hash:sha(blockBytes(m.id,t.text,null))});
+        }
+      }
+    } else if(!b) rows.push(row('mine_added',m.id,m.pos,null,m,null,m.text,'mine'));
+    else if(m.text===b.text) rows.push(row('theirs_deleted',m.id,m.pos,b,m,null,null));
+    else rows.push(row('mine_over_delete',m.id,m.pos,b,m,null,m.text));
+  });
+  theirs.forEach(function(t){
+    if(mineBy[t.id]) return;
+    var b=baseBy[t.id];
+    if(!b) rows.push(row('theirs_added',t.id,t.pos,null,null,t,t.text,'theirs'));
+    else if(b.text!==t.text) rows.push(row('theirs_over_delete',t.id,t.pos,b,null,t,t.text));
+    else rows.push(row('mine_deleted',t.id,t.pos,b,null,t,null));
+  });
+  // The re-mint edge: a mine-added and a theirs-added block in the same base
+  // slot, whose base block survives on neither side.
+  var bySlot={};
+  rows.forEach(function(r){ var s=r.side==='mine'?r.mine.slot:(r.side==='theirs'?r.theirs.slot:null);
+    if(s===null||s===undefined) return; if(r.kind!=='mine_added'&&r.kind!=='theirs_added') return;
+    (bySlot[s]=bySlot[s]||[]).push(r); });
+  Object.keys(bySlot).forEach(function(s){
+    var rs=bySlot[s]; if(rs.length<2) return;
+    var baseId=base[+s]&&base[+s].id; if(mineBy[baseId]||theirsBy[baseId]) return;
+    rs.forEach(function(r){ r.kind='remint'; r.base=base[+s];
+      // The partner side re-minted the same slot: its version is the
+      // other row of this pair, not a deletion and not an absence.
+      if(r.side==='mine') r.theirsState='reminted'; else r.mineState='reminted'; });
+  });
+  rows.sort(function(a,b){ return a.pos-b.pos || tie(a)-tie(b); });
+  return {rows:rows,queued:queued};
+  function tie(r){ return r.side==='theirs'?2:(r.side==='mine'?1:0); }
+  // A side's cell is one of: present (its block), deleted (the base had
+  // the block and this side does not), absent (the base never had it, so
+  // there was nothing to delete). Decided here, once, so a rendering
+  // cannot conflate "deleted" with "never existed".
+  function state(block,b){ return block?'present':(b?'deleted':'absent'); }
+  function row(kind,id,pos,b,m,t,result,side){ return {kind:kind,id:id,pos:pos,base:b,mine:m,theirs:t,result:result,side:side||null,mineState:state(m,b),theirsState:state(t,b)}; }
+}
+
+// ------------------------------------------------------------------ hashing
+function hashSide(blocks){
+  var bh=blocks.map(function(b){ return sha(blockBytes(b.id,b.text,null)); });
+  var nb=noteBytes(NOTE,bh,[]), nh=sha(nb), rb=rootBytes([nh],null), rh=sha(rb);
+  return {blocks:blocks,blockHashes:bh,noteBytes:nb,noteHash:nh,rootBytes:rb,rootHash:rh};
+}
+
+// -------------------------------------------------------------------- state
+var $=function(id){ return document.getElementById(id); };
+var state={view:'base',resolutions:[]};
+var EXAMPLE={
+  base:'(A) Call Mom +Family\nPay rent @home due:2026-09-15\nBuy milk\nBuy bread\nx 2026-09-01 File taxes',
+  mine:'(B) Call Mom +Family\nPay rent @home due:2026-09-15\n\nBuy rye bread\nx 2026-09-01 File taxes\nBuy eggs',
+  theirs:'(A) Call Mom +Family @phone\nx 2026-09-10 Pay rent @home due:2026-09-15\nBuy oat milk\nBuy sourdough bread\nx 2026-09-01 File taxes'
+};
+var REMINT={base:'Buy bread\nPay rent',mine:'Buy rye bread\nPay rent',theirs:'Buy sourdough bread\nPay rent'};
+function load(ex,mode){
+  $('base-text').value=ex.base; $('mine-text').value=ex.mine; $('theirs-text').value=ex.theirs;
+  document.querySelector('input[name=mine-mode][value='+mode+']').checked=true;
+  document.querySelector('input[name=theirs-mode][value='+mode+']').checked=true;
+  state.resolutions=[]; render();
+}
+function mode(name){ return document.querySelector('input[name='+name+']:checked').value; }
+
+// ------------------------------------------------------------------ render
+function h(hash){ if(!hash) return '<span class="small">—</span>';
+  return '<span class="h" data-full="'+hash+'" title="'+hash+'">'+hash.slice(0,8)+'</span>'; }
+function idc(id){ return '<span class="h id" data-full="'+id+'" title="'+id+'">'+id.slice(0,8)+'</span>'; }
+function esc(s){ return s===null||s===undefined?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fieldBytes(label,bytes){ return '<span class="lineno"></span>'+esc(bytes)+'   ← '+label+'\n'; }
+
+function compute(){
+  var base=baseBlocks($('base-text').value);
+  var mine=sideBlocks(base,$('mine-text').value,mode('mine-mode'),'mine');
+  var theirs=sideBlocks(base,$('theirs-text').value,mode('theirs-mode'),'theirs');
+  var m=mergeBlocks(base,mine,theirs);
+  var mergedBlocks=m.rows.filter(function(r){ return r.result!==null; })
+    .map(function(r){ return {id:r.id,text:r.result,pos:r.pos}; });
+  var drain=hashSide(mergedBlocks); // what the drain wrote: imports.merged_root, live
+  // resolutions, in the order they were made (each is one set_text at home)
+  var steps=[];
+  state.resolutions.forEach(function(res){
+    var q=m.queued.filter(function(x){ return x.id===res.id; })[0]; if(!q) return;
+    var before=hashSide(mergedBlocks).rootHash;
+    if(res.choice==='theirs'||res.choice==='edited'){
+      var text=res.choice==='theirs'?q.theirs_text:res.text;
+      mergedBlocks=mergedBlocks.map(function(b){ return b.id===q.id?{id:b.id,text:text,pos:b.pos}:b; });
+    }
+    steps.push({res:res,q:q,before:before,after:hashSide(mergedBlocks).rootHash});
+  });
+  return {base:hashSide(base),mine:hashSide(mine),theirs:hashSide(theirs),drain:drain,merged:hashSide(mergedBlocks),
+          rows:m.rows,queued:m.queued,steps:steps};
+}
+
+function render(){
+  var c=compute();
+  renderSection1(c); renderMerge(c); renderConflicts(c); renderTimeline(c);
+}
+
+function renderSection1(c){
+  var side=c[state.view], tb=$('blocks-table').querySelector('tbody'), html='';
+  side.blocks.forEach(function(b,i){
+    html+='<tr><td>'+(i+1)+'</td><td class="mono">'+idc(b.id)+'</td><td class="mono">'+esc(b.text)+'</td><td>'+h(side.blockHashes[i])+'</td></tr>';
+  });
+  tb.innerHTML=html||'<tr><td colspan="4" class="small">no blocks</td></tr>';
+  var b0=side.blocks[0];
+  $('block-bytes').innerHTML = b0
+    ? fieldBytes('tag: '+net(BLOCK_TAG).length+' bytes says what follows',net(BLOCK_TAG))
+      +fieldBytes('stable id',net(b0.id))+fieldBytes('text ('+enc.encode(b0.text).length+' bytes)',net(b0.text))
+      +fieldBytes('rich spans: absent',opt(null))
+      +'\nconcatenated: '+esc(blockBytes(b0.id,b0.text,null))+'\nSHA-256:      '+side.blockHashes[0]
+    : '';
+  $('note-bytes').innerHTML = fieldBytes('tag',net(NOTE_TAG))+fieldBytes('stable id',net(NOTE.stable_id))
+    +fieldBytes('parent’s stable id: none (a top-level note)',opt(NOTE.parent))+fieldBytes('sort key among siblings',net(NOTE.sort_key))
+    +fieldBytes('title',net(NOTE.title))+fieldBytes('format',net(NOTE.format))+fieldBytes('extension: absent',opt(null))
+    +fieldBytes('icon: absent',opt(null))+fieldBytes('note-level rich spans: absent',opt(null))
+    +fieldBytes('block count',net(String(side.blockHashes.length)))
+    +side.blockHashes.map(function(x,i){ return fieldBytes('block #'+(i+1)+' hash',net(x)); }).join('')
+    +fieldBytes('child note count',net('0'));
+  $('note-hash').innerHTML=h(side.noteHash)+' <span class="small">= SHA-256 of the '+enc.encode(side.noteBytes).length+' bytes above</span>';
+  $('root-bytes').innerHTML = fieldBytes('tag',net(ROOT_TAG))+fieldBytes('settings object: absent',opt(null))
+    +fieldBytes('top-level note count',net('1'))+fieldBytes('the note’s hash',net(side.noteHash));
+  $('root-hash').innerHTML=h(side.rootHash)+' <span class="small">('+(state.view==='merged'?'merged, as the note stands now, after any resolutions':state.view)+')</span>';
+}
+
+function sideCell(block,st,where){
+  if(st==='present') return esc(block.text)+(block.minted?' <span class="small">(new id)</span>':'');
+  if(st==='deleted') return '<span class="small">deleted</span>';
+  if(st==='reminted') return '<span class="small">re-minted: its version is the row '+where+'</span>';
+  return '<span class="small">—</span>';
+}
+function renderMerge(c){
+  var tb=$('merge-table').querySelector('tbody'), html='';
+  var nothing = c.theirs.rootHash===c.base.rootHash;
+  $('drain-status').textContent = nothing
+    ? 'Theirs’ root equals the base: the drain has nothing to do and writes nothing (import.cr:587, `nothing_to_do`).'
+    : 'Drain result: conflict_count = '+c.queued.length+', '+c.rows.filter(function(r){return r.result!==null;}).length
+      +' blocks in the merged note. merged_root = '+c.drain.rootHash.slice(0,8)+(c.steps.length?'; after the resolutions below, live = '+c.merged.rootHash.slice(0,8):'')+'.';
+  c.rows.forEach(function(r){
+    var R=RULES[r.kind];
+    html+='<tr class="'+R.cls+'"><td>'+(r.pos+1)+'</td>'
+      +'<td class="mono">'+(r.base?esc(r.base.text):'<span class="small">—</span>')+'</td>'
+      +'<td class="mono">'+sideCell(r.mine,r.mineState,'above')+'</td>'
+      +'<td class="mono">'+sideCell(r.theirs,r.theirsState,'below')+'</td>'
+      +'<td class="mono">'+(r.result===null?'<span class="small">gone</span>':esc(r.result))+'</td>'
+      +'<td>'+R.rule+'<div class="cite">'+idc(r.id)+' · '+R.cite+'</div></td></tr>';
+  });
+  tb.innerHTML=html;
+  $('merged-body').textContent=c.merged.blocks.map(function(b){ return b.text; }).join('\n');
+  var remint=c.rows.some(function(r){ return r.kind==='remint'; });
+  $('order-note').textContent = remint
+    ? 'Two survivors share one base slot: the code re-keys the ordinal collision (import.cr:2213) and orders them by device-suffixed sort keys, which this page cannot know. Mine is shown first.'
+    : 'Order shown is base order, with new blocks at the position they were written; both sides’ additions at the same position interleave by device-suffixed sort keys in the code (ADR-0016 part 4).';
+}
+
+function renderConflicts(c){
+  var el=$('conflicts');
+  if(!c.queued.length){ el.innerHTML='<p class="small">Nothing queued for this input. Make both sides change the same characters of one line (through the editor path) to see a row.</p>'; return; }
+  var html='';
+  c.queued.forEach(function(q){
+    var res=state.resolutions.filter(function(r){ return r.id===q.id; }).slice(-1)[0];
+    var B=Array.from(q.base_text||''), cp=composePartial(B,hunks(B,Array.from(q.mine_text))||[],hunks(B,Array.from(q.theirs_text))||[]);
+    html+='<div class="conflict"><div><b>merge_conflicts row</b> — import '+idc(IMPORT_ID)+', note '+idc(NOTE.stable_id)+', block '+idc(q.id)
+      +(res?' — <b>resolved: '+res.choice+'</b>':' — unresolved (a GC root while it waits)')+'</div>'
+      +'<div class="sides"><div class="side"><b>base_hash '+h(q.base_hash)+'</b>'+esc(q.base_text)+'</div>'
+      +'<div class="side"><b>mine_hash '+h(q.mine_hash)+' (shown live from the note)</b>'+esc(q.mine_text)+'</div>'
+      +'<div class="side"><b>theirs_hash '+h(q.theirs_hash)+'</b>'+esc(q.theirs_text)+'</div></div>'
+      +'<div class="small">Colliding spans over the base: '+cp.overlaps.map(function(o){
+          return 'mine replaced base['+o.mine.start+'…'+o.mine.stop+') with “'+esc(o.mine.text.join(''))+'”; theirs with “'+esc(o.theirs.text.join(''))+'”'; }).join('; ')+'.</div>'
+      +'<div style="margin-top:6px"><button data-res="mine" data-id="'+q.id+'">Mine — writes nothing</button> '
+      +'<button data-res="theirs" data-id="'+q.id+'">Theirs — set_text(theirs)</button> '
+      +'<button data-res="edited" data-id="'+q.id+'">Edited — set_text(what you typed)</button></div>'
+      +'<div class="small" style="margin-top:4px">Edited, seeded with compose_partial’s best composition (mine’s text kept in the colliding span):</div>'
+      +'<textarea class="edited" data-id="'+q.id+'" style="min-height:44px">'+esc(res&&res.choice==='edited'?res.text:cp.merged)+'</textarea>'
+      +'</div>';
+  });
+  el.innerHTML=html;
+}
+
+function renderTimeline(c){
+  var ev=[], roots={}, chk=0, tl=$('timeline');
+  function root(name,kind,hash,reason){ roots[name]={name:name,kind:kind,hash:hash,reason:reason||''}; }
+  function ckpt(hash){ chk++; var name='checkpoint:'+fakeId('ckpt:'+chk).slice(0,32); root(name,'checkpoint',hash,''); return name; }
+  var R0=c.base.rootHash, Rm=c.mine.rootHash, Rt=c.theirs.rootHash, Rx=c.drain.rootHash;
+  root('live','live',R0); var c1=ckpt(R0);
+  ev.push({cls:'',what:'Seed: the note is written and saved',rows:['<span class="kind live">live</span> = '+h(R0),'<span class="kind checkpoint">checkpoint</span> '+c1.slice(0,19)+'… = '+h(R0)+' (publish_root!, merkle.cr:1188-1210)']});
+  root('fork:'+COPY_ID,'pin',R0,'fork point of copy '+COPY_ID.slice(0,8));
+  ev.push({cls:'',what:'Publish a copy',rows:['<span class="kind pin">pin</span> fork:'+COPY_ID.slice(0,8)+'… = '+h(R0)+' in <em>both</em> files (import.cr:1856 for the copy’s side)',
+    'published_copies: copy_id '+COPY_ID.slice(0,8)+', fork_root '+R0.slice(0,8)+', is_copy 0 here / 1 in the copy (schema.sql:975)']});
+  if(Rm!==R0){ root('live','live',Rm); var c2=ckpt(Rm);
+    ev.push({cls:'',what:'Home edits, one save',rows:['<span class="kind live">live</span> → '+h(Rm)+' (replaced in place)','<span class="kind checkpoint">checkpoint</span> '+c2.slice(0,19)+'… = '+h(Rm)]}); }
+  else ev.push({cls:'',what:'Home edits nothing',rows:['live stays '+h(R0)+'; a save that moves nothing writes no checkpoint (merkle.cr:1222-1233)']});
+  ev.push({cls:'',what:'The copy edits, on its own device',rows:['in the copy’s file: <span class="kind live">live</span> → '+h(Rt)+(Rt===R0?' (unchanged)':'')+'; home’s table is untouched']});
+  var nothing = Rt===R0;
+  if(nothing){
+    ev.push({cls:'drain',what:'Drain: nothing to do',rows:['theirs_root == fork_root, so no imports row, no history root, no pin advance (import.cr:587)']});
+  } else {
+    var hist='history:'+HISTORY_ID; root(hist,'history',Rm,'import '+IMPORT_ID.slice(0,8));
+    root('live','live',Rx); root('fork:'+COPY_ID,'pin',Rt,'consumed root after the drain');
+    var pins=[];
+    if(c.queued.length){ root('import:'+IMPORT_ID+':base','pin',R0,'unwind base, while conflicts pend'); root('import:'+IMPORT_ID+':theirs','pin',Rt,'unwind theirs, while conflicts pend');
+      pins=['<span class="kind pin">pin</span> import:'+IMPORT_ID.slice(0,8)+':base = '+h(R0)+', :theirs = '+h(Rt)+' — only because '+c.queued.length+' row(s) queued (import.cr:705-708); retired when the last resolves']; }
+    ev.push({cls:'drain',what:'Drain the copy back (one transaction)',consumed:'consumes fork:'+COPY_ID.slice(0,8)+' = '+R0.slice(0,8)+' as base, theirs = '+Rt.slice(0,8)+'; produces merged = '+Rx.slice(0,8),
+      rows:['<span class="kind history">history</span> '+hist.slice(0,16)+'… = '+h(Rm)+' reason “import '+IMPORT_ID.slice(0,8)+'” (retain!, import.cr:602)',
+        'imports row: fork_root '+h(R0)+' · theirs_root '+h(Rt)+' · pre_import_root '+h(Rm)+' · merged_root '+h(Rx)+' (import.cr:604-620)',
+        '<span class="kind live">live</span> → '+h(Rx)+' via rebuild! (merkle.cr:1995) — no checkpoint is named here',
+        '<span class="kind pin">pin</span> fork:'+COPY_ID.slice(0,8)+' → '+h(Rt)+' — theirs’ root, not the merged one (import.cr:634)',
+        'published_copies.consumed_root = '+h(Rt)+' (import.cr:711-716)'].concat(pins),
+      conflicts:c.queued.length});
+    c.steps.forEach(function(s,i){
+      var wrote=s.after!==s.before;
+      var rows=[];
+      if(s.res.choice==='mine') rows.push('Mine: the row is stamped resolved and nothing is written (conflicts.cr:365-369); live stays '+h(s.before));
+      else if(wrote){ root('live','live',s.after); var ck=ckpt(s.after); rows.push('set_text → touch! → <span class="kind live">live</span> → '+h(s.after)+', <span class="kind checkpoint">checkpoint</span> '+ck.slice(0,19)+'…'); }
+      else rows.push('the text written equals what was there: no hash moves');
+      var last = i===c.steps.length-1 && resolvedAll(c);
+      if(last && c.queued.length){ delete roots['import:'+IMPORT_ID+':base']; delete roots['import:'+IMPORT_ID+':theirs']; rows.push('last conflict of this import resolved: import:'+IMPORT_ID.slice(0,8)+':base and :theirs unpinned (conflicts.cr, retire_pins_if_drained); the history root stays so the import can still be reverted'); }
+      ev.push({cls:'conf',what:'Resolve block '+s.q.id.slice(0,8)+' as '+s.res.choice,rows:rows});
+    });
+  }
+  tl.innerHTML=ev.map(function(e){
+    var body='<div class="what">'+e.what+'</div>';
+    if(e.consumed){ body+='<details><summary>'+e.consumed+(e.conflicts?' · '+e.conflicts+' conflict(s) queued':' · no conflicts')+' — open for what it wrote</summary><ul class="rows">'+e.rows.map(function(r){return '<li>'+r+'</li>';}).join('')+'</ul></details>'; }
+    else body+='<ul class="rows">'+e.rows.map(function(r){return '<li>'+r+'</li>';}).join('')+'</ul>';
+    return '<li class="'+e.cls+'">'+body+'</li>';
+  }).join('');
+  var order={live:0,pin:1,history:2,checkpoint:3};
+  var tb=$('roots-table').querySelector('tbody');
+  tb.innerHTML=Object.keys(roots).map(function(k){return roots[k];}).sort(function(a,b){ return order[a.kind]-order[b.kind] || a.name.localeCompare(b.name); })
+    .map(function(r){ return '<tr><td class="mono">'+esc(r.name.length>40?r.name.slice(0,40)+'…':r.name)+'</td><td><span class="kind '+r.kind+'">'+r.kind+'</span></td><td>'+h(r.hash)+'</td><td class="small">'+esc(r.reason)+'</td></tr>'; }).join('');
+}
+function resolvedAll(c){ return c.queued.every(function(q){ return state.resolutions.some(function(r){ return r.id===q.id; }); }); }
+
+// ------------------------------------------------------------------ wiring
+['base-text','mine-text','theirs-text'].forEach(function(id){ $(id).addEventListener('input',function(){ state.resolutions=[]; render(); }); });
+document.querySelectorAll('input[name=mine-mode],input[name=theirs-mode]').forEach(function(r){ r.addEventListener('change',function(){ state.resolutions=[]; render(); }); });
+document.querySelectorAll('.side-tabs button').forEach(function(b){ b.addEventListener('click',function(){
+  document.querySelectorAll('.side-tabs button').forEach(function(x){ x.classList.remove('on'); }); b.classList.add('on'); state.view=b.dataset.view; render(); }); });
+$('load-d').addEventListener('click',function(){ load(EXAMPLE,'editor'); });
+$('load-remint').addEventListener('click',function(){ load(REMINT,'body'); });
+document.body.addEventListener('click',function(e){
+  var t=e.target;
+  if(t.classList && t.classList.contains('h')){ t.classList.toggle('full'); t.textContent=t.classList.contains('full')?t.dataset.full:t.dataset.full.slice(0,8); return; }
+  if(t.dataset && t.dataset.res){
+    var id=t.dataset.id, choice=t.dataset.res, text=null;
+    if(choice==='edited'){ text=document.querySelector('textarea.edited[data-id="'+id+'"]').value; }
+    state.resolutions=state.resolutions.filter(function(r){ return r.id!==id; });
+    state.resolutions.push({id:id,choice:choice,text:text}); render();
+  }
+});
+$('verify-in').addEventListener('input',function(){ $('verify-out').textContent=this.value?sha(this.value):''; });
+
+// ---------------------------------------------------------------- self-test
+(function selfTest(){
+  var el=$('selftest'), ok=true, msgs=[];
+  var v={'':'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+         'abc':'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+         'abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq':'248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1'};
+  Object.keys(v).forEach(function(k){ if(sha(k)!==v[k]){ ok=false; msgs.push('FIPS vector '+JSON.stringify(k)+' mismatched'); } });
+  if(ok) msgs.push('JS SHA-256 agrees with the three FIPS 180-4 vectors');
+  var rb=compute().base.rootBytes;
+  if(window.crypto && crypto.subtle && crypto.subtle.digest){
+    crypto.subtle.digest('SHA-256',enc.encode(rb)).then(function(buf){
+      var hex=Array.from(new Uint8Array(buf)).map(function(b){ return ('0'+b.toString(16)).slice(-2); }).join('');
+      var same=hex===sha(rb);
+      el.textContent=msgs.join('; ')+'; '+(same?'crypto.subtle agrees on this page’s root bytes':'crypto.subtle DISAGREES on the root bytes — do not trust this page');
+      el.className='status'+(ok&&same?'':' bad');
+    }).catch(function(){ el.textContent=msgs.join('; ')+'; crypto.subtle unavailable here (not a secure context), JS implementation only'; el.className='status'+(ok?'':' bad'); });
+  } else { el.textContent=msgs.join('; ')+'; crypto.subtle not present, JS implementation only'; el.className='status'+(ok?'':' bad'); }
+})();
+
+load(EXAMPLE,'editor');
+})();
+</script>
+</body>
+</html>

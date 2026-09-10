@@ -40,6 +40,21 @@ This is a Zola-based static site for developmeh.com, a personal blog about softw
    - Issues are tracked in GitHub Issues
    - Keep documentation focused on development, not community guidelines
 
+### Named carve-outs to Principle 1
+
+One page is exempt from "must operate fully without JS", by name:
+
+- **`static/merkle-merge-explainer.html`** - a working model of burl's merkle
+  merge. Its entire claim is that the hashes it shows are real: every one is a
+  live SHA-256 over the exact bytes burl hashes, so a reader can check a value
+  against their own `.burl` with `sqlite3`. Pre-rendering them would turn the
+  page into a picture of the thing it is arguing. It carries a `<noscript>`
+  notice saying so, and it fetches nothing over the network.
+
+This is a carve-out for a computational artefact, not precedent. Content pages
+- posts, sections, landings, navigation - still work without JS. If a second
+page ever needs the same exemption, it gets its own line here.
+
 ## Development Commands
 
 ### Local Development
