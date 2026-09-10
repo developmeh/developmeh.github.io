@@ -83,7 +83,6 @@
 <div class="wrap">
 
 <h1>burl: the merkle merge, as a working model</h1>
-
 <noscript>
   <div class="warn"><strong>This page needs JavaScript.</strong> It is not an article about
   hashing &mdash; it is a working model that computes every value it shows. The hashes are real
@@ -105,6 +104,12 @@ verify a rule it says so in place rather than guessing. The one behaviour on thi
 test under it before it was drawn now has one: <code>backend/spec/import_remint_spec.cr</code>.</p>
 
 <div id="selftest" class="status">SHA-256 self-test: running…</div>
+
+<h2 style="margin-top:28px">The whole process, in four pictures</h2>
+<p class="sub">Plain words first; the program's own term follows in parentheses, and the section after
+these pictures defines each one. The pictures are drawn from the example in section 3 and change
+with it, so what they show and what the table shows are one computation.</p>
+<div id="frames"></div>
 
 <h2>Words this page uses</h2>
 <p>burl is a note-taking program whose notebook is one SQLite file, <code>something.burl</code>.
@@ -178,7 +183,7 @@ id, sort key, title, format, extension, icon, rich spans, blocks, children). Reh
 <h3>The root</h3>
 <p>burl's notes are a forest (many notes have no parent), so the root is a synthetic object over the top-level
 notes' hashes, with one optional field before them for the file's pinned settings (absent here, so
-<code>-</code>). This example has one note.</p>
+<code>-</code>). This example has two top-level notes: the one both sides edit, and one nobody touches (so the pictures at the top can show a branch being skipped).</p>
 <p class="cite">Root bytes: <code>merkle.cr:437-443</code>; the settings field is ADR-0040 §5. Storage:
 <code>backend/db/schema.sql:798</code> (<code>objects</code>), <code>:878</code> (<code>object_edges</code>,
 parent→children so garbage collection never parses an object), <code>:894</code> (<code>note_hashes</code>).</p>
@@ -446,6 +451,16 @@ function fakeId(label){ return '0199'+sha('burl-explainer:'+label).slice(0,28); 
 var NOTE={stable_id:fakeId('note:Groceries'), parent:null, sort_key:'V1a4kQz', title:'Groceries',
           format:'todotxt', extension:null, icon:null, rich_spans:null};
 var COPY_ID=fakeId('copy'), IMPORT_ID=fakeId('import'), HISTORY_ID=fakeId('history');
+// A second, untouched top-level note, so the pictures at the top can show
+// a branch whose fingerprint matches on every side and is skipped whole.
+// Its sort key sorts after Groceries', so it is the root's second child.
+var OTHER_NOTE={stable_id:fakeId('note:Reading list'), parent:null, sort_key:'W1a4kQz', title:'Reading list',
+                format:'markdown', extension:null, icon:null, rich_spans:null};
+var OTHER_LINES=['Dune','The Left Hand of Darkness'].map(function(t,i){ return {id:fakeId('other:'+i),text:t}; });
+var OTHER=(function(){
+  var bh=OTHER_LINES.map(function(b){ return sha(blockBytes(b.id,b.text,null)); });
+  return {blockHashes:bh,hash:sha(noteBytes(OTHER_NOTE,bh,[]))};
+})();
 
 // ---------------------------------------------------------------- Diff3 port
 // backend/src/burl/diff3.cr. `hunks` 78-144, `overlapping?` 151-154,
@@ -647,8 +662,9 @@ function mergeBlocks(base,mine,theirs){
 // ------------------------------------------------------------------ hashing
 function hashSide(blocks){
   var bh=blocks.map(function(b){ return sha(blockBytes(b.id,b.text,null)); });
-  var nb=noteBytes(NOTE,bh,[]), nh=sha(nb), rb=rootBytes([nh],null), rh=sha(rb);
-  return {blocks:blocks,blockHashes:bh,noteBytes:nb,noteHash:nh,rootBytes:rb,rootHash:rh};
+  var nb=noteBytes(NOTE,bh,[]), nh=sha(nb), rb=rootBytes([nh,OTHER.hash],null), rh=sha(rb);
+  var byId={}; blocks.forEach(function(b,i){ byId[b.id]=bh[i]; });
+  return {blocks:blocks,blockHashes:bh,byId:byId,noteBytes:nb,noteHash:nh,rootBytes:rb,rootHash:rh};
 }
 
 // -------------------------------------------------------------------- state
@@ -700,7 +716,7 @@ function compute(){
 
 function render(){
   var c=compute();
-  renderSection1(c); renderMerge(c); renderConflicts(c); renderTimeline(c);
+  renderFrames(c); renderSection1(c); renderMerge(c); renderConflicts(c); renderTimeline(c);
 }
 
 function renderSection1(c){
@@ -725,7 +741,7 @@ function renderSection1(c){
     +fieldBytes('child note count',net('0'));
   $('note-hash').innerHTML=h(side.noteHash)+' <span class="small">= SHA-256 of the '+enc.encode(side.noteBytes).length+' bytes above</span>';
   $('root-bytes').innerHTML = fieldBytes('tag',net(ROOT_TAG))+fieldBytes('settings object: absent',opt(null))
-    +fieldBytes('top-level note count',net('1'))+fieldBytes('the note’s hash',net(side.noteHash));
+    +fieldBytes('top-level note count',net('2'))+fieldBytes('the Groceries note’s hash (sort key V…, first)',net(side.noteHash))+fieldBytes('the Reading list note’s hash (sort key W…, second; untouched, so the same on every side)',net(OTHER.hash));
   $('root-hash').innerHTML=h(side.rootHash)+' <span class="small">('+(state.view==='merged'?'merged, as the note stands now, after any resolutions':state.view)+')</span>';
 }
 
@@ -836,6 +852,162 @@ function renderTimeline(c){
     .map(function(r){ return '<tr><td class="mono">'+esc(r.name.length>40?r.name.slice(0,40)+'…':r.name)+'</td><td><span class="kind '+r.kind+'">'+r.kind+'</span></td><td>'+h(r.hash)+'</td><td class="small">'+esc(r.reason)+'</td></tr>'; }).join('');
 }
 function resolvedAll(c){ return c.queued.every(function(q){ return state.resolutions.some(function(r){ return r.id===q.id; }); }); }
+
+// ----------------------------------------------------------------- pictures
+// The four frames at the top of the page. They take the same `c` every
+// other renderer takes -- one computation, drawn twice -- so the picture
+// and the section-3 table cannot disagree. Labels are plain words with the
+// program's term in parentheses, and every string the frames add is ASCII.
+var FRAME_MAX_ROWS=8, RW=22, COLW=150;
+function escX(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function clip(s,n){ s=String(s); return s.length>n ? s.slice(0,n-3)+'...' : s; }
+function svgText(x,y,s,size,color,anchor,weight,mono){
+  return '<text x="'+x+'" y="'+y+'" font-size="'+size+'" fill="'+color+'"'+(anchor?' text-anchor="'+anchor+'"':'')
+    +(weight?' font-weight="'+weight+'"':'')+(mono?' font-family="DejaVu Sans Mono,ui-monospace,Menlo,Consolas,monospace"':'')+'>'+escX(s)+'</text>';
+}
+function svgLine(x1,y1,x2,y2,stroke,width){ return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+stroke+'" stroke-width="'+(width||1)+'"/>'; }
+function svgBox(x,y,w,h,label,hash,stroke,fill,grey){
+  return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+(stroke==='#838383'?1:2)+'"/>'
+    +svgText(x+6,y+14,clip(label,20),11,grey?'#777':'#1a1a1a',null,'bold')
+    +svgText(x+6,y+28,hash?hash.slice(0,8):'',10,grey?'#888':'#4a5a6a',null,null,true);
+}
+function svgRow(x,y,w,r){
+  var s='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+(RW-3)+'" rx="2" fill="'+r.fill+'" stroke="'+r.stroke+'"'
+    +(r.dashed?' stroke-dasharray="3,2"':'')+(r.lit?' stroke-width="2"':'')+'><title>'+escX(r.title||r.text)+'</title></rect>';
+  s+='<text x="'+(x+5)+'" y="'+(y+14)+'" font-size="11" fill="'+(r.dashed?'#777':'#1a1a1a')+'"'+(r.dashed?' text-decoration="line-through"':'')+'>'+escX(clip(r.text,15))+'</text>';
+  if(r.hash) s+=svgText(x+w-4,y+14,r.hash.slice(0,8),9,'#4a5a6a','end',null,true);
+  if(r.tag) s+=svgText(x+w+6,y+14,r.tag,10,r.tagColor||'#a33',null,'bold');
+  return s;
+}
+// Estimated rendered width of a label, for reserving room. Generous on
+// purpose: the harness asserts no text box crosses another box, and a
+// reservation that is too small is the defect this replaced.
+function textW(s,size,bold){ return Math.ceil(String(s).length*size*(bold?0.66:0.62))+4; }
+// One tree: a notebook box over its notes, each note over its lines.
+// Every note column reserves room for the widest annotation drawn to the
+// right of its rows (a tag such as "you decide", or the truncation
+// notice), so the next note is laid out after it rather than over it.
+// Returns the width it used; the frames position what follows from that.
+function treeSvg(t,x0){
+  var out='', rootY=26, notesY=rootY+34+30, lastY=notesY+34, noteX=[], x=x0+10;
+  t.notes.forEach(function(n){
+    var extra=0;
+    if(!n.grey){
+      n.rows.slice(0,FRAME_MAX_ROWS).forEach(function(r){ if(r.tag) extra=Math.max(extra,6+textW(r.tag,10,true)); });
+      if(n.rows.length>FRAME_MAX_ROWS) extra=Math.max(extra,textW('showing '+FRAME_MAX_ROWS+' of '+n.rows.length+' lines',11,true)+18-COLW);
+    }
+    noteX.push(x); x+=COLW+extra+20;
+  });
+  var width=x-20+10-x0, rootX=x0+10+(width-20-COLW)/2;
+  if(t.label) out+=svgText(x0+width/2,14,t.label,12,'#1a1a1a','middle','bold');
+  t.notes.forEach(function(n,i){
+    var nx=noteX[i], stroke=n.lit?n.litColor:'#838383';
+    out+=svgLine(rootX+COLW/2,rootY+34,nx+COLW/2,notesY,stroke,n.lit?2:1);
+    out+=svgBox(nx,notesY,COLW,34,n.label,n.hash,stroke,n.grey?'#e4e4e4':'#fff',n.grey);
+    var ry=notesY+34+8;
+    if(n.grey){ out+=svgText(nx,ry+14,'same fingerprint:',11,'#666')+svgText(nx,ry+28,'not opened',11,'#666'); lastY=Math.max(lastY,ry+32); return; }
+    var shown=n.rows.slice(0,FRAME_MAX_ROWS), last=ry+shown.length*RW;
+    out+=svgLine(nx+10,notesY+34,nx+10,last-RW/2,stroke,n.lit?2:1);
+    shown.forEach(function(r,j){
+      var yy=ry+j*RW;
+      out+=svgLine(nx+10,yy+RW/2,nx+18,yy+RW/2,r.lit?r.stroke:'#999',r.lit?2:1);
+      out+=svgRow(nx+18,yy,COLW-18,r);
+    });
+    if(n.rows.length>shown.length) out+=svgText(nx+18,last+14,'showing '+shown.length+' of '+n.rows.length+' lines',11,'#a33',null,'bold');
+    lastY=Math.max(lastY,last+(n.rows.length>shown.length?20:0));
+  });
+  out+=svgBox(rootX,rootY,COLW,34,'notebook (root)',t.rootHash,t.rootLit?t.rootLitColor:'#838383','#fff');
+  return {svg:out,height:lastY+10,width:width,rootX:rootX,noteX:noteX};
+}
+function frameSvg(width,height,body){ return '<svg viewBox="0 0 '+width+' '+height+'" width="100%" style="max-width:'+width+'px;display:block;background:#fff;border:1px solid var(--line-soft)" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">'+body+'</svg>'; }
+var MINE_STROKE='#4a8a4a', THEIRS_STROKE='#2f6fb0';
+function changedSide(r,side){
+  var b=r[side], st=r[side+'State'];
+  if(st==='deleted') return true;
+  if(st!=='present') return false;
+  return !r.base || b.text!==r.base.text;
+}
+// Rows for one side's tree, from the same rows the table draws.
+function sideRows(c,side,hashes){
+  var rows=[], fillVar=side==='mine'?'var(--t-mine)':'var(--t-theirs)', stroke=side==='mine'?MINE_STROKE:THEIRS_STROKE;
+  c.rows.forEach(function(r){
+    var st=r[side+'State'];
+    if(st==='absent'||st==='reminted') return;
+    var lit=changedSide(r,side);
+    if(st==='deleted') rows.push({text:r.base.text,hash:null,fill:'#fff',stroke:stroke,dashed:true,lit:true,title:'deleted here: '+r.base.text});
+    else rows.push({text:r[side].text,hash:hashes[r.id],fill:lit?fillVar:'#fff',stroke:lit?stroke:'#999',lit:lit,tag:(r[side].minted&&lit)?'new':null,tagColor:stroke});
+  });
+  return rows;
+}
+function truncNote(rows){ return rows.length>FRAME_MAX_ROWS ? ' (showing '+FRAME_MAX_ROWS+' of '+rows.length+' lines)' : ''; }
+function otherNote(grey,lit){ return {label:'Reading list',hash:OTHER.hash,grey:!!grey,lit:false,litColor:'#838383',
+  rows:OTHER_LINES.map(function(b,i){ return {text:b.text,hash:OTHER.blockHashes[i],fill:'#fff',stroke:'#999',lit:false}; })}; }
+function renderFrames(c){
+  var el=$('frames'), figs=[];
+  // Frame 1: one notebook, and where each fingerprint comes from.
+  // From the base side itself, not from the merge rows: a re-minted line
+  // has two merge rows pointing at one base block.
+  var baseRows=c.base.blocks.map(function(b,i){ return {text:b.text,hash:c.base.blockHashes[i],fill:'#fff',stroke:'#999',lit:false}; });
+  var t1=treeSvg({rootHash:c.base.rootHash,notes:[{label:'Groceries',hash:c.base.noteHash,rows:baseRows,litColor:'#838383'},otherNote(false)]},0);
+  var cx=t1.width+30, b='', rootX=t1.rootX+COLW, noteR=t1.noteX[1]+COLW, notesY=26+34+30;
+  b+=t1.svg;
+  b+=svgLine(rootX,26+17,cx,26+17,'#838383')+svgText(cx+6,26+12,'notebook fingerprint (root hash):',11,'#1a1a1a',null,'bold')+svgText(cx+6,26+26,'made from its notes\' fingerprints, in order',11,'#333');
+  b+=svgLine(noteR,notesY+17,cx,notesY+17,'#838383')+svgText(cx+6,notesY+12,'note fingerprint (note hash):',11,'#1a1a1a',null,'bold')+svgText(cx+6,notesY+26,'made from its title, settings, and its lines\' fingerprints, in order',11,'#333');
+  var r1y=notesY+34+8;
+  b+=svgLine(noteR,r1y+RW/2,cx,r1y+RW/2,'#838383')+svgText(cx+6,r1y+8,'line fingerprint (block hash):',11,'#1a1a1a',null,'bold')+svgText(cx+6,r1y+22,'made from the line\'s text and its id',11,'#333');
+  b+=svgText(cx+6,r1y+60,'So: change one line, and exactly three fingerprints change --',11,'#1a1a1a')+svgText(cx+6,r1y+74,'the line\'s, its note\'s, the notebook\'s. Every other one stays.',11,'#1a1a1a');
+  b+=svgText(cx+6,r1y+100,'Each fingerprint here is a real SHA-256, 8 of 64 characters shown;',10,'#666')+svgText(cx+6,r1y+113,'sections 1 and 2 below show the exact bytes it is made from.',10,'#666');
+  figs.push({svg:frameSvg(t1.width+520,Math.max(t1.height,r1y+125),b),cap:'1. One notebook (root) holds notes; each note holds lines (blocks). Every box carries a fingerprint (hash) made from what is under it.'+truncNote(baseRows)});
+  // Frame 2: a copy leaves, both remember the fingerprint they share.
+  var t2a=treeSvg({label:'this notebook',rootHash:c.base.rootHash,notes:[{label:'Groceries',hash:c.base.noteHash,rows:baseRows,litColor:'#838383'},otherNote(false)]},0);
+  var t2b=treeSvg({label:'the copy, on another machine',rootHash:c.base.rootHash,notes:[{label:'Groceries',hash:c.base.noteHash,rows:baseRows,litColor:'#838383'},otherNote(false)]},t2a.width+180);
+  var mid=t2a.width+90, ay=26+17;
+  b=t2a.svg+t2b.svg+svgLine(t2a.width+10,ay+60,t2a.width+170,ay+60,'#838383',2)+'<polygon points="'+(t2a.width+170)+','+(ay+55)+' '+(t2a.width+180)+','+(ay+60)+' '+(t2a.width+170)+','+(ay+65)+'" fill="#838383"/>'
+    +svgText(mid,ay+50,'copied',11,'#333','middle')
+    +'<rect x="'+(mid-120)+'" y="'+(t2a.height-2)+'" width="240" height="34" rx="3" fill="#f3ecfa" stroke="#6a3fb5"/>'
+    +svgText(mid,t2a.height+12,'bookmark (fork pin): '+c.base.rootHash.slice(0,8),11,'#1a1a1a','middle','bold',true)
+    +svgText(mid,t2a.height+26,'written in both files: "we agreed here"',10,'#333','middle');
+  figs.push({svg:frameSvg(t2a.width+t2b.width+180,t2a.height+40,b),cap:'2. A copy goes to another machine. Both files write down the notebook\'s fingerprint at that moment as a bookmark (fork pin). It is the only thing they need to remember about each other.'});
+  // Frame 3: both edit, apart.
+  var mineRows=sideRows(c,'mine',c.mine.byId), theirsRows=sideRows(c,'theirs',c.theirs.byId);
+  var mineLit=mineRows.some(function(r){ return r.lit; }), theirsLit=theirsRows.some(function(r){ return r.lit; });
+  var t3a=treeSvg({label:'what they started from (base)',rootHash:c.base.rootHash,notes:[{label:'Groceries',hash:c.base.noteHash,rows:baseRows,litColor:'#838383'},otherNote(true)]},0);
+  var t3b=treeSvg({label:'this notebook (mine)',rootHash:c.mine.rootHash,rootLit:mineLit,rootLitColor:MINE_STROKE,notes:[{label:'Groceries',hash:c.mine.noteHash,rows:mineRows,lit:mineLit,litColor:MINE_STROKE},otherNote(true)]},t3a.width+10);
+  var t3c=treeSvg({label:'the copy (theirs)',rootHash:c.theirs.rootHash,rootLit:theirsLit,rootLitColor:THEIRS_STROKE,notes:[{label:'Groceries',hash:c.theirs.noteHash,rows:theirsRows,lit:theirsLit,litColor:THEIRS_STROKE},otherNote(true)]},t3a.width+t3b.width+20);
+  var h3=Math.max(t3a.height,t3b.height,t3c.height);
+  b=t3a.svg+t3b.svg+t3c.svg
+    +'<rect x="10" y="'+(h3-2)+'" width="14" height="14" fill="var(--t-mine)" stroke="'+MINE_STROKE+'" stroke-width="2"/>'+svgText(30,h3+9,'changed here',11,'#333')
+    +'<rect x="130" y="'+(h3-2)+'" width="14" height="14" fill="var(--t-theirs)" stroke="'+THEIRS_STROKE+'" stroke-width="2"/>'+svgText(150,h3+9,'changed in the copy',11,'#333')
+    +'<rect x="290" y="'+(h3-2)+'" width="14" height="14" fill="#fff" stroke="#555" stroke-dasharray="3,2"/>'+svgText(310,h3+9,'deleted',11,'#333')
+    +'<rect x="380" y="'+(h3-2)+'" width="14" height="14" fill="#e4e4e4" stroke="#838383"/>'+svgText(400,h3+9,'same fingerprint on both sides: skipped without being opened',11,'#333')
+    +svgText(10,h3+30,'A thick outline is the path a change lights: the line, then its note, then the notebook. Compare fingerprints from the top; only where they differ does anyone look inside.',10,'#666');
+  figs.push({svg:frameSvg(t3a.width+t3b.width+t3c.width+20,h3+40,b),cap:'3. Both edit, apart. To find what changed, compare fingerprints from the top down: a note whose fingerprint still matches is skipped whole; a changed line lights its note and the notebook. Green: changed here (mine). Blue: changed in the copy (theirs).'+truncNote(mineRows)+truncNote(theirsRows)});
+  // Frame 4: back together, coloured by outcome -- the table's palette.
+  var resolved={}; state.resolutions.forEach(function(r){ resolved[r.id]=r.choice; });
+  var mergedRows=c.rows.map(function(r){
+    var R=RULES[r.kind], gone=r.result===null;
+    var tag=null, tagColor='#a33';
+    if(r.kind==='queued') { tag=resolved[r.id]?('decided: '+resolved[r.id]):'you decide'; }
+    if(r.kind==='remint') { tag='kept, no question asked'; tagColor='#8a6a00'; }
+    return {text:gone?(r.base?r.base.text:''):r.result,hash:gone?null:c.drain.byId[r.id],fill:'var(--t-'+R.cls+')',stroke:r.kind==='queued'?'#c0392b':'#999',dashed:gone,lit:r.kind==='queued',tag:tag,tagColor:tagColor,title:R.rule};
+  });
+  var t4=treeSvg({label:'this notebook, after the merge',rootHash:c.drain.rootHash,notes:[{label:'Groceries',hash:c.drain.noteHash,rows:mergedRows,litColor:'#838383'},otherNote(false)]},0);
+  var leg=[['same','unchanged'],['mine','mine only'],['theirs','theirs only'],['diff3','stitched from both'],['queued','you decide'],['resurrect','edit beat a delete'],['deleted','deleted'],['remint','both rewrote: both kept']];
+  b=t4.svg; var lx=t4.width+40, ly=30;
+  // Wrapped by hand into lines the reserved column can hold; the frame's
+  // width is computed from the longest of them, never assumed.
+  var head=['What happened to each line --','the same colours as the table in section 3:'];
+  var foot=['Only the line marked "you decide" needs a person:','both sides changed the same characters. Until they do,',
+            'the notebook keeps its own version there and the copy\'s','version waits in a queue. Nothing here stopped the merge.'];
+  head.forEach(function(s,i){ b+=svgText(lx,ly+i*14,s,11,'#1a1a1a',null,'bold'); });
+  var legY=ly+head.length*14+4;
+  leg.forEach(function(l,i){ var yy=legY+i*20; b+='<rect x="'+lx+'" y="'+yy+'" width="14" height="14" fill="var(--t-'+l[0]+')" stroke="#999"/>'+svgText(lx+20,yy+11,l[1],11,'#333'); });
+  var footY=legY+leg.length*20+12;
+  foot.forEach(function(s,i){ b+=svgText(lx,footY+i*14,s,10,'#666'); });
+  var w4=lx+Math.max.apply(null,head.map(function(s){ return textW(s,11,true); }).concat(foot.map(function(s){ return textW(s,10,false); })))+16;
+  figs.push({svg:frameSvg(w4,Math.max(t4.height,footY+foot.length*14+6),b),cap:'4. Back together. Lines only one side changed are taken as they are; a line both changed in different places is stitched; a line both changed in the same place is left as this notebook wrote it and a person is asked, later. Same colours as the outcome table in section 3.'+truncNote(mergedRows)});
+  el.innerHTML=figs.map(function(f){ return '<figure style="margin:14px 0 22px">'+f.svg+'<figcaption class="small" style="margin-top:6px;max-width:100ch">'+f.cap+'</figcaption></figure>'; }).join('');
+}
 
 // ------------------------------------------------------------------ wiring
 ['base-text','mine-text','theirs-text'].forEach(function(id){ $(id).addEventListener('input',function(){ state.resolutions=[]; render(); }); });
