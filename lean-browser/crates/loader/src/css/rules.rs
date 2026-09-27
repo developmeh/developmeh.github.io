@@ -136,27 +136,33 @@ fn collect_style_element(dom: &Dom, id: usize, base: &Url) -> Option<SheetSource
 
 /// Pushes `sheet`'s imports (recursively, in order) and then the sheet
 /// itself, so imported rules precede the importing sheet's rules.
-fn expand_imports(sheet: SheetSource, depth: usize, fetcher: &mut Fetcher, out: &mut Vec<SheetSource>) {
+fn expand_imports(
+    sheet: SheetSource,
+    depth: usize,
+    fetcher: &mut Fetcher,
+    out: &mut Vec<SheetSource>,
+) {
     if depth < MAX_IMPORT_DEPTH {
-        let imports: Vec<(String, Option<String>)> = match StyleSheet::parse(&sheet.css, parser_options()) {
-            Ok(parsed) => parsed
-                .rules
-                .0
-                .iter()
-                .filter_map(|r| match r {
-                    CssRule::Import(i) => {
-                        let media = if i.media.media_queries.is_empty() {
-                            None
-                        } else {
-                            i.media.to_css_string(Default::default()).ok()
-                        };
-                        Some((i.url.to_string(), media))
-                    }
-                    _ => None,
-                })
-                .collect(),
-            Err(_) => Vec::new(),
-        };
+        let imports: Vec<(String, Option<String>)> =
+            match StyleSheet::parse(&sheet.css, parser_options()) {
+                Ok(parsed) => parsed
+                    .rules
+                    .0
+                    .iter()
+                    .filter_map(|r| match r {
+                        CssRule::Import(i) => {
+                            let media = if i.media.media_queries.is_empty() {
+                                None
+                            } else {
+                                i.media.to_css_string(Default::default()).ok()
+                            };
+                            Some((i.url.to_string(), media))
+                        }
+                        _ => None,
+                    })
+                    .collect(),
+                Err(_) => Vec::new(),
+            };
         for (href, media) in imports {
             let Ok(url) = sheet.base.join(&href) else {
                 continue;
@@ -252,10 +258,18 @@ impl<'a, 'i> RuleSet<'a, 'i> {
         set
     }
 
-    fn add_rules(&mut self, list: &'a CssRuleList<'i>, origin: Origin, vp: &Viewport, bps: &mut Breakpoints) {
+    fn add_rules(
+        &mut self,
+        list: &'a CssRuleList<'i>,
+        origin: Origin,
+        vp: &Viewport,
+        bps: &mut Breakpoints,
+    ) {
         for rule in &list.0 {
             match rule {
-                CssRule::Style(style) => self.add_style_rule(&style.selectors.0, &style.declarations, origin),
+                CssRule::Style(style) => {
+                    self.add_style_rule(&style.selectors.0, &style.declarations, origin)
+                }
                 CssRule::Media(m) => {
                     if evaluate(&m.query, vp, bps) {
                         self.add_rules(&m.rules, origin, vp, bps);
@@ -277,7 +291,12 @@ impl<'a, 'i> RuleSet<'a, 'i> {
         }
     }
 
-    fn add_style_rule(&mut self, selectors: &'a [Selector<'i>], decls: &'a DeclarationBlock<'i>, origin: Origin) {
+    fn add_style_rule(
+        &mut self,
+        selectors: &'a [Selector<'i>],
+        decls: &'a DeclarationBlock<'i>,
+        origin: Origin,
+    ) {
         if decls.declarations.is_empty() && decls.important_declarations.is_empty() {
             return;
         }
@@ -326,7 +345,8 @@ impl<'a, 'i> RuleSet<'a, 'i> {
                 idx.extend_from_slice(v);
             }
         }
-        let mut out: Vec<&Rule<'a, 'i>> = idx.into_iter().map(|i| &self.rules[i as usize]).collect();
+        let mut out: Vec<&Rule<'a, 'i>> =
+            idx.into_iter().map(|i| &self.rules[i as usize]).collect();
         out.sort_by_key(|r| (r.specificity, r.order));
         out
     }
@@ -395,7 +415,9 @@ mod tests {
     use super::*;
     use crate::fetch::Limits;
 
-    fn build(css: &str) -> (Vec<u16>, Vec<(String, u32, Option<PseudoKind>)>) {
+    type RuleSummary = (String, u32, Option<PseudoKind>);
+
+    fn build(css: &str) -> (Vec<u16>, Vec<RuleSummary>) {
         let sources = vec![SheetSource {
             css: css.to_string(),
             base: Url::parse("https://example.test/").unwrap(),
@@ -476,7 +498,14 @@ mod tests {
         }];
         let parsed = parse_sheets(&sources);
         let mut bps = Breakpoints::default();
-        let set = RuleSet::build(&parsed, &Viewport { width: 1280.0, height: 800.0 }, &mut bps);
+        let set = RuleSet::build(
+            &parsed,
+            &Viewport {
+                width: 1280.0,
+                height: 800.0,
+            },
+            &mut bps,
+        );
         let c = set.candidates("p", Some("i"), "c other");
         let sels: Vec<String> = c
             .iter()
@@ -490,10 +519,17 @@ mod tests {
     fn collects_and_imports() {
         let dir = std::env::temp_dir().join(format!("lean-loader-rules-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
-        std::fs::write(dir.join("a.css"), "@import url(b.css) print; @import 'c.css'; .a{color:red}").unwrap();
+        std::fs::write(
+            dir.join("a.css"),
+            "@import url(b.css) print; @import 'c.css'; .a{color:red}",
+        )
+        .unwrap();
         std::fs::write(dir.join("b.css"), ".b{color:red}").unwrap();
         std::fs::write(dir.join("c.css"), "@import url(a.css); .c{color:red}").unwrap();
-        let base = Url::from_directory_path(&dir).unwrap().join("index.html").unwrap();
+        let base = Url::from_directory_path(&dir)
+            .unwrap()
+            .join("index.html")
+            .unwrap();
         let dom = Dom::parse(
             "<link rel=stylesheet href=a.css><style media=\"(min-width: 100px)\">.s{color:red}</style><link rel=icon href=x.css><body>",
         );
@@ -506,8 +542,16 @@ mod tests {
         // Imports precede the importing sheet; the depth limit stops the
         // a -> c -> a cycle.
         assert_eq!(summary[0], (Origin::Ua, "html{}", vec![]));
-        assert_eq!(summary[1], (Origin::Author, ".b{color:red}", vec!["print".to_string()]));
-        let pos = |prefix: &str| summary.iter().position(|s| s.1.starts_with(prefix)).unwrap();
+        assert_eq!(
+            summary[1],
+            (Origin::Author, ".b{color:red}", vec!["print".to_string()])
+        );
+        let pos = |prefix: &str| {
+            summary
+                .iter()
+                .position(|s| s.1.starts_with(prefix))
+                .unwrap()
+        };
         assert!(pos("@import url(a.css)") < pos("@import url(b.css) print;"));
         assert!(summary.len() < 12);
         let last = summary.last().unwrap();
@@ -516,7 +560,14 @@ mod tests {
         // Print-only import contributes no rules; the media'd style does.
         let parsed = parse_sheets(&sheets);
         let mut bps = Breakpoints::default();
-        let set = RuleSet::build(&parsed, &Viewport { width: 1280.0, height: 800.0 }, &mut bps);
+        let set = RuleSet::build(
+            &parsed,
+            &Viewport {
+                width: 1280.0,
+                height: 800.0,
+            },
+            &mut bps,
+        );
         let sels: Vec<String> = set
             .rules
             .iter()

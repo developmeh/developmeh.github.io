@@ -1,0 +1,122 @@
+/* Approximation of themes/zola_easydocs_theme/sass/main.scss as the site
+   compiles it (variables inlined, the `ruby`-highlight body colours kept).
+   Fonts are pinned to DejaVu so the renderer (file-stem discovery) and the
+   Chromium reference (fontconfig) pick the same faces. The site's flex row
+   (`main { display: flex }` with the nav ordered first) is out of M2 scope
+   in the renderer, so the corpus lays the nav out as a block after the
+   article; see STATUS.md. */
+:root {
+  --background: #0f110c;
+  --surface: #171a12;
+  --text: #d9d7cc;
+  --heading: #edebe0;
+  --muted: #969c86;
+  --faint: rgba(217, 215, 204, 0.55);
+  --accent: #e08a3c;
+  --accent-bright: #f0a75f;
+  --green: #8fb573;
+  --border: rgba(217, 215, 204, 0.12);
+  --baseline: 1.5rem;
+}
+body {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-family: "DejaVu Sans", sans-serif;
+  line-height: 1.65;
+  background: var(--background);
+  color: var(--text);
+}
+a:link, a:visited { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-bright); }
+h1, h2, h3, h4 { color: var(--heading); line-height: 1.25; font-weight: bold; letter-spacing: -0.01em; }
+h1 { font-size: 2.1rem; margin: 0 0 1rem; }
+h2 { font-size: 1.55rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.2rem; margin: 1.75rem 0 0.75rem; }
+h4 { font-size: 1.05rem; margin: 1.5rem 0 0.5rem; color: var(--muted); }
+h1 .anchor, h2 .anchor, h3 .anchor, h4 .anchor { visibility: hidden; text-decoration: none; line-height: 1; color: var(--faint); margin-left: 0.4em; font-size: 0.7em; }
+p { margin: 0 0 var(--baseline); }
+pre {
+  margin: var(--baseline) 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  padding: var(--baseline);
+  overflow: auto;
+  position: relative;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+code { font: 400 0.9rem "DejaVu Sans Mono", monospace; color: var(--green); }
+pre code { color: inherit; font-size: inherit; line-height: inherit; }
+p code, li code { background: var(--surface); padding: 0.1em 0.35em; border-radius: 4px; }
+blockquote {
+  border-left: 3px solid var(--accent);
+  margin: var(--baseline) 0;
+  background-color: var(--surface);
+  padding: 0.75rem var(--baseline);
+  color: #b6bba9;
+  border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0; }
+ul, ol { padding-left: 1.5rem; margin: 0 0 var(--baseline); }
+li { margin-bottom: 0.35rem; }
+hr { border: 0; border-top: 1px solid var(--border); margin: var(--baseline) 0; }
+strong { color: var(--heading); }
+
+main { max-width: 90rem; margin: 0 auto; }
+/* The site says `width: calc(100% - (1.5rem * 4 + 17rem))`; the loader's
+   Length cannot hold a mixed %/px calc (it keeps the % part, see STATUS.md),
+   so the same geometry is expressed as a right margin on an auto-width block. */
+article { margin-left: 3rem; margin-right: 20rem; padding-top: 2.25rem; }
+article p a:not(.topic-chip), article li a:not(.topic-chip) { text-decoration: underline; text-underline-offset: 0.15em; }
+#wrap { padding-right: 1.5rem; }
+
+.byline {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 2.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.byline-sep { margin: 0 0.3rem; }
+.byline a { color: var(--muted); }
+.byline-topics { display: block; margin-top: 0.4rem; }
+.topic-chip {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.05rem 0.6rem;
+  margin: 0 0.3rem 0.3rem 0;
+  font-size: 0.8rem;
+  color: var(--green);
+}
+
+.discussion-footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.discussion-cta a { display: inline-block; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.9rem; }
+.github-logo { vertical-align: middle; margin-right: 0.35rem; }
+
+nav {
+  width: 17rem;
+  margin: 3rem 0 0 3rem;
+  padding: 0 0 2rem;
+  border-top: 1px solid var(--border);
+}
+.nav-header { padding: 1.5rem 0 0.75rem; }
+.brand { display: block; }
+.brand-name { display: block; font-size: 1.4rem; font-weight: bold; color: var(--accent); letter-spacing: -0.01em; }
+.brand-tag { display: block; font-size: 0.8rem; color: var(--muted); }
+#mobile { display: none; }
+.tree-toggle { display: none; }
+.tree-toggle-label { display: block; font-weight: bold; color: var(--muted); margin-top: 0.75rem; }
+.subtree { list-style: none; padding-left: 0.75rem; margin: 0.25rem 0 0; border-left: 1px solid var(--border); }
+.subtree li { margin: 0; font-size: 0.9rem; }
+.subtree li.active > a { color: var(--accent-bright); }
+.subtree a { color: var(--text); }
+
+@media (max-width: 900px) {
+  article { width: auto; margin: 0 1rem; }
+  nav { width: auto; margin: 1rem; }
+}
+@media print {
+  nav { display: none; }
+  body { background: white; color: black; }
+}

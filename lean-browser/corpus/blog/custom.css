@@ -1,0 +1,6 @@
+/* Approximation of static/custom.css: the pieces that affect a post page. */
+.discussion-nav { margin-bottom: 1rem; }
+a.discussion-link, a.github-discussion-link { color: var(--accent); }
+.copy-code-button { display: none; }
+img { max-width: 100%; height: auto; }
+figure { margin: var(--baseline) 0; }

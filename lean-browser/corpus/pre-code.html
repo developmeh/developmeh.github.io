@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Preformatted text and code</title>
+<link rel="stylesheet" href="corpus.css">
+<style>
+  .z-code { background-color: #2b2b2b; color: #e6e1dc; }
+  .kw { color: #cc7833; }
+  .st { color: #a5c261; }
+  .cm { color: #bc9458; font-style: italic; }
+  .fn { color: #ffc66d; }
+  .wrap { white-space: pre-wrap; }
+  .line { white-space: pre-line; }
+  kbd { border: 1px solid #999; border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; font-size: 0.85em; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Preformatted text and code</h1>
+  <p>Inline <code>code</code> in a sentence, and keys: <kbd>Ctrl</kbd>+<kbd>L</kbd>.</p>
+  <pre class="z-code"><code class="language-rust"><span class="cm">// A comment line</span>
+<span class="kw">fn</span> <span class="fn">main</span>() {
+	<span class="kw">let</span> greeting = <span class="st">"hello, world"</span>;	<span class="cm">// tab-indented, tab after</span>
+    <span class="fn">println!</span>(<span class="st">"{}"</span>, greeting);
+}
+</code></pre>
+  <pre><code class="language-bash">#!/usr/bin/env bash
+set -euo pipefail
+
+for f in "$@"; do
+  printf '%s\n' "$f"
+done
+
+# A very long line that exceeds the container width and must not wrap because pre keeps white-space: pre, so it overflows to the right instead of breaking anywhere at all.
+</code></pre>
+  <h2>pre-wrap and pre-line</h2>
+  <pre class="wrap">pre-wrap keeps    runs of spaces
+and newlines, but wraps this long line when it exceeds the width of the container so nothing is lost off the right edge of the box.</pre>
+  <p class="line">pre-line collapses    spaces
+but honours
+newlines.</p>
+  <footer>Corpus page 3 of 8 · pre and code.</footer>
+</div>
+</body>
+</html>

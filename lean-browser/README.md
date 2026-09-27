@@ -19,9 +19,11 @@ crates/
   css-subset/           shared cascade data model (ComputedStyle, enums, interning)
   loader/               bin lean-loader
   renderer/             bin lean-browser (feature `window` adds winit/softbuffer/accesskit)
-  harness/              bins lean-measure, lean-diff; smaps_rollup parser
+  harness/              bins lean-measure, lean-diff; smaps_rollup sampler, SSIM, report
 flake.nix, nix/         flake-parts modules (packages, devShell, checks, formatter)
-corpus/, refs/          frozen test pages and Chromium reference PNGs (empty for now)
+corpus/                 frozen test pages (manifest.json), assets, generators in tools/
+refs/                   Chromium reference PNGs (<name>-{top,mid,bottom}.png) + VERSION pin
+.github-workflow-example.yml   how CI would run `nix flake check` and the measurement
 ```
 
 ## Building with cargo
@@ -44,15 +46,71 @@ softbuffer `dlopen` libwayland / libxkbcommon / libX11 at run time.
 ### Try it
 
 ```sh
-cargo run -p loader --bin lean-loader -- --write-empty /tmp/empty.lpg --url https://example.test/
-cargo run -p renderer --bin lean-browser -- --headless --page /tmp/empty.lpg \
+# Load a page (file path, file://, http(s):// or data: URL) into a page file,
+# printing node counts before/after each compression pass.
+cargo run -p loader --bin lean-loader -- crates/loader/tests/fixtures/blog/post.html \
+    --out /tmp/post.lpg --viewport 1280x800 --stats
+cargo run -p renderer --bin lean-browser -- --headless --page /tmp/post.lpg \
     --paint-png /tmp/out.png --viewport 1280x800 --stats
 cargo run -p harness --bin lean-diff -- /tmp/out.png /tmp/out.png
 cargo run -p harness --bin lean-measure -- --self
+cargo run -p loader --bin lean-loader -- --write-empty /tmp/empty.lpg   # root node only
 ```
+
+`lean-loader` runs the document-mode pipeline of plan §2 in one process:
+fetch (plan §11 size caps) → html5ever → UA + author stylesheets
+(`@import`, `@media` for the viewport bucket, `@layer`, `@supports`) →
+lightningcss/parcel_selectors cascade with `var()`, `em`/`rem`/`pt`
+resolution and inheritance → accessible roles and names → the seven
+compression passes of plan §6 (`--check` re-runs the cascade on the
+compressed tree and fails if any style changed) → `page.lpg`.
 
 The renderer refuses any page file that fails the four validation steps
 (header, CRC-32, rkyv structural check, semantic pass) and exits non-zero.
+
+### Measuring (plan §9)
+
+```sh
+cargo build --release --workspace
+./target/release/lean-measure --corpus corpus            # -> target/measure/report.{json,md}
+./target/release/lean-measure --corpus corpus --only lists --settle-ms 1000 --samples 4
+./target/release/lean-diff target/measure/lists-top.png refs/lists-top.png [--json]
+```
+
+For every page in `corpus/manifest.json`, `lean-measure` runs
+`lean-loader … --stats` (recording wall time, the loader's own peak RSS,
+per-pass node counts and the page file size), then starts
+`lean-browser page.lpg --serve --viewport 1280x800` and drives it over
+stdin: `paint 0 top.png`, `paint 0.5 mid.png`, `paint 1 bottom.png`, then
+samples `/proc/<pid>/smaps_rollup` ten times over five seconds while the
+renderer is still alive, then `stats` (lean-alloc per-tag live/peak) and
+`quit`. Each PNG is compared with `refs/<name>-<position>.png` when it
+exists (grayscale SSIM over 8×8 windows and the percentage of pixels off by
+more than 12/255). The report has one row per page plus the empty-page
+baseline, the plan §8 gates (`--gate` makes a failed gate exit 1) and the
+per-pass compression counts. The renderer is measured without a window: in
+`--serve` mode everything a window would hold (page map, fonts, shaping
+contexts, strip buffer) is allocated once and kept, only the PNG encoder is
+per paint.
+
+Fonts: the corpus pins DejaVu (`corpus.css`, `blog/main.css`) so the
+renderer's file-stem discovery and Chromium's fontconfig pick the same
+faces; pass `--font-dir` (or set `LEAN_FONT_DIR`) when DejaVu is not in a
+system font directory.
+
+Chromium references are generated with the Playwright Chromium pinned in
+`refs/VERSION` (JS disabled, `--disable-gpu --hide-scrollbars`, DPR 1):
+
+```sh
+NODE_PATH=/opt/node22/lib/node_modules PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers \
+    node corpus/tools/make-refs.cjs [--only name]
+```
+
+The two blog pages are rendered from this repository's `content/` by
+`corpus/tools/md2html.py` (Zola is not available in the build environment;
+the script approximates the theme's markup and inline-style syntax
+highlighting). `corpus/tools/gen-assets.py`, `gen-jpeg.cjs` and
+`gen-wrapper-soup.py` regenerate the tiny images and the wrapper-soup page.
 
 ## Building with Nix
 

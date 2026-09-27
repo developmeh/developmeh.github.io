@@ -1,14 +1,21 @@
 //! Measurement helpers shared by `lean-measure` and `lean-diff` (plan §9).
 //!
-//! M0 skeleton: the `smaps_rollup` parser. Sampling, SSIM and the CI
-//! report follow in M0's harness work.
+//! - [`parse_smaps_rollup`] / [`read_smaps_rollup`]: the five-line
+//!   procfs parser;
+//! - [`diff`]: own SSIM and mismatch metrics;
+//! - [`measure`]: running loader and renderer on the corpus;
+//! - [`report`]: the JSON/Markdown report and the §8 gates.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod diff;
+pub mod measure;
+pub mod report;
+
 /// The memory figures the harness gates on, in kilobytes as the kernel
 /// reports them.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SmapsRollup {
     /// Resident set size.
     pub rss_kb: u64,
@@ -19,6 +26,9 @@ pub struct SmapsRollup {
     pub shared_dirty_kb: u64,
     /// Clean private pages (e.g. the page file mapping after a read).
     pub private_clean_kb: u64,
+    /// Anonymous memory backed by transparent huge pages. Non-zero means
+    /// `Private_Dirty` is inflated by whole 2 MB folios.
+    pub anon_huge_kb: u64,
 }
 
 /// Parses the text of `/proc/<pid>/smaps_rollup`.
@@ -38,6 +48,7 @@ pub fn parse_smaps_rollup(text: &str) -> SmapsRollup {
             "Private_Dirty" => out.private_dirty_kb = kb,
             "Shared_Dirty" => out.shared_dirty_kb = kb,
             "Private_Clean" => out.private_clean_kb = kb,
+            "AnonHugePages" => out.anon_huge_kb = kb,
             _ => {}
         }
     }
@@ -66,6 +77,7 @@ Private_Clean:       200 kB
 Private_Dirty:       670 kB
 Referenced:         1234 kB
 Anonymous:           700 kB
+AnonHugePages:      2048 kB
 ";
         assert_eq!(
             parse_smaps_rollup(text),
@@ -74,6 +86,7 @@ Anonymous:           700 kB
                 private_dirty_kb: 670,
                 shared_dirty_kb: 64,
                 private_clean_kb: 200,
+                anon_huge_kb: 2048,
             }
         );
     }

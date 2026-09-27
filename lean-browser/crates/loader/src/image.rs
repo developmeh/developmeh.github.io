@@ -101,7 +101,18 @@ fn jpeg_size(b: &[u8]) -> Option<(u16, u16)> {
         let len = u16::from_be_bytes([b[i + 2], b[i + 3]]) as usize;
         let is_sof = matches!(
             marker,
-            0xC0 | 0xC1 | 0xC2 | 0xC3 | 0xC5 | 0xC6 | 0xC7 | 0xC9 | 0xCA | 0xCB | 0xCD | 0xCE | 0xCF
+            0xC0 | 0xC1
+                | 0xC2
+                | 0xC3
+                | 0xC5
+                | 0xC6
+                | 0xC7
+                | 0xC9
+                | 0xCA
+                | 0xCB
+                | 0xCD
+                | 0xCE
+                | 0xCF
         );
         if is_sof {
             if i + 9 > b.len() {
@@ -175,7 +186,10 @@ fn is_svg(bytes: &[u8], mime: Option<&str>) -> bool {
 fn svg_size(bytes: &[u8]) -> Option<(u16, u16)> {
     let text = String::from_utf8_lossy(&bytes[..bytes.len().min(2048)]);
     let start = text.find("<svg")?;
-    let tag_end = text[start..].find('>').map(|e| start + e).unwrap_or(text.len());
+    let tag_end = text[start..]
+        .find('>')
+        .map(|e| start + e)
+        .unwrap_or(text.len());
     let tag = &text[start..tag_end];
     let attr = |name: &str| -> Option<String> {
         let mut rest = tag;
@@ -190,7 +204,9 @@ fn svg_size(bytes: &[u8]) -> Option<(u16, u16)> {
                     let end = v[1..].find(quote)?;
                     return Some(v[1..1 + end].to_string());
                 }
-                let end = v.find(|c: char| c.is_whitespace() || c == '>' || c == '/').unwrap_or(v.len());
+                let end = v
+                    .find(|c: char| c.is_whitespace() || c == '>' || c == '/')
+                    .unwrap_or(v.len());
                 return Some(v[..end].to_string());
             }
             rest = &rest[pos + name.len()..];
@@ -275,7 +291,10 @@ mod tests {
 
     #[test]
     fn svg_sizes() {
-        let i = sniff(br#"<?xml version="1.0"?><svg xmlns="x" width="120px" height="30"><rect/></svg>"#, None);
+        let i = sniff(
+            br#"<?xml version="1.0"?><svg xmlns="x" width="120px" height="30"><rect/></svg>"#,
+            None,
+        );
         assert_eq!(i.format, ImageFormat::Svg);
         assert_eq!((i.width, i.height), (120, 30));
         let i = sniff(b"<svg viewBox='0 0 640 480'></svg>", Some("image/svg+xml"));

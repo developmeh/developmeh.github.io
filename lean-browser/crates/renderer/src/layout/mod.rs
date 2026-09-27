@@ -29,7 +29,7 @@ use lean_alloc::{scope, Tag};
 use page_format::{ArchivedPage, NodeKind};
 
 use crate::fonts::{FaceId, FontSet};
-use crate::text::{FontMetricsPx, TextEngine};
+use crate::text::{FontMetricsPx, TextEngine, MAX_FONT_PX};
 
 pub use block::{BlockMode, BlockResult, ContainingBlock};
 
@@ -154,6 +154,9 @@ pub struct TextRun {
     pub baseline: f32,
     /// Decoration lines to draw.
     pub decoration: TextDecoration,
+    /// Opacity inherited from inline ancestors (block ancestors apply theirs
+    /// in the paint walk).
+    pub opacity: f32,
     /// Metrics for decoration placement.
     pub metrics: FontMetricsPx,
     /// The glyphs, left to right.
@@ -367,9 +370,18 @@ impl<'a> Layouter<'a> {
     }
 
     /// Computed style of a node (copied out of the page file).
+    /// Style of a node. `font-size` is clamped to `0..=MAX_FONT_PX` here,
+    /// once, so metrics, line heights, run rects and glyph masks stay
+    /// bounded whatever a validated page asks for.
     pub fn style(&self, node: u32) -> ComputedStyle {
         let id = self.page.nodes[node as usize].style.to_native();
-        self.page.styles[id as usize].to_native()
+        let mut s: ComputedStyle = self.page.styles[id as usize].to_native();
+        s.font_size = if s.font_size.is_finite() {
+            s.font_size.clamp(0.0, MAX_FONT_PX)
+        } else {
+            0.0
+        };
+        s
     }
 
     /// Style id of a node.
@@ -477,13 +489,16 @@ impl<'a> Layouter<'a> {
         let n = &self.page.nodes[node as usize];
         let has_text = n.text_len.to_native() > 0;
         match n.kind {
-            NodeKind::Text | NodeKind::Marker => {
+            NodeKind::Text => {
                 if has_text {
                     Level::Text
                 } else {
                     Level::Skip
                 }
             }
+            // The loader's marker node is consumed by `add_marker` (outside
+            // position); it never takes part in the inline flow.
+            NodeKind::Marker => Level::Skip,
             NodeKind::LineBreak => Level::Br,
             NodeKind::Wbr => Level::Wbr,
             _ => {

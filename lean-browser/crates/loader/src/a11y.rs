@@ -201,7 +201,10 @@ impl A11y {
             "tr" => Role::Row,
             "td" => Role::Cell,
             "th" => {
-                if dom.attr(id, "scope").is_some_and(|s| s.eq_ignore_ascii_case("row")) {
+                if dom
+                    .attr(id, "scope")
+                    .is_some_and(|s| s.eq_ignore_ascii_case("row"))
+                {
                     Role::RowHeader
                 } else {
                     Role::ColumnHeader
@@ -319,7 +322,10 @@ impl A11y {
 fn aria_role(dom: &Dom, id: NodeId, value: &str) -> Option<Role> {
     for token in value.split_ascii_whitespace() {
         let r = match token.to_ascii_lowercase().as_str() {
-            "heading" => match dom.attr(id, "aria-level").and_then(|l| l.trim().parse::<u8>().ok()) {
+            "heading" => match dom
+                .attr(id, "aria-level")
+                .and_then(|l| l.trim().parse::<u8>().ok())
+            {
                 Some(1) => Role::Heading1,
                 Some(3) => Role::Heading3,
                 Some(4) => Role::Heading4,
@@ -369,8 +375,11 @@ fn aria_role(dom: &Dom, id: NodeId, value: &str) -> Option<Role> {
 }
 
 fn has_aria_name(dom: &Dom, id: NodeId) -> bool {
-    dom.attr(id, "aria-label").is_some_and(|l| !l.trim().is_empty())
-        || dom.attr(id, "aria-labelledby").is_some_and(|l| !l.trim().is_empty())
+    dom.attr(id, "aria-label")
+        .is_some_and(|l| !l.trim().is_empty())
+        || dom
+            .attr(id, "aria-labelledby")
+            .is_some_and(|l| !l.trim().is_empty())
 }
 
 fn inside_sectioning(dom: &Dom, id: NodeId) -> bool {
@@ -378,8 +387,18 @@ fn inside_sectioning(dom: &Dom, id: NodeId) -> bool {
     while let Some(p) = n {
         if matches!(
             dom.tag(p),
-            Some("article" | "aside" | "main" | "nav" | "section" | "blockquote" | "details"
-                | "fieldset" | "figure" | "td")
+            Some(
+                "article"
+                    | "aside"
+                    | "main"
+                    | "nav"
+                    | "section"
+                    | "blockquote"
+                    | "details"
+                    | "fieldset"
+                    | "figure"
+                    | "td"
+            )
         ) {
             return true;
         }

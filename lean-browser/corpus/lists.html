@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lists</title>
+<link rel="stylesheet" href="corpus.css">
+<style>
+  ul.square { list-style-type: square; }
+  ol.none { list-style: none; padding-left: 0; }
+  ol.none li::before { content: "→ "; color: #c01c28; }
+  dl { display: block; }
+  dt { font-weight: bold; margin-top: 0.5em; }
+  dd { margin-left: 2em; color: #444; }
+  .tight li { margin: 0; }
+  .roomy li { margin: 0.6em 0; padding: 4px 8px; background: #f6f5f4; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Lists</h1>
+  <h2>Unordered</h2>
+  <ul>
+    <li>Disc marker, first item</li>
+    <li>Second item with <a href="#">a link</a> and a longer body that wraps onto a second line to check that the marker stays on the first line and the continuation aligns with the text</li>
+    <li>Nested:
+      <ul>
+        <li>circle by default at level two</li>
+        <li>another
+          <ul class="square"><li>square at level three</li><li>and again</li></ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+  <h2>Ordered</h2>
+  <ol>
+    <li>one</li>
+    <li>two</li>
+    <li>three</li>
+  </ol>
+  <ol start="7" class="roomy">
+    <li>starts at seven</li>
+    <li value="20">value jumps to twenty</li>
+    <li>twenty-one</li>
+  </ol>
+  <ol reversed class="tight">
+    <li>three, reversed</li>
+    <li>two</li>
+    <li>one</li>
+  </ol>
+  <ol class="none">
+    <li>list-style none with generated content</li>
+    <li>second</li>
+  </ol>
+  <h2>Definition list</h2>
+  <dl>
+    <dt>Private_Dirty</dt>
+    <dd>Anonymous or copy-on-write pages this process alone dirtied.</dd>
+    <dt>Shared_Dirty</dt>
+    <dd>Dirty pages shared with another mapping.</dd>
+    <dt>Rss</dt>
+    <dd>Resident set size, everything mapped and present.</dd>
+  </dl>
+  <footer>Corpus page 2 of 8 · lists.</footer>
+</div>
+</body>
+</html>

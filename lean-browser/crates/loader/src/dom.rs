@@ -2,8 +2,8 @@
 //! cascade. Nodes are never freed individually; the whole arena is dropped
 //! when the loader exits.
 
-use std::cell::{Ref, RefCell};
 use std::borrow::Cow;
+use std::cell::{Ref, RefCell};
 
 use html5ever::interface::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
 use html5ever::tendril::StrTendril;
@@ -249,7 +249,12 @@ impl Dom {
         }
     }
 
-    fn append_text_or_node(&mut self, parent: NodeId, at: Option<usize>, child: NodeOrText<NodeId>) {
+    fn append_text_or_node(
+        &mut self,
+        parent: NodeId,
+        at: Option<usize>,
+        child: NodeOrText<NodeId>,
+    ) {
         match child {
             NodeOrText::AppendNode(n) => {
                 self.detach(n);
@@ -358,7 +363,9 @@ impl TreeSink for Sink {
     }
 
     fn append(&self, parent: &NodeId, child: NodeOrText<NodeId>) {
-        self.dom.borrow_mut().append_text_or_node(*parent, None, child);
+        self.dom
+            .borrow_mut()
+            .append_text_or_node(*parent, None, child);
     }
 
     fn append_based_on_parent_node(

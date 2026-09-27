@@ -15,8 +15,31 @@ use swash::GlyphId;
 
 use crate::fonts::{FaceId, FontSet};
 
-/// Default glyph cache cap (plan §7).
-pub const GLYPH_CACHE_CAP: usize = 256 * 1024;
+/// Bytes of mask data the default glyph cache holds. Together with the
+/// fixed-size map (1024 buckets of 64 B + control bytes, ~67 KB) this
+/// stays under plan §7's 256 KB glyph-cache component
+/// ([`GLYPH_CACHE_BUDGET`]).
+pub const GLYPH_CACHE_CAP: usize = 184 * 1024;
+
+/// Maximum cached masks. The map is allocated once for twice this many
+/// entries and never reallocates: hashbrown only rehashes in place when
+/// the live count is at most half its capacity, which the entry cap
+/// guarantees, so tombstones from evictions cannot trigger a resize.
+pub const GLYPH_CACHE_ENTRIES: usize = 448;
+
+/// The `lean-alloc` budget for `Tag::GlyphCache` (plan §7: 256 KB).
+pub const GLYPH_CACHE_BUDGET: usize = 256 * 1024;
+
+/// Largest glyph size (device px) that is rasterized at all. Larger sizes
+/// draw nothing: a validated page may ask for any `font-size`, and the
+/// rasterizer's scratch grows with the square of the size (a 60 000 px
+/// glyph is a multi-GB mask). 1024 px keeps the transient mask at about
+/// 1 MB; `Layouter::style` clamps CSS sizes to [`MAX_FONT_PX`] first.
+pub const MAX_GLYPH_PX: f32 = 1024.0;
+
+/// Largest `font-size` in CSS px the layouter honours (device size is
+/// `MAX_FONT_PX * dpr`, at or under [`MAX_GLYPH_PX`] for `--dpr` ≤ 2).
+pub const MAX_FONT_PX: f32 = 512.0;
 
 /// Font metrics scaled to a pixel size.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -95,7 +118,9 @@ struct GlyphKey {
     glyph: GlyphId,
 }
 
-/// LRU-by-bytes glyph mask cache.
+/// LRU-by-bytes glyph mask cache. `bytes() <= cap` always holds: a mask
+/// larger than the cap is never inserted; it is parked in a single
+/// `oversize` slot that the next miss replaces.
 pub struct GlyphCache {
     map: HashMap<GlyphKey, CachedGlyph>,
     bytes: usize,
@@ -103,19 +128,29 @@ pub struct GlyphCache {
     tick: u64,
     hits: u64,
     misses: u64,
+    oversize: Option<CachedGlyph>,
 }
 
 impl GlyphCache {
-    /// A cache holding at most `cap` bytes of mask data.
+    /// A cache holding at most `cap` bytes of mask data in at most
+    /// [`GLYPH_CACHE_ENTRIES`] entries. The map is allocated here, once,
+    /// under `Tag::GlyphCache`.
     pub fn new(cap: usize) -> GlyphCache {
+        let _tag = scope(Tag::GlyphCache);
         GlyphCache {
-            map: HashMap::new(),
+            map: HashMap::with_capacity(2 * GLYPH_CACHE_ENTRIES),
             bytes: 0,
             cap,
             tick: 0,
             hits: 0,
             misses: 0,
+            oversize: None,
         }
+    }
+
+    /// The byte cap.
+    pub fn cap(&self) -> usize {
+        self.cap
     }
 
     /// Bytes of mask data currently held.
@@ -154,12 +189,12 @@ impl GlyphCache {
         }
     }
 
-    fn insert(&mut self, key: GlyphKey, mut glyph: CachedGlyph) -> &CachedGlyph {
-        let _tag = scope(Tag::GlyphCache);
-        // A single glyph larger than the cap is not cached; the caller gets a
-        // temporary that is dropped right after painting.
-        let size = glyph.data.len();
-        while self.bytes + size > self.cap && !self.map.is_empty() {
+    /// Evicts least-recently-used masks until `size` more bytes and one
+    /// more entry fit.
+    fn make_room(&mut self, size: usize) {
+        while (self.bytes + size > self.cap || self.map.len() >= GLYPH_CACHE_ENTRIES)
+            && !self.map.is_empty()
+        {
             let oldest = self
                 .map
                 .iter()
@@ -170,6 +205,20 @@ impl GlyphCache {
                 self.bytes -= g.data.len();
             }
         }
+    }
+
+    /// Inserts `glyph`, evicting older masks as needed. A glyph larger
+    /// than the cap is not cached: it goes into the `oversize` slot (a
+    /// temporary that the next miss replaces) so `bytes()` never exceeds
+    /// the cap. The previous oversize glyph is dropped on every insert.
+    fn insert(&mut self, key: GlyphKey, mut glyph: CachedGlyph) -> &CachedGlyph {
+        self.oversize = None;
+        let size = glyph.data.len();
+        if size > self.cap {
+            return self.oversize.insert(glyph);
+        }
+        let _tag = scope(Tag::GlyphCache);
+        self.make_room(size);
         self.tick += 1;
         glyph.tick = self.tick;
         self.bytes += size;
@@ -301,6 +350,7 @@ impl TextEngine {
     }
 
     /// Rasterizes (or fetches) the A8 mask for a glyph at `size` device px.
+    /// Sizes above [`MAX_GLYPH_PX`] (or not finite) yield `None`.
     pub fn glyph(
         &mut self,
         fonts: &FontSet,
@@ -308,6 +358,9 @@ impl TextEngine {
         size: f32,
         id: GlyphId,
     ) -> Option<&CachedGlyph> {
+        if !(size > 0.0 && size <= MAX_GLYPH_PX) {
+            return None;
+        }
         let key = GlyphKey {
             face,
             size_x64: (size * 64.0).round() as u32,
@@ -319,6 +372,9 @@ impl TextEngine {
             return self.cache.map.get(&key);
         }
         let font = fonts.font_ref(face)?;
+        // The rasterizer's scratch and its output are shaping/raster
+        // scratch (`Tag::Text`); only the bytes the cache keeps are copied
+        // under `Tag::GlyphCache`, so that tag measures the cache alone.
         let image = {
             let _tag = scope(Tag::Text);
             let mut scaler = self.scale.builder(font).size(size).hint(true).build();
@@ -326,12 +382,19 @@ impl TextEngine {
                 .format(Format::Alpha)
                 .render(&mut scaler, id)?
         };
+        let data = if image.data.len() <= self.cache.cap() {
+            self.cache.make_room(image.data.len());
+            let _tag = scope(Tag::GlyphCache);
+            image.data.clone()
+        } else {
+            image.data
+        };
         let glyph = CachedGlyph {
             left: image.placement.left,
             top: image.placement.top,
             width: image.placement.width,
             height: image.placement.height,
-            data: image.data,
+            data,
             tick: 0,
         };
         Some(self.cache.insert(key, glyph))
@@ -390,6 +453,90 @@ mod tests {
                 glyph: 0
             })
             .is_none());
+    }
+
+    #[test]
+    fn oversize_glyph_is_not_cached() {
+        let mut c = GlyphCache::new(100);
+        let key = |g: u16| GlyphKey {
+            face: 0,
+            size_x64: 1,
+            glyph: g,
+        };
+        let mk = |n: usize| CachedGlyph {
+            left: 0,
+            top: 0,
+            width: n as u32,
+            height: 1,
+            data: vec![0; n],
+            tick: 0,
+        };
+        c.insert(key(1), mk(40));
+        let big = c.insert(key(2), mk(500));
+        assert_eq!(big.data.len(), 500);
+        assert!(c.bytes() <= 100);
+        assert_eq!(c.bytes(), 40, "the small glyph survives");
+        assert_eq!(c.len(), 1);
+        assert!(c.get(key(2)).is_none(), "oversize glyphs are not looked up");
+        // The next insert drops the parked oversize glyph.
+        c.insert(key(3), mk(10));
+        assert!(c.oversize.is_none());
+        assert_eq!(c.bytes(), 50);
+    }
+
+    #[test]
+    fn huge_sizes_are_refused() {
+        let mut engine = TextEngine::default();
+        assert!(engine.glyph(&FontSet::empty(), 0, 100_000.0, 1).is_none());
+        assert!(engine.glyph(&FontSet::empty(), 0, f32::NAN, 1).is_none());
+        let Some(fonts) = fonts() else { return };
+        let face = fonts
+            .face(
+                css_subset::FontFamily::Sans,
+                css_subset::FontWeight::Normal,
+                css_subset::FontStyle::Normal,
+            )
+            .unwrap();
+        let mut out = Vec::new();
+        engine.shape(&fonts, face, 16.0, "M", &mut out);
+        assert!(engine
+            .glyph(&fonts, face, MAX_GLYPH_PX * 2.0, out[0].id)
+            .is_none());
+        // Within the size cap but above the byte cap: drawn, not cached.
+        let mut small = TextEngine::new(1024);
+        let g = small.glyph(&fonts, face, 200.0, out[0].id).unwrap();
+        assert!(g.data.len() > 1024);
+        assert_eq!(small.cache().bytes(), 0);
+        assert_eq!(small.cache().len(), 0);
+    }
+
+    #[test]
+    fn entry_count_is_capped_and_the_map_never_grows() {
+        let mut c = GlyphCache::new(usize::MAX);
+        let cap0 = c.map.capacity();
+        // Churn well past the entry cap: evictions leave tombstones, and a
+        // resize would show as a capacity jump (hashbrown doubles).
+        for i in 0..(10 * GLYPH_CACHE_ENTRIES as u16) {
+            let key = GlyphKey {
+                face: 0,
+                size_x64: 1,
+                glyph: i,
+            };
+            c.insert(
+                key,
+                CachedGlyph {
+                    left: 0,
+                    top: 0,
+                    width: 1,
+                    height: 1,
+                    data: vec![0; 1],
+                    tick: 0,
+                },
+            );
+            assert!(c.len() <= GLYPH_CACHE_ENTRIES);
+        }
+        assert!(c.map.capacity() <= cap0, "{} > {cap0}", c.map.capacity());
+        assert_eq!(c.len(), GLYPH_CACHE_ENTRIES);
     }
 
     #[test]

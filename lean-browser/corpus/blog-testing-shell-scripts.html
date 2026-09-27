@@ -1,0 +1,140 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="blog/main.css">
+    <link rel="stylesheet" href="blog/custom.css">
+    <meta name="description" content="A working guide to testing bash: what BATS is, why TAP is a reporting protocol rather than a test framework, and how shell function resolution order gives you mocking without a mocking library.">
+    <meta name="author" content="Paul Scarrone">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Testing Shell Scripts: BATS, TAP, and Treating Bash as a Runtime | developmeh</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+    <script>/* analytics stub: scripts are never run in document mode */</script>
+</head>
+<body>
+<main>
+    <article>
+        <div id="wrap">
+<div class="byline">
+  <span class="byline-author">by <a href="/landings/about/" rel="author">Paul Scarrone</a></span>
+  <span class="byline-sep">·</span>
+  <time datetime="2026-08-08">2026-08-08</time>
+  <span class="byline-sep">·</span>
+  <span class="byline-reading">11 min read</span>
+  <span class="byline-topics"><a class="topic-chip" href="/topics/shell-testing/">Shell Testing</a><a class="topic-chip" href="/topics/testing/">Testing</a><a class="topic-chip" href="/topics/developer-experience/">Developer Experience</a></span>
+</div>
+
+<h1 id="testing-shell-scripts">Testing Shell Scripts<a class="anchor" href="#testing-shell-scripts" aria-label="Anchor link for: testing-shell-scripts">🔗</a></h1>
+<p>Bash has a reputation problem. It is the language people write when they cannot figure out how to do something in a "real" language, the duct tape holding CI together with <code>set -e</code> and crossed fingers. The received wisdom is that shell scripts do not get tested, because how would you even do that.</p>
+<p>That is wrong, and it has been wrong for a long time. This page is the through-line across the shell and testing work on this site: <a href="/tech-dives/bats-testing-bash-like-you-mean-it/">BATS: Testing Bash Like You Mean It</a>, <a href="/tech-dives/test-anything-means-testing-bash/">TAPS: Not just a reporting protocol</a>, and <a href="/i-made-a-thing/the-magic-of-stubbing-sh/">The Magic of Stubbing sh</a>.</p>
+<h2 id="why-does-shell-testing-matter">Why does shell testing matter?<a class="anchor" href="#why-does-shell-testing-matter" aria-label="Anchor link for: why-does-shell-testing-matter">🔗</a></h2>
+<p>Bash is core to every Unix-like operating system. It is the glue between tools and the orchestration layer for a lot of distributed systems. If you are building CLI tools meant to be composed, piped, and chained together, bash is not a workaround. It is the runtime.</p>
+<p>Which sets up the actual argument for testing it. I built a distributed job queue CLI whose components were solid Go with good unit tests. Those tests could not answer the question that mattered: does this thing work when you use it the way it is meant to be used? In bash, from the command line, with real files and processes and timing.</p>
+<p><strong>Test at the boundary where the tool is actually used.</strong> If that boundary is a shell, the integration tests belong in a shell too, rather than in Cucumber or a framework that spawns a browser.</p>
+<p>There is a second reason, less about correctness and more about the conditions of the work. A lot of shell only runs in CI, on an OS that is not the one on your desk, using flags that differ between GNU and BSD. Verifying before you push is the difference between one iteration and eleven.</p>
+<h2 id="what-is-bats">What is BATS?<a class="anchor" href="#what-is-bats" aria-label="Anchor link for: what-is-bats">🔗</a></h2>
+<p>BATS, the Bash Automated Testing System, is a TAP-compliant test runner for shell. It runs tests, reports results, and has assertion helpers that are pleasant to use.</p>
+<p>Three companion libraries do most of the ergonomic work:</p>
+<ul><li><strong>bats-support</strong>, required by the others</li><li><strong>bats-assert</strong>, deep assertion support such as <code>assert_line</code>, <code>assert_success</code>, <code>assert_output --regexp</code></li><li><strong>bats-mock</strong>, a DSL for stubbing</li></ul>
+<p>The install advice that has served me best is to skip package managers, clone the repos into the project at a pinned depth, drop their <code>.git</code> directories, and commit the result. Everyone then runs the same version, and CI does not need network access to fetch a test framework.</p>
+<p>A test looks like this:</p>
+<pre data-lang="bash" style="background-color:#2b2b2b;color:#e6e1dc;" class="language-bash"><code class="language-bash" data-lang="bash">@<span style="color:#cc7833;">test</span> <span style="color:#a5c261;">&#x27;when timeout is provided it will be set&#x27;</span> {
+  run sh ./helm.sh 18m
+
+  assert_line --partial <span style="color:#a5c261;">&quot;--timeout 18m&quot;</span>
+  assert_line <span style="color:#a5c261;">&quot;helm3 executed&quot;</span>
+  assert_success
+}
+</code></pre>
+<p><code>run</code> executes the subject and captures output, status, and lines, so assertions are made against what the script actually emitted.</p>
+<h2 id="what-is-tap-and-why-is-it-not-a-test-framework">What is TAP, and why is it not a test framework?<a class="anchor" href="#what-is-tap-and-why-is-it-not-a-test-framework" aria-label="Anchor link for: what-is-tap-and-why-is-it-not-a-test-framework">🔗</a></h2>
+<p>The Test Anything Protocol is worth understanding precisely, because the name misleads almost everyone who meets it.</p>
+<p>TAP does not test anything. It is a <strong>reporting format</strong> and a manner of consuming test results. It specifies how results are emitted so that any producer can be read by any consumer. BATS being TAP-compliant is why its output drops into CI tooling without a bespoke adapter.</p>
+<p>The name does suggest something better than what it is, and the aspiration is worth stating because it is a genuinely good idea. Consider what eBPF does for the kernel: attaching instrumentation to running privileged software without rebuilding it. <strong>Test Anything</strong> in that spirit would mean one interface for mocking and asserting against live running code, rather than a bespoke test framework and a pile of hard-to-read YAML per project. Symbols at runtime that can always assert against a running application. That is not what TAP is, but it is what the name should mean.</p>
+<h2 id="how-do-you-mock-a-command-in-bash">How do you mock a command in bash?<a class="anchor" href="#how-do-you-mock-a-command-in-bash" aria-label="Anchor link for: how-do-you-mock-a-command-in-bash">🔗</a></h2>
+<p>This is the technique worth taking away from the whole page, and it is the reason testing shell is more pleasant than people expect.</p>
+<p><strong>The shell resolves functions before it searches PATH.</strong> So a function with the same name as a command shadows that command, for every call site, without touching the script under test:</p>
+<pre data-lang="bash" style="background-color:#2b2b2b;color:#e6e1dc;" class="language-bash"><code class="language-bash" data-lang="bash"><span style="color:#cc7833;">function</span> helm3() {
+  <span style="color:#cc7833;">echo</span> <span style="color:#a5c261;">&quot;$@&quot;</span>            <span style="color:#bc9458;"># capture the arguments</span>
+  <span style="color:#cc7833;">echo</span> <span style="color:#a5c261;">&quot;helm3 executed&quot;</span>
+}
+
+setup()    { <span style="color:#cc7833;">export</span> -f helm3; }
+teardown() { unset -f helm3; }
+</code></pre>
+<p><code>export -f</code> puts the function into the environment of child shells, which is what makes it visible to the script being run. <code>unset -f</code> in teardown matters, because a leaked stub in a reused shell produces a test that passes for the wrong reason.</p>
+<p><strong>Because the test framework is itself bash, you do not need a mocking library.</strong> There are good ones, and <code>bats-mock</code> is a fine DSL, but they are describing this same mechanism. For most cases a shell function is enough, and it uses language you already know rather than a second vocabulary.</p>
+<h3 id="turning-a-stub-into-a-spy">Turning a stub into a spy<a class="anchor" href="#turning-a-stub-into-a-spy" aria-label="Anchor link for: turning-a-stub-into-a-spy">🔗</a></h3>
+<p>When you want to observe a call without preventing it, <code>command</code> bypasses function lookup and forces a PATH search:</p>
+<pre data-lang="bash" style="background-color:#2b2b2b;color:#e6e1dc;" class="language-bash"><code class="language-bash" data-lang="bash"><span style="color:#cc7833;">function</span> helm3() {
+  <span style="color:#cc7833;">echo</span> <span style="color:#a5c261;">&quot;$@&quot;</span>
+  <span style="color:#cc7833;">command</span> helm3 <span style="color:#a5c261;">&quot;$@&quot;</span>   <span style="color:#bc9458;"># the real binary still runs</span>
+  <span style="color:#cc7833;">echo</span> <span style="color:#a5c261;">&quot;helm3 executed&quot;</span>
+}
+</code></pre>
+<p>Now the call is recorded and the real side effect still happens. The same builtin is what you use in teardown when your stub of <code>rm</code> would otherwise interfere with cleaning up.</p>
+<h2 id="how-do-you-verify-steps-you-cannot-see">How do you verify steps you cannot see?<a class="anchor" href="#how-do-you-verify-steps-you-cannot-see" aria-label="Anchor link for: how-do-you-verify-steps-you-cannot-see">🔗</a></h2>
+<p>Some commands are hostile to observation. If a script creates a temp file and then deletes it, the interesting intermediate state is gone by the time the test looks. Writing traces to stderr proves only that the <code>echo</code> ran.</p>
+<p>In a typical language you would reach for a mock or a spy that intercepts the call site through reflection. The shell equivalent is to stub the commands that hide the state, described at length in <a href="/i-made-a-thing/the-magic-of-stubbing-sh/">The Magic of Stubbing sh</a>.</p>
+<p><strong>Stub <code>mktemp</code></strong> so the test chooses the paths, and record each one:</p>
+<pre data-lang="bash" style="background-color:#2b2b2b;color:#e6e1dc;" class="language-bash"><code class="language-bash" data-lang="bash"><span style="color:#cc7833;">function</span> mktemp() {
+  <span style="color:#cc7833;">local</span> tmp
+  <span style="color:#cc7833;">if</span> [[ <span style="color:#a5c261;">&quot;$1&quot;</span> == <span style="color:#a5c261;">&quot;-d&quot;</span> ]]; <span style="color:#cc7833;">then</span>
+    tmp=<span style="color:#a5c261;">&quot;${TEST_DIRECTORY_RUNNING}&quot;</span>
+  <span style="color:#cc7833;">else</span>
+    read -r counter &lt; <span style="color:#d0d0ff;">$TEMPS_COUNTER</span>
+    ((counter++))
+    <span style="color:#cc7833;">echo</span> <span style="color:#d0d0ff;">$</span>((counter)) &gt; <span style="color:#d0d0ff;">$TEMPS_COUNTER</span>
+    tmp=<span style="color:#a5c261;">&quot;${TEST_DIRECTORY_RUNNING}/tmp/bats.${counter}&quot;</span>
+    <span style="color:#cc7833;">echo</span> <span style="color:#a5c261;">&quot;$tmp&quot;</span> &gt;&gt; <span style="color:#d0d0ff;">$TEMPS</span>
+  <span style="color:#cc7833;">fi</span>
+  <span style="color:#cc7833;">echo</span> <span style="color:#a5c261;">&quot;$tmp&quot;</span>
+}
+</code></pre>
+<p><strong>Stub <code>rm</code></strong> so every file is copied aside before it disappears:</p>
+<pre data-lang="bash" style="background-color:#2b2b2b;color:#e6e1dc;" class="language-bash"><code class="language-bash" data-lang="bash"><span style="color:#cc7833;">function</span> rm() {
+  <span style="color:#cc7833;">for</span> arg <span style="color:#cc7833;">in</span> <span style="color:#a5c261;">&quot;$@&quot;</span>; <span style="color:#cc7833;">do</span>
+    <span style="color:#cc7833;">if</span> [[ <span style="color:#a5c261;">&quot;$arg&quot;</span> != -* ]]; <span style="color:#cc7833;">then</span>
+      cp <span style="color:#a5c261;">&quot;$arg&quot;</span> <span style="color:#a5c261;">&quot;${TEST_DIRECTORY_RUNNING}/tmp/$(basename &quot;</span><span style="color:#d0d0ff;">$arg</span><span style="color:#a5c261;">&quot;).captured&quot;</span> || <span style="color:#cc7833;">return</span> 0
+    <span style="color:#cc7833;">fi</span>
+  <span style="color:#cc7833;">done</span>
+  <span style="color:#cc7833;">command</span> rm <span style="color:#a5c261;">&quot;$@&quot;</span>
+}
+</code></pre>
+<p>The script under test is unchanged. The test now asserts on how many temp files were created, what each contained at the moment of deletion, and which files survived. That is the shell equivalent of a spy, built out of two functions and a counter file.</p>
+<p>Anything bash can test, you can assert on: whether a file was created or updated, what a binary received, what a builtin returned.</p>
+<h2 id="what-else-is-worth-testing">What else is worth testing?<a class="anchor" href="#what-else-is-worth-testing" aria-label="Anchor link for: what-else-is-worth-testing">🔗</a></h2>
+<p>Once the mechanism is available, the range is wide. Beyond arguments and defaults, <a href="/tech-dives/bats-testing-bash-like-you-mean-it/">the BATS guide</a> works through shared setup in test helpers, asserting on JSON output, background processes, timeout behaviour, state machine transitions, time-dependent behaviour, and concurrent operations.</p>
+<p>Those last few are where shell integration testing earns its place. A CLI that spawns a daemon, waits on it, times out, and cleans up is exactly the thing unit tests in the implementation language cannot reach.</p>
+<h2 id="where-does-this-leave-the-argument">Where does this leave the argument?<a class="anchor" href="#where-does-this-leave-the-argument" aria-label="Anchor link for: where-does-this-leave-the-argument">🔗</a></h2>
+<p>"Shell scripts don't have tests" is a statement about habit, not capability. The tooling exists, it is TAP-compliant so it fits your CI, the mocking mechanism is the shell's own name resolution, and the tests read as the same language as the thing they test.</p>
+<p>There is a side benefit worth naming. One way to learn an unfamiliar codebase is to read its tests, because tests use a more common vocabulary than implementation and tend to be more literate. Shell scripts with tests are shell scripts a newcomer can actually understand.</p>
+<h2 id="related-reading">Related reading<a class="anchor" href="#related-reading" aria-label="Anchor link for: related-reading">🔗</a></h2>
+<ul><li><a href="/tech-dives/bats-testing-bash-like-you-mean-it/">BATS: Testing Bash Like You Mean It</a>, the full guide from installation to concurrency</li><li><a href="/tech-dives/test-anything-means-testing-bash/">TAPS: Not just a reporting protocol</a>, on TAP and a first BATS example</li><li><a href="/i-made-a-thing/the-magic-of-stubbing-sh/">The Magic of Stubbing sh</a>, hand-rolled spies for commands that hide their work</li><li><a href="/terms-and-afflictions/eula/">End User Languor Agreement</a>, on bespoke OS-specific bash and why CI-only scripts need verifying</li><li><a href="/devex/ci-cd/">CI Over CD</a>, on where testing sits in the delivery pipeline</li></ul>
+<p>Everything on this subject: <a href="/topics/shell-testing/">Shell Testing</a>, <a href="/topics/testing/">Testing</a></p>
+        <div class="discussion-footer">
+            <h3>Discussion</h3>
+            <p class="discussion-cta">
+                <a href="https://github.com/orgs/developmeh/discussions/58" target="_blank" rel="noopener" class="github-discussion-link">
+                    <svg class="github-logo" height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                    Discuss on GitHub
+                </a>
+            </p>
+        </div>
+        </div>
+    </article>
+    <nav aria-label="Site navigation">
+        <div class="nav-header">
+            <a class="brand" href="/">
+                <span class="brand-name">developmeh</span>
+                <span class="brand-tag">Develop &macr;\_(&#12484;)_/&macr;</span>
+            </a>
+            <a href="#" id="mobile" class="ms-Icon--GlobalNavButton" role="button" aria-label="Toggle navigation menu"></a>
+        </div>
+        <div id="trees">
+<input class="tree-toggle" type="checkbox" id="devex"><label class="tree-toggle-label" for="devex">Devex</label><ul class="subtree"><li><a href="/devex/ci-cd/">CI/CD</a></li><li><a href="/devex/copying-life/">Copying life</a></li><li><a href="/devex/the-perfect-dev-env/">The perfect dev env</a></li></ul><input class="tree-toggle" type="checkbox" id="i-made-a-thing"><label class="tree-toggle-label" for="i-made-a-thing">I made a thing</label><ul class="subtree"><li><a href="/i-made-a-thing/catalyst-orchestrator/">Catalyst orchestrator</a></li><li><a href="/i-made-a-thing/the-magic-of-stubbing-sh/">The magic of stubbing sh</a></li></ul><input class="tree-toggle" type="checkbox" id="projects"><label class="tree-toggle-label" for="projects">Projects</label><ul class="subtree"><li><a href="/projects/beamlet/">Beamlet</a></li><li><a href="/projects/kwike/">Kwike</a></li><li><a href="/projects/wavelet/">Wavelet</a></li></ul><input class="tree-toggle" type="checkbox" id="soft-wares"><label class="tree-toggle-label" for="soft-wares">Soft-wares</label><ul class="subtree"><li><a href="/soft-wares/the-good-sergeant/">The good sergeant</a></li><li><a href="/soft-wares/sufficient-complexity/">Sufficient complexity</a></li></ul><input class="tree-toggle" type="checkbox" id="tech-dives" checked><label class="tree-toggle-label" for="tech-dives">Tech dives</label><ul class="subtree"><li><a href="/tech-dives/testing-shell-scripts/">Testing shell scripts</a></li><li><a href="/tech-dives/judgement-capable-circuits/">Judgement-capable circuits</a></li></ul>
+        </div>
+    </nav>
+</main>
+</body>
+</html>

@@ -41,6 +41,10 @@ struct TextItem {
     size: f32,
     color: css_subset::Rgba,
     decoration: TextDecoration,
+    /// Product of the `opacity` of the open inline ancestors (fragments
+    /// and runs are flat siblings in the tree, so it cannot come from the
+    /// paint walk).
+    opacity: f32,
     metrics: FontMetricsPx,
     above: f32,
     below: f32,
@@ -246,12 +250,14 @@ impl<'a> Layouter<'a> {
         };
         let mut last_was_space = true;
         let mut decorations: Vec<TextDecoration> = vec![container.text_decoration];
+        let mut opacities: Vec<f32> = vec![1.0];
         let mut stack: Vec<Visit> = run.iter().rev().map(|&n| Visit::Node(n)).collect();
 
         while let Some(visit) = stack.pop() {
             let node = match visit {
                 Visit::Close => {
                     decorations.pop();
+                    opacities.pop();
                     ifc.items.push(Item::Close);
                     continue;
                 }
@@ -305,6 +311,7 @@ impl<'a> Layouter<'a> {
                             size: s.font_size,
                             color: s.color,
                             decoration,
+                            opacity: opacities.last().copied().unwrap_or(1.0),
                             metrics,
                             above,
                             below,
@@ -341,6 +348,8 @@ impl<'a> Layouter<'a> {
                         below,
                     }));
                     decorations.push(s.text_decoration);
+                    let parent_opacity = opacities.last().copied().unwrap_or(1.0);
+                    opacities.push(parent_opacity * s.opacity.clamp(0.0, 1.0));
                     stack.push(Visit::Close);
                     let kids: Vec<u32> = page.children(node).collect();
                     for &k in kids.iter().rev() {
@@ -419,6 +428,7 @@ impl<'a> Layouter<'a> {
         };
         let container_wraps = container.white_space.wraps();
         let mut pieces: Vec<Piece> = Vec::new();
+        let mut last_text_end = usize::MAX;
 
         for (ii, item) in ifc.items.iter().enumerate() {
             match item {
@@ -441,12 +451,18 @@ impl<'a> Layouter<'a> {
                     }
                     bounds.push(t.range.end);
                     // A break exactly at the item start belongs to the
-                    // previous piece.
-                    if let Some(prev) = pieces.last_mut() {
-                        if prev.break_after.is_none() {
-                            prev.break_after = break_at(t.range.start);
+                    // previous piece, unless the previous text item ended
+                    // at this very position and already claimed it (a
+                    // mandatory break would otherwise be counted twice
+                    // across an inline box boundary, e.g. `</span>\n<span>`).
+                    if t.range.start != last_text_end {
+                        if let Some(prev) = pieces.last_mut() {
+                            if prev.break_after.is_none() {
+                                prev.break_after = break_at(t.range.start);
+                            }
                         }
                     }
+                    last_text_end = t.range.end;
                     let glyphs = &ifc.glyphs[t.glyphs.clone()];
                     let mut gi = 0usize;
                     for w in bounds.windows(2) {
@@ -789,6 +805,7 @@ impl<'a> Layouter<'a> {
                             color: t.color,
                             baseline: t.metrics.ascent,
                             decoration: t.decoration,
+                            opacity: t.opacity,
                             metrics: t.metrics,
                             glyphs,
                         }),

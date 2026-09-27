@@ -18,7 +18,9 @@ pub trait ImplOf {
     /// The `SelectorImpl` parameter.
     type Impl;
 }
-impl<'i, I: parcel_selectors::SelectorImpl<'i>> ImplOf for parcel_selectors::parser::Selector<'i, I> {
+impl<'i, I: parcel_selectors::SelectorImpl<'i>> ImplOf
+    for parcel_selectors::parser::Selector<'i, I>
+{
     type Impl = I;
 }
 /// The `SelectorImpl` lightningcss selectors are parsed with.
@@ -182,8 +184,10 @@ impl<'i, 'd> Element<'i> for ElRef<'d> {
             PseudoClass::Disabled => {
                 is_form_control(self.tag()) && self.dom.attr(self.id, "disabled").is_some()
             }
-            PseudoClass::Checked => self.dom.attr(self.id, "checked").is_some()
-                || (self.tag() == "option" && self.dom.attr(self.id, "selected").is_some()),
+            PseudoClass::Checked => {
+                self.dom.attr(self.id, "checked").is_some()
+                    || (self.tag() == "option" && self.dom.attr(self.id, "selected").is_some())
+            }
             PseudoClass::Required => self.dom.attr(self.id, "required").is_some(),
             PseudoClass::Optional => {
                 is_form_control(self.tag()) && self.dom.attr(self.id, "required").is_none()
@@ -283,9 +287,14 @@ impl<'i, 'd> Element<'i> for ElRef<'d> {
 pub fn selector_supported(sel: &lightningcss::selector::Selector<'_>) -> bool {
     use parcel_selectors::parser::Component;
     sel.iter_raw_match_order().all(|c| match c {
-        Component::Has(_) | Component::Nesting | Component::Slotted(_) | Component::Part(_)
+        Component::Has(_)
+        | Component::Nesting
+        | Component::Slotted(_)
+        | Component::Part(_)
         | Component::Host(_) => false,
-        Component::Negation(list) | Component::Is(list) | Component::Where(list)
+        Component::Negation(list)
+        | Component::Is(list)
+        | Component::Where(list)
         | Component::Any(_, list) => list.iter().all(selector_supported),
         Component::NthOf(data) => data.selectors().iter().all(selector_supported),
         _ => true,

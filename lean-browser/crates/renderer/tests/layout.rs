@@ -90,7 +90,7 @@ fn blocks_with_margins_padding_borders_and_auto_centering() {
     let doc = Document::from_file(file, (400.0, 300.0), &fonts, &mut text);
 
     // Body's 8px margin collapses with A's 10px: A starts at y=10.
-    assert_eq!(doc.units().len(), 2);
+    assert_eq!(doc.unit_count(), 2);
     assert_eq!(doc.tops(), &[10.0, 94.0, 144.0]);
     assert_eq!(doc.content_height(), 300.0); // at least the viewport
     assert_eq!(doc.max_scroll(), 0.0);
@@ -259,7 +259,51 @@ fn units_intersecting_a_scrolled_viewport() {
     assert_eq!(doc.units_in(300.0, 450.0), 2..3);
     let tree = doc.layout_viewport(120.0, &fonts, &mut text);
     assert_eq!(tree.roots.len(), 2);
-    assert_rect!(box_of(&tree, doc.units()[1]).rect, 8.0, 108.0, 284.0, 100.0);
+    let second = doc.unit_nodes(1).next().unwrap();
+    assert_rect!(box_of(&tree, second).rect, 8.0, 108.0, 284.0, 100.0);
+}
+
+#[test]
+fn more_than_max_units_blocks_are_grouped_not_dropped() {
+    use renderer::document::MAX_UNITS;
+    let n = MAX_UNITS + 5;
+    let mut b = PageBuilder::new("about:test", 300, PageBuilder::ua_body());
+    for i in 0..n {
+        let h = 10.0 + (i % 3) as f32; // 10, 11, 12, ...
+        let mut s = block(|s| s.height = Length::px(h));
+        margins(&mut s, 4.0, 0.0, 6.0, 0.0); // sibling margins collapse to 6
+        b.leaf(NodeKind::Div, Role::Generic, s);
+    }
+    let file = b.build();
+    let fonts = no_fonts();
+    let mut text = TextEngine::default();
+    let doc = Document::from_file(file, (300.0, 150.0), &fonts, &mut text);
+    assert_eq!(doc.top_level_len(), n);
+    assert_eq!(doc.group(), 2);
+    assert_eq!(doc.unit_count(), n.div_ceil(2));
+    assert_eq!(doc.tops().len(), doc.unit_count() + 1);
+    // Every block is laid out: total height is the sum of all blocks plus
+    // the collapsed margins between them (body margin 8, first margin 8
+    // collapses with body's... body has no border, so 8 ∨ 4 = 8).
+    let heights: f32 = (0..n).map(|i| 10.0 + (i % 3) as f32).sum();
+    let expected = 8.0 + heights + 6.0 * (n as f32 - 1.0) + 8.0;
+    assert!(
+        (doc.content_height() - expected).abs() < 0.5,
+        "content {} expected {expected}",
+        doc.content_height()
+    );
+    assert_eq!(doc.tops()[0], 8.0);
+    // Unit 1 starts with block 2: 8 + 10 + 6 + 11 + 6.
+    assert_eq!(doc.tops()[1], 41.0);
+    // Both blocks of a visible unit are painted at the right places.
+    let tree = doc.layout_viewport(0.0, &fonts, &mut text);
+    let nodes: Vec<u32> = doc.unit_nodes(1).collect();
+    assert_eq!(nodes.len(), 2);
+    assert_rect!(box_of(&tree, nodes[0]).rect, 8.0, 41.0, 284.0, 12.0);
+    assert_rect!(box_of(&tree, nodes[1]).rect, 8.0, 59.0, 284.0, 10.0);
+    // A unit in the middle of the page is found by its top.
+    let mid = doc.tops()[100] + 1.0;
+    assert_eq!(doc.units_in(mid, mid + 1.0), 100..101);
 }
 
 #[test]
@@ -495,4 +539,103 @@ fn vertical_align_middle_image_in_text() {
     // A 30px top-aligned atomic stretches the 20px line to 30px.
     assert_rect!(box_of(&tree, p).rect, 0.0, 0.0, 300.0, 30.0);
     assert_rect!(box_of(&tree, img).rect, 0.0, 0.0, 10.0, 30.0);
+}
+
+#[test]
+fn max_width_clamped_block_centres_with_auto_margins() {
+    // A `width: auto` block whose fill width violates `max-width` re-runs
+    // the width rules with the clamped width (CSS 2.1 §10.4), so `auto`
+    // margins centre it instead of collapsing to zero.
+    let mut b = PageBuilder::new("about:test", 400, block(|_| {}));
+    let page = b.leaf(
+        NodeKind::Div,
+        Role::Generic,
+        block(|s| {
+            s.max_width = Length::px(200.0);
+            s.margin[Side::Left as usize] = Length::AUTO;
+            s.margin[Side::Right as usize] = Length::AUTO;
+            s.height = Length::px(10.0);
+        }),
+    );
+    let left = b.leaf(
+        NodeKind::Div,
+        Role::Generic,
+        block(|s| {
+            s.max_width = Length::px(200.0);
+            s.height = Length::px(10.0);
+        }),
+    );
+    let file = b.build();
+    let mut text = TextEngine::default();
+    let fonts = no_fonts();
+    let doc = Document::from_file(file, (400.0, 300.0), &fonts, &mut text);
+    let tree = doc.layout_viewport(0.0, &fonts, &mut text);
+    assert_rect!(box_of(&tree, page).rect, 100.0, 0.0, 200.0, 10.0);
+    assert_rect!(box_of(&tree, left).rect, 0.0, 10.0, 200.0, 10.0);
+}
+
+#[test]
+fn newline_across_an_inline_boundary_in_pre_breaks_once() {
+    // `<pre><span>a</span>\n<span>b</span></pre>`: the mandatory break
+    // after "\n" belongs to the text piece that ends there; the following
+    // inline box must not claim it again (that produced an empty line).
+    let Some(fonts) = system_fonts() else { return };
+    let mut text = TextEngine::default();
+    let mut b = PageBuilder::new("about:test", 300, block(|_| {}));
+    let pre_inline = inline(|s| s.white_space = css_subset::WhiteSpace::Pre);
+    let pre = b.open(
+        NodeKind::Pre,
+        Role::Code,
+        block(|s| {
+            s.white_space = css_subset::WhiteSpace::Pre;
+            s.line_height = Length::px(20.0);
+        }),
+    );
+    b.open(
+        NodeKind::Span,
+        Role::Generic,
+        inline(|s| {
+            s.white_space = css_subset::WhiteSpace::Pre;
+            s.color = Rgba::rgb(200, 0, 0);
+        }),
+    );
+    b.text("a", pre_inline);
+    b.close();
+    b.text("\n", pre_inline);
+    b.open(
+        NodeKind::Span,
+        Role::Generic,
+        inline(|s| {
+            s.white_space = css_subset::WhiteSpace::Pre;
+            s.color = Rgba::rgb(0, 0, 200);
+        }),
+    );
+    b.text("b", pre_inline);
+    b.close();
+    b.text("\n", pre_inline);
+    b.close();
+    let file = b.build();
+    let doc = Document::from_file(file, (300.0, 300.0), &fonts, &mut text);
+    let tree = doc.layout_viewport(0.0, &fonts, &mut text);
+    assert!(approx(box_of(&tree, pre).rect.h, 40.0), "{}", tree.dump());
+}
+
+#[test]
+fn inline_opacity_reaches_text_runs() {
+    let Some(fonts) = system_fonts() else { return };
+    let mut text = TextEngine::default();
+    let mut b = PageBuilder::new("about:test", 300, block(|_| {}));
+    b.open(NodeKind::P, Role::Paragraph, block(|_| {}));
+    b.open(NodeKind::Span, Role::Generic, inline(|s| s.opacity = 0.5));
+    let t = b.text("faded", inline(|_| {}));
+    b.close();
+    b.close();
+    let file = b.build();
+    let doc = Document::from_file(file, (300.0, 300.0), &fonts, &mut text);
+    let tree = doc.layout_viewport(0.0, &fonts, &mut text);
+    let run = box_of(&tree, t);
+    let BoxKind::Text(r) = &run.kind else {
+        panic!("{}", tree.dump())
+    };
+    assert!(approx(r.opacity, 0.5), "{}", tree.dump());
 }

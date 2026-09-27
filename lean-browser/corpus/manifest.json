@@ -1,0 +1,12 @@
+{
+  "pages": [
+    { "name": "block-inline", "file": "block-inline.html", "description": "block/inline formatting, borders, radius, inline-block, positioning" },
+    { "name": "lists", "file": "lists.html", "description": "ul/ol nesting, start/value/reversed, list-style none, dl" },
+    { "name": "pre-code", "file": "pre-code.html", "description": "pre/code with highlight spans, tabs, long lines, pre-wrap/pre-line" },
+    { "name": "images", "file": "images.html", "description": "tiny PNG (RGB, RGBA) and JPEG at natural/scaled sizes, missing image" },
+    { "name": "media-queries", "file": "media-queries.html", "description": "@media width ranges, fixed answers, custom properties, @supports, print sheet" },
+    { "name": "wrapper-soup", "file": "wrapper-soup.html", "description": "deep unstyled div/span nesting for compression pass 3/4/7" },
+    { "name": "blog-testing-shell-scripts", "file": "blog-testing-shell-scripts.html", "description": "developmeh.com post with code blocks (tech-dives/testing-shell-scripts.md)" },
+    { "name": "blog-the-good-sergeant", "file": "blog-the-good-sergeant.html", "description": "developmeh.com prose post (soft-wares/the-good-sergeant.md)" }
+  ]
+}

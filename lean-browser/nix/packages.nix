@@ -4,9 +4,16 @@
   perSystem =
     { config, ... }:
     let
-      inherit (config.lean) craneLib commonArgs cargoArtifacts;
+      inherit (config.lean)
+        craneLib
+        commonArgs
+        cargoArtifacts
+        cargoArtifactsWindow
+        ;
+      # The binaries need only the cargo sources; `--locked` keeps crane's
+      # default so a stale Cargo.lock fails instead of being rewritten.
       workspace = commonArgs // {
-        inherit cargoArtifacts;
+        src = config.lean.cargoSrc;
         doCheck = false; # tests run in checks.nix
       };
     in
@@ -17,7 +24,8 @@
         lean-browser = craneLib.buildPackage (
           workspace
           // {
-            cargoExtraArgs = "--workspace";
+            inherit cargoArtifacts;
+            cargoExtraArgs = "--locked --workspace";
           }
         );
 
@@ -26,7 +34,8 @@
           workspace
           // {
             pname = "lean-browser-window";
-            cargoExtraArgs = "--workspace --features renderer/window";
+            cargoArtifacts = cargoArtifactsWindow;
+            cargoExtraArgs = "--locked --workspace --features renderer/window";
           }
         );
 

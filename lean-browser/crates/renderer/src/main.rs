@@ -26,7 +26,7 @@ const USAGE: &str = "\
 usage: lean-browser [<page.lpg>] [--headless] [--paint-png <out.png>] [--viewport <WxH>]
                     [--dpr <n>] [--scroll-to <0..1> | --scroll <px>] [--page <page.lpg>]
                     [--font <file> | --font-dir <dir>] [--list-fonts] [--dump-boxes] [--stats]
-                    [--write-demo <page.lpg>]
+                    [--write-demo <page.lpg>] [--serve]
 
   <page.lpg> / --page   page file to map and validate (required to paint content)
   --headless            no window (the only mode without the `window` feature)
@@ -41,6 +41,12 @@ usage: lean-browser [<page.lpg>] [--headless] [--paint-png <out.png>] [--viewpor
   --dump-boxes          print the viewport layout tree to stderr
   --stats               print lean-alloc per-tag peaks to stderr at exit
   --write-demo <path>   write a demonstration page file (no loader needed) and exit
+  --serve               headless command loop on stdin for the harness (see below)
+
+serve commands, one per line, each answered on stdout with a line starting `ok` or `err`:
+  paint <fraction> <out.png>   paint the viewport scrolled to <fraction> of the range
+  stats                        print lean-alloc per-tag stats (`stat <tag> <live> <peak>` lines)
+  quit                         exit
 ";
 
 struct Options {
@@ -57,6 +63,7 @@ struct Options {
     dump_boxes: bool,
     stats: bool,
     write_demo: Option<PathBuf>,
+    serve: bool,
 }
 
 fn parse_args() -> Result<Options, String> {
@@ -74,12 +81,17 @@ fn parse_args() -> Result<Options, String> {
         dump_boxes: false,
         stats: false,
         write_demo: None,
+        serve: false,
     };
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
         match arg.as_str() {
             "--headless" => o.headless = true,
+            "--serve" => {
+                o.headless = true;
+                o.serve = true;
+            }
             "--stats" => o.stats = true,
             "--list-fonts" => o.list_fonts = true,
             "--dump-boxes" => o.dump_boxes = true,
@@ -118,6 +130,12 @@ fn parse_args() -> Result<Options, String> {
 }
 
 fn main() -> ExitCode {
+    // A transparent huge page turns a ~1 MB heap into 2 MB of Private_Dirty
+    // (the kernel may collapse the heap asynchronously, so the figure would
+    // also drift while the process is idle). The renderer never benefits
+    // from THP; opt out before the first allocation of any size.
+    let _ = rustix::thread::disable_transparent_huge_pages(true);
+    renderer::install_budgets();
     let opts = match parse_args() {
         Ok(o) => o,
         Err(msg) => {
@@ -169,13 +187,28 @@ fn run(opts: &Options) -> Result<(), String> {
             p.final_url.as_str(),
             p.nodes.len(),
             p.styles.len(),
-            d.units().len(),
+            d.unit_count(),
             d.content_height()
         );
     }
 
+    let mut strip = StripBuffer::new(opts.width * opts.dpr);
+    if opts.serve {
+        return serve(opts, doc.as_ref(), &fonts, &mut text, &mut strip);
+    }
     match (&opts.paint_png, opts.headless) {
-        (Some(out), _) => paint_png(opts, doc.as_ref(), &fonts, &mut text, out),
+        (Some(out), _) => {
+            let scroll_y = scroll_offset(opts, doc.as_ref());
+            paint_png(
+                opts,
+                doc.as_ref(),
+                &fonts,
+                &mut text,
+                &mut strip,
+                scroll_y,
+                out,
+            )
+        }
         (None, true) => Ok(()),
         (None, false) => window_mode(opts, doc, fonts, text),
     }
@@ -185,21 +218,94 @@ fn scroll_offset(opts: &Options, doc: Option<&Document>) -> f32 {
     let max = doc.map_or(0.0, Document::max_scroll);
     match (opts.scroll_px, opts.scroll_to) {
         (Some(px), _) => px.clamp(0.0, max),
-        (None, Some(f)) => (f.clamp(0.0, 1.0) * max).round(),
+        (None, Some(f)) => scroll_fraction(doc, f),
         (None, None) => 0.0,
     }
 }
 
+fn scroll_fraction(doc: Option<&Document>, f: f32) -> f32 {
+    let max = doc.map_or(0.0, Document::max_scroll);
+    (f.clamp(0.0, 1.0) * max).round()
+}
+
+/// The harness protocol (plan §9): the process stays alive between paints
+/// so `lean-measure` can sample `/proc/<pid>/smaps_rollup` after the last
+/// paint, exactly as a window would. Everything the paint needs (page map,
+/// fonts, shaping contexts, strip buffer) is allocated once, as in window
+/// mode; only the PNG encoder is per paint.
+fn serve(
+    opts: &Options,
+    doc: Option<&Document>,
+    fonts: &FontSet,
+    text: &mut TextEngine,
+    strip: &mut StripBuffer,
+) -> Result<(), String> {
+    use std::io::{BufRead, Write};
+    let stdin = std::io::stdin();
+    let mut out = std::io::stdout();
+    writeln!(out, "ok ready").map_err(|e| e.to_string())?;
+    out.flush().map_err(|e| e.to_string())?;
+    let mut line = String::new();
+    loop {
+        line.clear();
+        if stdin
+            .lock()
+            .read_line(&mut line)
+            .map_err(|e| e.to_string())?
+            == 0
+        {
+            return Ok(());
+        }
+        let mut words = line.split_whitespace();
+        let reply = match words.next() {
+            Some("paint") => {
+                let frac: Option<f32> = words.next().and_then(|v| v.parse().ok());
+                match (frac, words.next()) {
+                    (Some(f), Some(path)) => {
+                        let scroll_y = scroll_fraction(doc, f);
+                        let path = Path::new(path);
+                        match paint_png(opts, doc, fonts, text, strip, scroll_y, path) {
+                            Ok(()) => format!("ok painted {} at {scroll_y}", path.display()),
+                            Err(e) => format!("err {e}"),
+                        }
+                    }
+                    _ => "err usage: paint <fraction> <out.png>".to_string(),
+                }
+            }
+            Some("stats") => {
+                let snap = lean_alloc::snapshot();
+                let mut s = String::new();
+                for (tag, st) in snap.iter() {
+                    if st.peak > 0 || st.allocs > 0 {
+                        s.push_str(&format!("stat {} {} {}\n", tag.name(), st.live, st.peak));
+                    }
+                }
+                let t = snap.total();
+                s.push_str(&format!("stat total {} {}\nok stats", t.live, t.peak));
+                s
+            }
+            Some("quit") => return Ok(()),
+            Some(other) => format!("err unknown command {other}"),
+            None => continue,
+        };
+        writeln!(out, "{reply}").map_err(|e| e.to_string())?;
+        out.flush().map_err(|e| e.to_string())?;
+    }
+}
+
 /// Paints the viewport strip by strip into a PNG.
+#[allow(clippy::too_many_arguments)]
 fn paint_png(
     opts: &Options,
     doc: Option<&Document>,
     fonts: &FontSet,
     text: &mut TextEngine,
+    strip: &mut StripBuffer,
+    scroll_y: f32,
     out: &Path,
 ) -> Result<(), String> {
     let params = PaintParams {
-        scroll_y: scroll_offset(opts, doc),
+        scroll_y,
         viewport_w: opts.width as f32,
         viewport_h: opts.height as f32,
         dpr: opts.dpr as f32,
@@ -225,7 +331,6 @@ fn paint_png(
         .into_stream_writer_with_size(w as usize * 4)
         .map_err(|e| e.to_string())?;
 
-    let mut strip = StripBuffer::new(w);
     let empty = page_format::Page::empty("about:blank", opts.width as u16);
     let empty_bytes;
     let empty_file;
@@ -238,15 +343,9 @@ fn paint_png(
             empty_file.page()
         }
     };
-    paint_viewport(
-        page,
-        fonts,
-        text,
-        &tree,
-        &params,
-        &mut strip,
-        |bytes, _, _| std::io::Write::write_all(&mut writer, bytes).map_err(|e| e.to_string()),
-    )?;
+    paint_viewport(page, fonts, text, &tree, &params, strip, |bytes, _, _| {
+        std::io::Write::write_all(&mut writer, bytes).map_err(|e| e.to_string())
+    })?;
     drop(tree);
     writer.finish().map_err(|e| e.to_string())
 }

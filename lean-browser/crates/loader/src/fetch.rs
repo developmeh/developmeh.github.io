@@ -257,7 +257,11 @@ fn fetch_data(url: &Url, budget: usize) -> Result<Resource, FetchError> {
 }
 
 fn normalize_mime(s: &str) -> String {
-    s.split(';').next().unwrap_or("").trim().to_ascii_lowercase()
+    s.split(';')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase()
 }
 
 fn percent_decode(s: &str) -> Vec<u8> {
@@ -322,9 +326,7 @@ pub fn url_from_arg(arg: &str) -> Result<Url, FetchError> {
     let abs = if path.is_absolute() {
         path.to_path_buf()
     } else {
-        std::env::current_dir()
-            .map_err(FetchError::Io)?
-            .join(path)
+        std::env::current_dir().map_err(FetchError::Io)?.join(path)
     };
     Url::from_file_path(&abs).map_err(|_| FetchError::BadUrl(arg.to_string()))
 }
@@ -349,10 +351,7 @@ mod tests {
         assert_eq!(r.mime.as_deref(), Some("text/plain"));
         let u = Url::parse("data:,a%20b").unwrap();
         assert_eq!(fetch_data(&u, 1000).unwrap().bytes, b"a b");
-        assert!(matches!(
-            fetch_data(&u, 1),
-            Err(FetchError::TooLarge(_))
-        ));
+        assert!(matches!(fetch_data(&u, 1), Err(FetchError::TooLarge(_))));
     }
 
     #[test]
@@ -378,7 +377,10 @@ mod tests {
             max_subresources: 0,
             ..Limits::default()
         });
-        assert!(matches!(f.fetch_subresource(&url), Err(FetchError::TooMany)));
+        assert!(matches!(
+            f.fetch_subresource(&url),
+            Err(FetchError::TooMany)
+        ));
         let _ = std::fs::remove_dir_all(&dir);
     }
 

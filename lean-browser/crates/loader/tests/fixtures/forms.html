@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Forms</title>
+<style>
+  body { font-family: sans-serif }
+  label { display: block; margin: 4px 0 }
+  input[type="text"], textarea { width: 20em }
+  .hidden { display: none }
+</style>
+<h1>Sign up</h1>
+<form action="submit.php" method="post" id="signup">
+  <label for="name">Name</label>
+  <input id="name" name="name" type="text" placeholder="Your name">
+  <label>Email <input name="email" type="email"></label>
+  <label><input type="checkbox" name="news" checked> News</label>
+  <fieldset>
+    <legend>Plan</legend>
+    <label><input type="radio" name="plan" value="free" checked> Free</label>
+    <label><input type="radio" name="plan" value="pro"> Pro</label>
+  </fieldset>
+  <select name="tz"><option value="utc">UTC</option><option value="cet" selected>CET</option></select>
+  <textarea name="bio" rows="3">bio</textarea>
+  <input type="hidden" name="token" value="abc">
+  <input type="text" name="disabled" disabled>
+  <button type="submit">Create</button>
+  <button type="button" aria-label="Help">?</button>
+</form>
+<form action="/search"><input name="q" type="search"><input type="submit" value="Go"></form>
+<div class="hidden"><input name="ghost"></div>

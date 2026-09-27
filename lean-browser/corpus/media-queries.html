@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Media queries</title>
+<link rel="stylesheet" href="corpus.css">
+<link rel="stylesheet" href="corpus-print.css" media="print">
+<style>
+  :root { --pad: 8px; --accent: #1a5fb4; }
+  .card { padding: var(--pad); border: 1px solid var(--accent); margin: 8px 0; }
+  .card.status::after { content: " (base rule)"; color: #666; }
+  .narrow-only { display: none; }
+  .wide-only { display: block; background: #e6f0d8; }
+  @media (max-width: 600px) {
+    .narrow-only { display: block; }
+    .wide-only { display: none; }
+    .card { border-color: #c01c28; }
+  }
+  @media (min-width: 900px) {
+    :root { --pad: 20px; }
+    .card.status::after { content: " (min-width: 900px applied)"; }
+    .sidebar { float: none; width: auto; background: #eef3fa; padding: 12px; }
+  }
+  @media (min-width: 1200px) and (max-width: 1600px) {
+    .range { color: #1a5fb4; font-weight: bold; }
+  }
+  @media (min-width: 100em) { .huge { display: block } }
+  @media screen and (orientation: landscape) { .landscape { text-decoration: underline; } }
+  @media print { .print-only { display: block } }
+  @media (prefers-color-scheme: dark) { body { background: black; color: white } }
+  @media (hover: hover) { .hover-note::after { content: " hover: hover" } }
+  @media (hover: none) { .hover-note::after { content: " hover: none" } }
+  .huge, .print-only { display: none; }
+  @supports (display: grid) { .supports::after { content: " @supports grid: yes" } }
+  @supports not (display: flex) { .supports::after { content: " @supports flex: no" } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Media queries</h1>
+  <p class="wide-only">Visible only above 600px (the measurement viewport is 1280 wide).</p>
+  <p class="narrow-only">Visible only at or below 600px; must not appear.</p>
+  <div class="card status">Card padding comes from a custom property overridden at min-width: 900px.</div>
+  <div class="sidebar">The "sidebar" is a plain block at wide widths.</div>
+  <p class="range">Bold blue between 1200 and 1600 px wide.</p>
+  <p class="landscape">Underlined in landscape orientation.</p>
+  <p class="hover-note">Fixed media answers:</p>
+  <p class="supports">Supports queries:</p>
+  <p class="huge">Only at 100em (1600px) and up; must not appear.</p>
+  <p class="print-only">Print only; must not appear on screen.</p>
+  <footer>Corpus page 5 of 8 · media queries and custom properties.</footer>
+</div>
+</body>
+</html>

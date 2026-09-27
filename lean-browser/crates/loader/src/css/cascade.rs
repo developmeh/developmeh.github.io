@@ -183,9 +183,9 @@ impl<'a, 'i> Cascade<'a, 'i> {
     pub fn compute(&mut self, id: NodeId, parent: &Inherited<'i>) -> (NodeStyle, ElementCtx<'i>) {
         let dom = self.dom;
         let tag = dom.tag(id).unwrap_or("");
-        let candidates = self
-            .rules
-            .candidates(tag, dom.attr(id, "id"), dom.attr(id, "class").unwrap_or(""));
+        let candidates =
+            self.rules
+                .candidates(tag, dom.attr(id, "id"), dom.attr(id, "class").unwrap_or(""));
 
         // Selector matching.
         let mut matched: Vec<&Rule<'a, 'i>> = Vec::new();
@@ -198,8 +198,12 @@ impl<'a, 'i> Cascade<'a, 'i> {
         };
         let el = ElRef::new(dom, id);
         {
-            let mut ctx =
-                MatchingContext::new(MatchingMode::Normal, None, Some(&mut self.nth_cache), quirks);
+            let mut ctx = MatchingContext::new(
+                MatchingMode::Normal,
+                None,
+                Some(&mut self.nth_cache),
+                quirks,
+            );
             for rule in candidates.iter().filter(|r| r.pseudo.is_none()) {
                 if matches_selector(rule.selector, 0, None, &el, &mut ctx, &mut |_, _| {}) {
                     matched.push(rule);
@@ -246,10 +250,20 @@ impl<'a, 'i> Cascade<'a, 'i> {
                 Origin::Author => (Level::AuthorNormal, Level::AuthorImportant),
             };
             decls.extend(rule.decls.declarations.iter().map(|p| (normal, p)));
-            decls.extend(rule.decls.important_declarations.iter().map(|p| (important, p)));
+            decls.extend(
+                rule.decls
+                    .important_declarations
+                    .iter()
+                    .map(|p| (important, p)),
+            );
         }
         if let Some(s) = &style_attr {
-            decls.extend(s.declarations.declarations.iter().map(|p| (Level::StyleAttr, p)));
+            decls.extend(
+                s.declarations
+                    .declarations
+                    .iter()
+                    .map(|p| (Level::StyleAttr, p)),
+            );
             decls.extend(
                 s.declarations
                     .important_declarations
@@ -278,7 +292,12 @@ impl<'a, 'i> Cascade<'a, 'i> {
                     Origin::Author => (Level::AuthorNormal, Level::AuthorImportant),
                 };
                 decls.extend(rule.decls.declarations.iter().map(|p| (normal, p)));
-                decls.extend(rule.decls.important_declarations.iter().map(|p| (important, p)));
+                decls.extend(
+                    rule.decls
+                        .important_declarations
+                        .iter()
+                        .map(|p| (important, p)),
+                );
             }
             decls.sort_by_key(|(level, _)| *level);
             let content = generated_content(&decls, dom, id, &own.ctx)?;
@@ -349,8 +368,12 @@ impl<'a, 'i> Cascade<'a, 'i> {
             vh: self.vp.height,
         };
         each(&mut |p| match p {
-            Property::FontSize(fs) => font_size = values::font_size(fs, parent_style.font_size, &fs_ctx),
-            Property::Font(f) => font_size = values::font_size(&f.size, parent_style.font_size, &fs_ctx),
+            Property::FontSize(fs) => {
+                font_size = values::font_size(fs, parent_style.font_size, &fs_ctx)
+            }
+            Property::Font(f) => {
+                font_size = values::font_size(&f.size, parent_style.font_size, &fs_ctx)
+            }
             Property::Unparsed(u) => {
                 let name = u.property_id.name();
                 if name != "font-size" && name != "font" {
@@ -367,7 +390,8 @@ impl<'a, 'i> Cascade<'a, 'i> {
                                 font_size = values::font_size(fs, parent_style.font_size, &fs_ctx)
                             }
                             Some(Property::Font(f)) => {
-                                font_size = values::font_size(&f.size, parent_style.font_size, &fs_ctx)
+                                font_size =
+                                    values::font_size(&f.size, parent_style.font_size, &fs_ctx)
                             }
                             _ => {}
                         });
@@ -415,7 +439,10 @@ impl<'a, 'i> Cascade<'a, 'i> {
             };
         }
         // The root element is always a block container.
-        if pseudo_parent.is_none() && self.dom.nodes[id].parent == Some(0) && st.display != Display::None {
+        if pseudo_parent.is_none()
+            && self.dom.nodes[id].parent == Some(0)
+            && st.display != Display::None
+        {
             st.display = Display::Block;
         }
 
@@ -521,7 +548,11 @@ const MAX_VAR_DEPTH: u8 = 16;
 
 /// Substitutes `var()` references in `list`. `None` if a reference has no
 /// value and no fallback (the declaration is invalid at computed-value time).
-fn substitute<'i>(list: &TokenList<'i>, custom: &CustomMap<'i>, depth: u8) -> Option<TokenList<'i>> {
+fn substitute<'i>(
+    list: &TokenList<'i>,
+    custom: &CustomMap<'i>,
+    depth: u8,
+) -> Option<TokenList<'i>> {
     if depth > MAX_VAR_DEPTH {
         return None;
     }
@@ -599,8 +630,12 @@ fn generated_content<'i>(
     let mut content: Option<String> = None;
     for (_, p) in decls {
         let tokens = match p {
-            Property::Custom(c) if c.name.as_ref().eq_ignore_ascii_case("content") => substitute(&c.value, &ctx.custom, 0),
-            Property::Unparsed(u) if u.property_id.name() == "content" => substitute(&u.value, &ctx.custom, 0),
+            Property::Custom(c) if c.name.as_ref().eq_ignore_ascii_case("content") => {
+                substitute(&c.value, &ctx.custom, 0)
+            }
+            Property::Unparsed(u) if u.property_id.name() == "content" => {
+                substitute(&u.value, &ctx.custom, 0)
+            }
             _ => continue,
         };
         let Some(tokens) = tokens else {
@@ -644,22 +679,25 @@ fn generated_content<'i>(
 fn presentational_hints(dom: &Dom, id: NodeId) -> Option<String> {
     let tag = dom.tag(id)?;
     let mut css = String::new();
-    let dim = |v: &str| -> Option<String> {
+    fn dim(v: &str) -> Option<String> {
         let v = v.trim();
         if let Some(p) = v.strip_suffix('%') {
             p.trim().parse::<f32>().ok().map(|n| format!("{n}%"))
         } else {
-            let digits: String = v.chars().take_while(|c| c.is_ascii_digit() || *c == '.').collect();
+            let digits: String = v
+                .chars()
+                .take_while(|c| c.is_ascii_digit() || *c == '.')
+                .collect();
             digits.parse::<f32>().ok().map(|n| format!("{n}px"))
         }
-    };
+    }
     match tag {
-        "img" | "iframe" | "video" | "canvas" | "object" | "embed" | "table" | "td" | "th" | "hr"
-        | "col" => {
-            if let Some(w) = dom.attr(id, "width").and_then(|v| dim(v)) {
+        "img" | "iframe" | "video" | "canvas" | "object" | "embed" | "table" | "td" | "th"
+        | "hr" | "col" => {
+            if let Some(w) = dom.attr(id, "width").and_then(dim) {
                 css.push_str(&format!("width:{w};"));
             }
-            if let Some(h) = dom.attr(id, "height").and_then(|v| dim(v)) {
+            if let Some(h) = dom.attr(id, "height").and_then(dim) {
                 css.push_str(&format!("height:{h};"));
             }
         }
@@ -667,8 +705,20 @@ fn presentational_hints(dom: &Dom, id: NodeId) -> Option<String> {
     }
     if matches!(
         tag,
-        "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "td" | "th" | "tr" | "caption"
-            | "thead" | "tbody" | "tfoot"
+        "p" | "div"
+            | "h1"
+            | "h2"
+            | "h3"
+            | "h4"
+            | "h5"
+            | "h6"
+            | "td"
+            | "th"
+            | "tr"
+            | "caption"
+            | "thead"
+            | "tbody"
+            | "tfoot"
     ) {
         if let Some(align) = dom.attr(id, "align") {
             match align.trim().to_ascii_lowercase().as_str() {
@@ -762,27 +812,33 @@ mod tests {
 
     #[test]
     fn ua_and_inheritance() {
-        with_cascade("<body><h1>T</h1><p>x<b>y</b></p><pre>z</pre><a href=#>l</a>", "", |dom, c| {
-            let body = style_of(dom, c, "body");
-            assert_eq!(body.display, Display::Block);
-            assert_eq!(body.margin[0], Length::px(8.0));
-            assert_eq!(body.font_family, FontFamily::Serif);
-            let h1 = style_of(dom, c, "h1");
-            assert_eq!(h1.font_size, 32.0);
-            assert_eq!(h1.font_weight, FontWeight::Bold);
-            assert_eq!(h1.margin[0], Length::px(0.67 * 32.0));
-            let b = style_of(dom, c, "b");
-            assert_eq!(b.font_weight, FontWeight::Bold);
-            assert_eq!(b.display, Display::Inline);
-            let pre = style_of(dom, c, "pre");
-            assert_eq!(pre.white_space, WhiteSpace::Pre);
-            assert_eq!(pre.font_family, FontFamily::Mono);
-            let a = style_of(dom, c, "a");
-            assert_eq!(a.color, Rgba::rgb(0, 0, 0xee));
-            assert!(a.text_decoration.contains(css_subset::TextDecoration::UNDERLINE));
-            let html = style_of(dom, c, "html");
-            assert_eq!(html.display, Display::Block);
-        });
+        with_cascade(
+            "<body><h1>T</h1><p>x<b>y</b></p><pre>z</pre><a href=#>l</a>",
+            "",
+            |dom, c| {
+                let body = style_of(dom, c, "body");
+                assert_eq!(body.display, Display::Block);
+                assert_eq!(body.margin[0], Length::px(8.0));
+                assert_eq!(body.font_family, FontFamily::Serif);
+                let h1 = style_of(dom, c, "h1");
+                assert_eq!(h1.font_size, 32.0);
+                assert_eq!(h1.font_weight, FontWeight::Bold);
+                assert_eq!(h1.margin[0], Length::px(0.67 * 32.0));
+                let b = style_of(dom, c, "b");
+                assert_eq!(b.font_weight, FontWeight::Bold);
+                assert_eq!(b.display, Display::Inline);
+                let pre = style_of(dom, c, "pre");
+                assert_eq!(pre.white_space, WhiteSpace::Pre);
+                assert_eq!(pre.font_family, FontFamily::Mono);
+                let a = style_of(dom, c, "a");
+                assert_eq!(a.color, Rgba::rgb(0, 0, 0xee));
+                assert!(a
+                    .text_decoration
+                    .contains(css_subset::TextDecoration::UNDERLINE));
+                let html = style_of(dom, c, "html");
+                assert_eq!(html.display, Display::Block);
+            },
+        );
     }
 
     #[test]
@@ -800,12 +856,20 @@ mod tests {
                 assert_eq!(style_of(dom, c, "em").text_align, TextAlign::Center);
             },
         );
-        with_cascade("<p id=i class=c style='color: pink'>x</p>", "p{color:red} .c{color:blue} #i{color:green}", |dom, c| {
-            assert_eq!(style_of(dom, c, "p").color, Rgba::rgb(255, 192, 203));
-        });
-        with_cascade("<p id=i class=c>x</p>", "p{color:red} .c{color:blue} #i{color:green}", |dom, c| {
-            assert_eq!(style_of(dom, c, "p").color, Rgba::rgb(0, 128, 0));
-        });
+        with_cascade(
+            "<p id=i class=c style='color: pink'>x</p>",
+            "p{color:red} .c{color:blue} #i{color:green}",
+            |dom, c| {
+                assert_eq!(style_of(dom, c, "p").color, Rgba::rgb(255, 192, 203));
+            },
+        );
+        with_cascade(
+            "<p id=i class=c>x</p>",
+            "p{color:red} .c{color:blue} #i{color:green}",
+            |dom, c| {
+                assert_eq!(style_of(dom, c, "p").color, Rgba::rgb(0, 128, 0));
+            },
+        );
     }
 
     #[test]
@@ -902,17 +966,21 @@ mod tests {
 
     #[test]
     fn compute_is_pure() {
-        with_cascade("<div><p>x</p></div>", "div { font-size: 20px } p { margin: 1em }", |dom, c| {
-            let p = dom.find_first("p").unwrap();
-            let div = dom.find_first("div").unwrap();
-            let expected = c.styles[p].clone().unwrap();
-            // Recompute against the parent's stored context.
-            let parent = c.inherited_of(div).unwrap();
-            let mut again = Cascade::new(c.dom, c.rules, c.vp);
-            again.root_font_size = c.root_font_size;
-            let (ns, _) = again.compute(p, &parent);
-            assert_eq!(ns, expected);
-            assert_eq!(ns.style.margin[0], Length::px(20.0));
-        });
+        with_cascade(
+            "<div><p>x</p></div>",
+            "div { font-size: 20px } p { margin: 1em }",
+            |dom, c| {
+                let p = dom.find_first("p").unwrap();
+                let div = dom.find_first("div").unwrap();
+                let expected = c.styles[p].clone().unwrap();
+                // Recompute against the parent's stored context.
+                let parent = c.inherited_of(div).unwrap();
+                let mut again = Cascade::new(c.dom, c.rules, c.vp);
+                again.root_font_size = c.root_font_size;
+                let (ns, _) = again.compute(p, &parent);
+                assert_eq!(ns, expected);
+                assert_eq!(ns.style.margin[0], Length::px(20.0));
+            },
+        );
     }
 }

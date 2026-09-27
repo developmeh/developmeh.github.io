@@ -2,8 +2,11 @@
 //!
 //! The document keeps exactly one `f32` per scrollbar unit (the top edge of
 //! the unit's border box in page coordinates, plus one sentinel for the end
-//! of the content). Everything else is recomputed per paint from the
-//! read-only page file.
+//! of the content). A unit is a run of `group` consecutive top-level
+//! blocks: `group` is 1 until a page has more than [`MAX_UNITS`] top-level
+//! blocks, after which adjacent blocks share a unit so `tops[]` stays
+//! under its 64 KB cap without dropping any block. Everything else is
+//! recomputed per paint from the read-only page file.
 
 use std::ops::Range;
 use std::path::Path;
@@ -22,9 +25,13 @@ pub const MAX_UNITS: usize = 16 * 1024;
 /// A validated page ready for viewport layout.
 pub struct Document {
     file: PageFile,
-    units: Vec<u32>,
-    /// `tops[i]` is the border-box top of unit `i`; `tops[units.len()]` is
-    /// the bottom of the content.
+    /// Top-level blocks when the page file does not list them
+    /// (`Page.top_level` empty): the body's block children, else the body.
+    derived: Option<Vec<u32>>,
+    /// Consecutive top-level blocks per scrollbar unit (≥ 1).
+    group: usize,
+    /// `tops[i]` is the border-box top of unit `i`; `tops[unit_count()]`
+    /// is the bottom of the content.
     tops: Vec<f32>,
     /// Content box of the units' parent (usually `<body>`): `(x, width)`.
     unit_cb: (f32, f32),
@@ -57,7 +64,8 @@ impl Document {
     ) -> Document {
         let mut doc = Document {
             file,
-            units: Vec::new(),
+            derived: None,
+            group: 1,
             tops: Vec::new(),
             unit_cb: (0.0, viewport.0),
             viewport,
@@ -74,9 +82,39 @@ impl Document {
         self.file.page()
     }
 
-    /// Scrollbar units (node indices).
-    pub fn units(&self) -> &[u32] {
-        &self.units
+    /// Number of top-level blocks (before grouping).
+    pub fn top_level_len(&self) -> usize {
+        match &self.derived {
+            Some(v) => v.len(),
+            None => self.page().top_level.len(),
+        }
+    }
+
+    /// Node index of top-level block `i`.
+    fn top_level_node(&self, i: usize) -> u32 {
+        match &self.derived {
+            Some(v) => v[i],
+            None => self.page().top_level[i].to_native(),
+        }
+    }
+
+    /// Number of scrollbar units.
+    pub fn unit_count(&self) -> usize {
+        self.top_level_len().div_ceil(self.group.max(1))
+    }
+
+    /// Top-level blocks per unit (1 unless the page has more than
+    /// [`MAX_UNITS`] top-level blocks).
+    pub fn group(&self) -> usize {
+        self.group
+    }
+
+    /// Node indices of the top-level blocks in unit `i`, in document
+    /// order.
+    pub fn unit_nodes(&self, i: usize) -> impl Iterator<Item = u32> + '_ {
+        let start = i * self.group;
+        let end = (start + self.group).min(self.top_level_len());
+        (start..end).map(move |k| self.top_level_node(k))
     }
 
     /// Top edges per unit plus the end sentinel.
@@ -118,8 +156,7 @@ impl Document {
 
     fn find_units(&mut self) {
         let page = self.page();
-        let mut units: Vec<u32> = page.top_level.iter().map(|u| u.to_native()).collect();
-        if units.is_empty() {
+        if page.top_level.is_empty() {
             let body = self.body();
             let children: Vec<u32> = page.children(body).collect();
             let all_blocks = !children.is_empty()
@@ -128,20 +165,18 @@ impl Document {
                     let d = page.styles[n.style.to_native() as usize].display;
                     d.is_block_level() || d == css_subset::Display::None
                 });
-            units = if all_blocks {
+            let derived = if all_blocks {
                 children
             } else if page.nodes.len() > 1 {
                 vec![body]
             } else {
                 Vec::new()
             };
+            self.derived = Some(derived);
         }
-        // Plan §7: group into at most MAX_UNITS scrollbar units.
-        if units.len() > MAX_UNITS {
-            let step = units.len().div_ceil(MAX_UNITS);
-            units = units.iter().step_by(step).copied().collect();
-        }
-        self.units = units;
+        // Plan §7: at most MAX_UNITS scrollbar units; beyond that, adjacent
+        // blocks share a unit (every block is still laid out and painted).
+        self.group = self.top_level_len().div_ceil(MAX_UNITS).max(1);
     }
 
     fn compute_background(&self) -> Rgba {
@@ -164,9 +199,10 @@ impl Document {
     /// Ancestors of the units from the root down to their parent.
     fn ancestor_chain(&self) -> Vec<u32> {
         let page = self.page();
-        let Some(&first) = self.units.first() else {
+        if self.top_level_len() == 0 {
             return Vec::new();
-        };
+        }
+        let first = self.top_level_node(0);
         let mut chain = Vec::new();
         let mut a = page.nodes[first as usize].parent.to_native();
         while a != NONE {
@@ -177,11 +213,51 @@ impl Document {
         chain
     }
 
+    /// Lays out the blocks of unit `i` as a block flow. The first block's
+    /// top margin collapses with `pending` (with `None` the first block's
+    /// border box sits exactly at `y`, as `layout_viewport` needs). Returns
+    /// the first block's border-box top, the unit's bottom edge and the
+    /// margin left pending below its last block. With `keep_tree` false
+    /// every block's transient tree is dropped right away (plan §7).
+    fn layout_group(
+        &self,
+        layouter: &mut Layouter<'_>,
+        i: usize,
+        y: f32,
+        pending: Option<f32>,
+        keep_tree: bool,
+    ) -> (f32, f32, f32) {
+        let (x, w) = self.unit_cb;
+        let mut y = y;
+        let mut pending = pending;
+        let mut first_top = y;
+        for (k, u) in self.unit_nodes(i).enumerate() {
+            let r = layouter.layout_unit(u, ContainingBlock::new(x, y, w, None));
+            let dy = match pending {
+                Some(p) => collapse_margins(p, r.margin_top),
+                None => 0.0,
+            };
+            if keep_tree {
+                if r.idx != NONE {
+                    let end = layouter.tree.boxes.len() as u32;
+                    layouter.tree.shift_range(r.idx, end, 0.0, dy);
+                }
+            } else {
+                layouter.tree = LayoutTree::default();
+            }
+            if k == 0 {
+                first_top = y + dy;
+            }
+            y += dy + r.height;
+            pending = Some(r.margin_bottom);
+        }
+        (first_top, y, pending.unwrap_or(0.0))
+    }
+
     /// Recomputes `tops[]` for a new viewport (or after a font change).
     pub fn relayout(&mut self, viewport: (f32, f32), fonts: &FontSet, text: &mut TextEngine) {
         self.viewport = viewport;
         let page = self.file.page();
-        let units = self.units.clone();
         let chain = self.ancestor_chain();
         let mut layouter = Layouter::new(page, fonts, text, viewport.0, viewport.1);
 
@@ -225,18 +301,19 @@ impl Document {
         }
         self.unit_cb = (x, w);
 
+        let n = self.unit_count();
         let mut tops = {
             let _tag = scope(Tag::PageFile);
-            Vec::with_capacity(units.len() + 1)
+            Vec::with_capacity(n + 1)
         };
-        for &u in &units {
-            let r = layouter.layout_unit(u, ContainingBlock::new(x, y, w, None));
-            // Drop the unit's transient tree right away (plan §7).
-            layouter.tree = LayoutTree::default();
-            let dy = collapse_margins(pending, r.margin_top);
-            tops.push(y + dy);
-            y += dy + r.height;
-            pending = r.margin_bottom;
+        for i in 0..n {
+            // The unit's top is its first block's border-box top: the
+            // pending margin collapses with that block's top margin.
+            let (top, bottom, last_margin) =
+                self.layout_group(&mut layouter, i, y, Some(pending), false);
+            tops.push(top);
+            y = bottom;
+            pending = last_margin;
         }
         for &(edge, margin) in bottoms.iter().rev() {
             pending = collapse_margins(pending, margin);
@@ -252,7 +329,7 @@ impl Document {
 
     /// Indices of the units intersecting `[y0, y1)` in page coordinates.
     pub fn units_in(&self, y0: f32, y1: f32) -> Range<usize> {
-        let n = self.units.len();
+        let n = self.unit_count();
         if n == 0 {
             return 0..0;
         }
@@ -273,10 +350,8 @@ impl Document {
         let _tag = scope(Tag::Layout);
         let page = self.file.page();
         let mut layouter = Layouter::new(page, fonts, text, self.viewport.0, self.viewport.1);
-        let (x, w) = self.unit_cb;
         for i in self.units_in(scroll_y, scroll_y + self.viewport.1) {
-            let u = self.units[i];
-            layouter.layout_unit(u, ContainingBlock::new(x, self.tops[i], w, None));
+            self.layout_group(&mut layouter, i, self.tops[i], None, true);
         }
         layouter.finish()
     }

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>A post with code · developmeh</title>
+  <meta name="description" content="fixture">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css" media="print">
+  <style>
+    :root { --accent: #2a7ae2; --gutter: 1.25rem; }
+    .post-meta { color: var(--muted, #666); font-size: 0.9em; }
+    @media (max-width: 720px) { .sidebar { display: none } .content { width: 100% } }
+    @media (min-width: 1100px) { .content { max-width: 60rem } }
+    @supports (display: grid) { .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem } }
+  </style>
+  <script>window.dataLayer = [];</script>
+</head>
+<body class="page">
+  <header class="site-header">
+    <nav aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/devex/">Devex</a>
+      <a href="../tags/index.html" class="active">Tags</a>
+    </nav>
+  </header>
+  <div class="wrapper">
+    <div class="inner">
+      <main class="content">
+        <article>
+          <h1 id="title">A post <em>with</em> code</h1>
+          <p class="post-meta">Posted <time datetime="2026-01-01">January 1</time> by <span class="author">Paul</span></p>
+          <p>Some <strong>strong</strong> and <a href="#title">anchor</a> text, with an <abbr title="Hypertext">HT</abbr> abbreviation
+             and a very long sentence that should be one text run once the wrapper spans without any styling are
+             collapsed away by <span>pass</span> <span>three</span>.</p>
+          <pre class="z-code"><code class="language-rust"><span class="z-keyword">fn</span> <span class="z-function">main</span>() {
+    <span class="z-macro">println!</span>(<span class="z-string">"hi"</span>);
+}
+</code></pre>
+          <ul class="list">
+            <li>first</li>
+            <li>second <a href="https://example.test/">external</a></li>
+            <li><ul><li>nested</li></ul></li>
+          </ul>
+          <ol start="3"><li>three</li><li>four</li></ol>
+          <figure><img src="dot.png" alt="A dot" width="8" height="8"><figcaption>A caption</figcaption></figure>
+          <img src="missing.gif" alt="" width="20" height="10">
+          <blockquote><p>Quoted <i>text</i>.</p></blockquote>
+          <div class="grid"><div>a</div><div>b</div></div>
+          <table>
+            <thead><tr><th>Key</th><th>Value</th></tr></thead>
+            <tbody><tr><td>k</td><td colspan="2">v</td></tr></tbody>
+          </table>
+          <details><summary>More</summary><p>hidden until opened</p></details>
+        </article>
+      </main>
+      <aside class="sidebar"><h2>Sidebar</h2><p>side</p></aside>
+    </div>
+  </div>
+  <footer class="site-footer"><p>© 2026 <a href="mailto:x@example.test">mail</a></p></footer>
+  <noscript><p class="ns">Enable JS</p></noscript>
+</body>
+</html>

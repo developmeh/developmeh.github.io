@@ -1,0 +1,5 @@
+:root { --muted: #666; }
+.inner { flex-wrap: wrap; }
+@media (max-width: 900px) { .inner { display: block } }
+@font-face { font-family: "Inter"; src: url(inter.woff2); }
+@keyframes fade { from { opacity: 0 } to { opacity: 1 } }

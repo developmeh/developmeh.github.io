@@ -20,9 +20,9 @@ use lightningcss::properties::display::{
     Display as LDisplay, DisplayInside, DisplayKeyword, DisplayOutside, Visibility as LVisibility,
 };
 use lightningcss::properties::font::{
-    AbsoluteFontSize, AbsoluteFontWeight, FontFamily as LFontFamily, FontSize, FontStyle as LFontStyle,
-    FontWeight as LFontWeight, GenericFontFamily, LineHeight, VerticalAlign as LVerticalAlign,
-    VerticalAlignKeyword,
+    AbsoluteFontSize, AbsoluteFontWeight, FontFamily as LFontFamily, FontSize,
+    FontStyle as LFontStyle, FontWeight as LFontWeight, GenericFontFamily, LineHeight,
+    VerticalAlign as LVerticalAlign, VerticalAlignKeyword,
 };
 use lightningcss::properties::grid::{
     GridLine as LGridLine, RepeatCount, TrackBreadth, TrackListItem, TrackSize as LTrackSize,
@@ -39,10 +39,10 @@ use lightningcss::properties::text::{
     WordBreak as LWordBreak,
 };
 use lightningcss::properties::{custom::TokenOrValue, Property};
+use lightningcss::traits::ToCss;
 use lightningcss::values::calc::{Calc, MathFunction};
 use lightningcss::values::color::CssColor;
 use lightningcss::values::length::{LengthPercentage, LengthPercentageOrAuto, LengthValue};
-use lightningcss::traits::ToCss;
 use lightningcss::values::percentage::DimensionPercentage;
 
 /// Font-relative context for resolving lengths.
@@ -185,7 +185,8 @@ fn eval_calc(c: &Calc<LengthPercentage>, ctx: &LenCtx) -> Option<(f32, f32)> {
         Calc::Function(f) => match &**f {
             MathFunction::Calc(inner) => eval_calc(inner, ctx),
             MathFunction::Min(list) | MathFunction::Max(list) => {
-                let vals: Option<Vec<(f32, f32)>> = list.iter().map(|c| eval_calc(c, ctx)).collect();
+                let vals: Option<Vec<(f32, f32)>> =
+                    list.iter().map(|c| eval_calc(c, ctx)).collect();
                 let vals = vals?;
                 // Only comparable when every operand is in the same unit.
                 let all_px = vals.iter().all(|v| v.1 == 0.0);
@@ -271,9 +272,7 @@ fn border_side_width(w: &BorderSideWidth, ctx: &LenCtx) -> f32 {
         BorderSideWidth::Medium => 3.0,
         BorderSideWidth::Thick => 5.0,
         BorderSideWidth::Length(l) => match l {
-            lightningcss::values::length::Length::Value(v) => {
-                calc_px(length_value(v, ctx), ctx)
-            }
+            lightningcss::values::length::Length::Value(v) => calc_px(length_value(v, ctx), ctx),
             lightningcss::values::length::Length::Calc(_) => 3.0,
         },
     }
@@ -297,7 +296,9 @@ pub fn color(c: &CssColor) -> Option<Rgba> {
         CssColor::CurrentColor => None,
         CssColor::LightDark(light, _) => color(light),
         other => match other.to_rgb() {
-            Ok(CssColor::RGBA(rgba)) => Some(Rgba::new(rgba.red, rgba.green, rgba.blue, rgba.alpha)),
+            Ok(CssColor::RGBA(rgba)) => {
+                Some(Rgba::new(rgba.red, rgba.green, rgba.blue, rgba.alpha))
+            }
             _ => None,
         },
     }
@@ -347,7 +348,9 @@ pub fn font_family(list: &[LFontFamily<'_>]) -> FontFamily {
             LFontFamily::Generic(g) => {
                 return match g {
                     GenericFontFamily::Serif | GenericFontFamily::UISerif => FontFamily::Serif,
-                    GenericFontFamily::Monospace | GenericFontFamily::UIMonospace => FontFamily::Mono,
+                    GenericFontFamily::Monospace | GenericFontFamily::UIMonospace => {
+                        FontFamily::Mono
+                    }
                     _ => FontFamily::Sans,
                 }
             }
@@ -365,28 +368,83 @@ pub fn font_family(list: &[LFontFamily<'_>]) -> FontFamily {
 fn family_by_name(name: &str) -> Option<FontFamily> {
     let n = name.to_ascii_lowercase();
     const MONO: &[&str] = &[
-        "mono", "courier", "consolas", "menlo", "monaco", "fira code", "source code", "jetbrains",
-        "cascadia", "inconsolata", "ubuntu mono", "sf mono", "hack", "iosevka",
+        "mono",
+        "courier",
+        "consolas",
+        "menlo",
+        "monaco",
+        "fira code",
+        "source code",
+        "jetbrains",
+        "cascadia",
+        "inconsolata",
+        "ubuntu mono",
+        "sf mono",
+        "hack",
+        "iosevka",
     ];
     const SERIF: &[&str] = &[
-        "serif", "georgia", "times", "garamond", "palatino", "book", "cambria", "merriweather",
-        "lora", "playfair", "baskerville", "charter", "literata", "pt serif", "noto serif",
-        "source serif", "libre",
+        "serif",
+        "georgia",
+        "times",
+        "garamond",
+        "palatino",
+        "book",
+        "cambria",
+        "merriweather",
+        "lora",
+        "playfair",
+        "baskerville",
+        "charter",
+        "literata",
+        "pt serif",
+        "noto serif",
+        "source serif",
+        "libre",
     ];
     const SANS: &[&str] = &[
-        "sans", "arial", "helvetica", "verdana", "tahoma", "segoe", "roboto", "inter", "open",
-        "lato", "system-ui", "-apple-system", "blinkmac", "ubuntu", "cantarell", "noto", "dejavu",
-        "liberation", "source sans", "ibm plex", "montserrat", "poppins", "nunito", "raleway",
-        "work sans", "fira sans", "pt sans", "trebuchet", "calibri", "geneva", "avenir",
+        "sans",
+        "arial",
+        "helvetica",
+        "verdana",
+        "tahoma",
+        "segoe",
+        "roboto",
+        "inter",
+        "open",
+        "lato",
+        "system-ui",
+        "-apple-system",
+        "blinkmac",
+        "ubuntu",
+        "cantarell",
+        "noto",
+        "dejavu",
+        "liberation",
+        "source sans",
+        "ibm plex",
+        "montserrat",
+        "poppins",
+        "nunito",
+        "raleway",
+        "work sans",
+        "fira sans",
+        "pt sans",
+        "trebuchet",
+        "calibri",
+        "geneva",
+        "avenir",
     ];
     if MONO.iter().any(|m| n.contains(m)) {
         return Some(FontFamily::Mono);
     }
-    if SANS.iter().any(|m| n.contains(m)) {
-        return Some(FontFamily::Sans);
-    }
+    // Serif before sans: vendor names in SANS ("dejavu", "noto",
+    // "liberation") would otherwise claim "DejaVu Serif".
     if SERIF.iter().any(|m| n.contains(m)) {
         return Some(FontFamily::Serif);
+    }
+    if SANS.iter().any(|m| n.contains(m)) {
+        return Some(FontFamily::Sans);
     }
     None
 }
@@ -429,7 +487,11 @@ fn display(d: &LDisplay) -> Display {
         LDisplay::Pair(p) => {
             let block = !matches!(p.outside, DisplayOutside::Inline);
             if p.is_list_item {
-                return if block { Display::ListItem } else { Display::Inline };
+                return if block {
+                    Display::ListItem
+                } else {
+                    Display::Inline
+                };
             }
             match (&p.inside, block) {
                 (DisplayInside::Flow, true) => Display::Block,
@@ -559,7 +621,9 @@ fn content_position(p: &ContentPosition) -> JustifyContent {
 fn self_position(p: &SelfPosition) -> AlignItems {
     match p {
         SelfPosition::Center => AlignItems::Center,
-        SelfPosition::Start | SelfPosition::SelfStart | SelfPosition::FlexStart => AlignItems::FlexStart,
+        SelfPosition::Start | SelfPosition::SelfStart | SelfPosition::FlexStart => {
+            AlignItems::FlexStart
+        }
         SelfPosition::End | SelfPosition::SelfEnd | SelfPosition::FlexEnd => AlignItems::FlexEnd,
     }
 }
@@ -990,7 +1054,13 @@ fn set_border_color(a: &mut Apply<'_>, side: usize, c: &CssColor) {
     }
 }
 
-fn set_border_side(a: &mut Apply<'_>, side: usize, w: &BorderSideWidth, s: &LineStyle, c: &CssColor) {
+fn set_border_side(
+    a: &mut Apply<'_>,
+    side: usize,
+    w: &BorderSideWidth,
+    s: &LineStyle,
+    c: &CssColor,
+) {
     a.st.border_width[side] = border_side_width(w, &a.len);
     a.st.border_style[side] = line_style(s);
     set_border_color(a, side, c);
@@ -1259,7 +1329,10 @@ mod tests {
         assert_eq!(s.float, Float::Right);
         assert_eq!(s.clear, Clear::Both);
         assert_eq!(s.white_space, WhiteSpace::Nowrap);
-        assert_eq!(s.text_decoration, TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
+        assert_eq!(
+            s.text_decoration,
+            TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH
+        );
         assert_eq!(s.text_align, TextAlign::Right);
         assert_eq!(s.vertical_align, VerticalAlign::Bottom);
         assert_eq!(s.list_style_type, ListStyleType::Square);
@@ -1274,8 +1347,14 @@ mod tests {
         assert_eq!(run("display: list-item").display, Display::ListItem);
         assert_eq!(run("display: none").display, Display::None);
         assert_eq!(run("display: table-cell").display, Display::TableCell);
-        assert_eq!(run("list-style-type: lower-roman").list_style_type, ListStyleType::Decimal);
-        assert_eq!(run("list-style-type: none").list_style_type, ListStyleType::None);
+        assert_eq!(
+            run("list-style-type: lower-roman").list_style_type,
+            ListStyleType::Decimal
+        );
+        assert_eq!(
+            run("list-style-type: none").list_style_type,
+            ListStyleType::None
+        );
     }
 
     #[test]
@@ -1292,8 +1371,20 @@ mod tests {
         assert_eq!(s.row_gap, Length::px(4.0));
         assert_eq!(s.column_gap, Length::px(8.0));
         assert_eq!(s.grid_template_columns, TrackListRef { off: 0, len: 3 });
-        assert_eq!(s.grid_column.start, GridLine { kind: GridLineKind::Line, value: 1 });
-        assert_eq!(s.grid_column.end, GridLine { kind: GridLineKind::Span, value: 2 });
+        assert_eq!(
+            s.grid_column.start,
+            GridLine {
+                kind: GridLineKind::Line,
+                value: 1
+            }
+        );
+        assert_eq!(
+            s.grid_column.end,
+            GridLine {
+                kind: GridLineKind::Span,
+                value: 2
+            }
+        );
         assert_eq!(s.order, -1);
     }
 
@@ -1351,7 +1442,12 @@ mod tests {
         let mut a = Apply {
             st: &mut st,
             parent: &parent,
-            len: LenCtx { em: 16.0, rem: 16.0, vw: 0.0, vh: 0.0 },
+            len: LenCtx {
+                em: 16.0,
+                rem: 16.0,
+                vw: 0.0,
+                vh: 0.0,
+            },
             line_height_factor: None,
             border_current: [true; 4],
             tracks: &mut tracks,

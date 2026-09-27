@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Images</title>
+<link rel="stylesheet" href="corpus.css">
+<style>
+  figure { margin: 1rem 0; }
+  figcaption { font-size: 0.85rem; color: #666; }
+  .row img { vertical-align: middle; margin-right: 8px; }
+  .fit { max-width: 200px; height: auto; }
+  .bordered { border: 3px solid #1a5fb4; padding: 4px; background: #eef3fa; }
+  .block { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Images</h1>
+  <p>Tiny generated rasters at natural size, scaled up, scaled down, with alpha, a JPEG, and a missing file.</p>
+  <p class="row">
+    <img src="img/quadrants.png" alt="Four coloured quadrants" width="48" height="32">
+    <img src="img/quadrants.png" alt="Four coloured quadrants, 4x" width="192" height="128">
+    <img src="img/alpha.png" alt="A blue disc with soft edges" width="32" height="32">
+    <img src="img/alpha.png" alt="Disc, 3x, over a background" width="96" height="96" style="background: #ffd966">
+    inline text next to images
+  </p>
+  <figure>
+    <img src="img/photo.jpg" alt="A warm gradient" width="256" height="192" class="bordered">
+    <figcaption>A 64×48 baseline JPEG displayed at 4×.</figcaption>
+  </figure>
+  <img src="img/photo.jpg" alt="Centred block image" width="640" height="480" class="block fit">
+  <p>A missing image with alt text: <img src="img/missing.png" alt="missing" width="80" height="40"> and one with intrinsic size only: <img src="img/quadrants.png" alt=""></p>
+  <p>The image scaled to the page width: <img src="img/quadrants.png" alt="wide" style="width: 100%; height: 48px"></p>
+  <footer>Corpus page 4 of 8 · images.</footer>
+</div>
+</body>
+</html>

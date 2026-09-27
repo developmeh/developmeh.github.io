@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Block and inline formatting</title>
+<link rel="stylesheet" href="corpus.css">
+<style>
+  .box { border: 2px solid #1a5fb4; padding: 12px 16px; margin: 16px 0; background: #eef3fa; }
+  .box.thick { border-width: 6px 2px; border-color: #c01c28 #1a5fb4; }
+  .centered { width: 60%; margin: 24px auto; text-align: center; background: #f6f5f4; padding: 8px; }
+  .right { text-align: right; }
+  .nowrap { white-space: nowrap; }
+  .ib { display: inline-block; width: 120px; padding: 6px; margin: 4px; background: #e6e2d8; vertical-align: top; }
+  .rounded { border-radius: 12px; }
+  .tag { background: #ffd966; padding: 1px 6px; border-radius: 3px; font-size: 0.85em; }
+  .hidden { visibility: hidden; }
+  .half { opacity: 0.5; }
+  .rel { position: relative; left: 40px; top: 4px; }
+  .abs-parent { position: relative; height: 80px; background: #f0f0f0; }
+  .abs { position: absolute; right: 10px; bottom: 8px; padding: 4px 8px; background: #c01c28; color: white; }
+  .indent { text-indent: 2em; }
+  .caps { text-transform: uppercase; letter-spacing: 0.05em; }
+  .tall { line-height: 2.2; }
+  .minmax { min-height: 40px; max-width: 300px; box-sizing: border-box; padding: 10px; border: 1px dashed #666; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Block and inline formatting</h1>
+  <p>Paragraphs are the bread and butter of block layout. This one has <strong>bold</strong>, <em>italic</em>,
+     <strong><em>bold italic</em></strong>, <code>inline code</code>, a <a href="#anchors">link to a fragment</a>,
+     <span class="tag">a span with a background</span> and some text that is long enough to wrap onto several lines
+     at a 1280 pixel viewport when the page is capped at fifty-six rems wide. Wrapping happens at UAX #14 break
+     opportunities, hyphens-included, and the hanging space at the end of a line must not push text past the edge.</p>
+
+  <div class="box">A bordered box with padding and a background. Margins between this box and the next paragraph collapse.</div>
+  <div class="box thick rounded">Per-side border widths and colours, plus a border radius that rounds the background.</div>
+
+  <div class="centered">A 60% wide block centred with auto margins.</div>
+  <p class="right">Right-aligned paragraph text, short enough to fit on one line.</p>
+  <p class="indent caps tall">Indented, uppercased, and set with a tall line height so the line boxes are visibly spaced apart from one another across two or three lines of text.</p>
+
+  <p><span class="nowrap">This span never wraps even though it is quite long and could easily be broken into pieces by the layout engine if allowed.</span> Regular text after it resumes wrapping normally, which shows the overflow behaviour of an unbreakable run.</p>
+
+  <p>Inline blocks:
+    <span class="ib">first inline-block box</span>
+    <span class="ib">second, with more text so it wraps inside</span>
+    <span class="ib rounded">third, rounded</span>
+    trailing text after the boxes.</p>
+
+  <p>Visibility: <span class="hidden">you cannot see this</span> but it takes space. <span class="half">Half opacity text.</span>
+     <span class="rel">Relatively positioned span.</span></p>
+
+  <div class="abs-parent">
+    Positioned parent with an absolutely positioned child in its bottom-right corner.
+    <span class="abs">absolute</span>
+  </div>
+
+  <div class="minmax">A box with min-height, max-width and border-box sizing.</div>
+
+  <h2 id="anchors">Headings and anchors</h2>
+  <p>Text after the second heading. <a href="https://example.com/">An external link</a> and a <a href="mailto:x@example.com">mailto link</a>.</p>
+  <hr>
+  <footer>Corpus page 1 of 8 · block and inline formatting.</footer>
+</div>
+</body>
+</html>

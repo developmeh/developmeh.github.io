@@ -115,7 +115,9 @@ fn ident_is(v: &MediaFeatureValue<'_>, s: &str) -> bool {
 fn eval_feature(f: &MediaFeature<'_>, vp: &Viewport, bps: &mut Breakpoints) -> bool {
     use MediaFeatureId as Id;
     let (name, op, value) = match f {
-        QueryFeature::Plain { name, value } => (name, Some(MediaFeatureComparison::Equal), Some(value)),
+        QueryFeature::Plain { name, value } => {
+            (name, Some(MediaFeatureComparison::Equal), Some(value))
+        }
         QueryFeature::Boolean { name } => (name, None, None),
         QueryFeature::Range {
             name,
@@ -243,7 +245,14 @@ mod tests {
     fn eval(q: &str, w: f32) -> (bool, Vec<u16>) {
         let list = parse_media_list(q).expect("parse");
         let mut bps = Breakpoints::default();
-        let r = evaluate(&list, &Viewport { width: w, height: 800.0 }, &mut bps);
+        let r = evaluate(
+            &list,
+            &Viewport {
+                width: w,
+                height: 800.0,
+            },
+            &mut bps,
+        );
         (r, bps.into_vec())
     }
 
@@ -251,15 +260,24 @@ mod tests {
     fn width_ranges_and_breakpoints() {
         assert_eq!(eval("(min-width: 600px)", 1280.0), (true, vec![600]));
         assert_eq!(eval("(max-width: 600px)", 1280.0), (false, vec![600]));
-        assert_eq!(eval("screen and (max-width: 40em)", 500.0), (true, vec![640]));
+        assert_eq!(
+            eval("screen and (max-width: 40em)", 500.0),
+            (true, vec![640])
+        );
         assert_eq!(eval("(width >= 700px)", 700.0), (true, vec![700]));
-        assert_eq!(eval("(400px <= width < 800px)", 799.0), (true, vec![400, 800]));
-        assert_eq!(eval("(400px <= width < 800px)", 800.0), (false, vec![400, 800]));
+        assert_eq!(
+            eval("(400px <= width < 800px)", 799.0),
+            (true, vec![400, 800])
+        );
+        assert_eq!(
+            eval("(400px <= width < 800px)", 800.0),
+            (false, vec![400, 800])
+        );
     }
 
     #[test]
     fn fixed_answers() {
-        assert!(eval("print", 1280.0).0 == false);
+        assert!(!eval("print", 1280.0).0);
         assert!(eval("not print", 1280.0).0);
         assert!(eval("screen", 1280.0).0);
         assert!(eval("(prefers-color-scheme: light)", 1280.0).0);
@@ -277,7 +295,10 @@ mod tests {
     #[test]
     fn logic() {
         assert_eq!(
-            eval("(min-width: 100px) and (max-width: 200px), (min-width: 1000px)", 1280.0),
+            eval(
+                "(min-width: 100px) and (max-width: 200px), (min-width: 1000px)",
+                1280.0
+            ),
             (true, vec![100, 200, 1000])
         );
         assert!(!eval("not all and (min-width: 100px)", 1280.0).0);

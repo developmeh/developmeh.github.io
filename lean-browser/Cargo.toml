@@ -33,7 +33,7 @@ bitflags = "2"
 # --- IPC (loader <-> renderer) ---
 serde = { version = "1", default-features = false, features = ["derive", "alloc"] }
 postcard = { version = "1", default-features = false, features = ["alloc", "use-std"] }
-rustix = { version = "1", features = ["process", "pipe", "fs", "stdio", "mm"] }
+rustix = { version = "1", features = ["process", "pipe", "fs", "stdio", "mm", "thread"] }
 
 # --- loader ---
 html5ever = "0.40"

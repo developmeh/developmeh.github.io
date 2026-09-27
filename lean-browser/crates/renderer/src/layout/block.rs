@@ -235,7 +235,7 @@ impl<'a> Layouter<'a> {
                 Some(NodeKind::FormControl) => BoxKind::Control,
                 _ => BoxKind::Block,
             },
-            clip: s.overflow_x == Overflow::Hidden || s.overflow_y == Overflow::Hidden,
+            clip: s.overflow_x != Overflow::Visible || s.overflow_y != Overflow::Visible,
             border: sides.border,
             padding: sides.padding,
             first_child: NONE,
@@ -417,8 +417,17 @@ impl<'a> Layouter<'a> {
             }
             None => match mode {
                 BlockMode::Flow => {
-                    let w = clamp(cb.w - ml0 - mr0 - edges_h);
-                    (w, None, ml0, mr0)
+                    let fill = cb.w - ml0 - mr0 - edges_h;
+                    let w = clamp(fill);
+                    if w < fill - 0.01 {
+                        // CSS 2.1 §10.4: a `max-width` violation re-runs the
+                        // width rules with the clamped width, so `auto`
+                        // margins centre the box instead of being zero.
+                        let (ml, mr) = self.auto_margins(sides, cb.w, w + edges_h, mode);
+                        (w, None, ml, mr)
+                    } else {
+                        (w, None, ml0, mr0)
+                    }
                 }
                 BlockMode::Absolute { .. } if left.is_some() && right.is_some() => {
                     let w = clamp(
@@ -578,13 +587,22 @@ impl<'a> Layouter<'a> {
         content_x: f32,
         content_y: f32,
     ) {
-        let text = match s.list_style_type {
-            ListStyleType::Disc => "\u{2022} ".to_string(),
-            ListStyleType::Circle => "\u{25E6} ".to_string(),
-            ListStyleType::Square => "\u{25AA} ".to_string(),
-            ListStyleType::Decimal => format!("{}. ", self.list_index(node)),
-            ListStyleType::None => return,
+        // A loader-written page carries a `Marker` node as the item's first
+        // child holding the exact text (it knows `<ol start>`, `reversed`
+        // and `<li value>`); a builder-made page has none, so synthesize.
+        let text = match self.marker_child(node) {
+            Some(m) => self.page.text_of(&self.page.nodes[m as usize]).to_string(),
+            None => match s.list_style_type {
+                ListStyleType::Disc => "\u{2022} ".to_string(),
+                ListStyleType::Circle => "\u{25E6} ".to_string(),
+                ListStyleType::Square => "\u{25AA} ".to_string(),
+                ListStyleType::Decimal => format!("{}. ", self.list_index(node)),
+                ListStyleType::None => return,
+            },
         };
+        if text.is_empty() {
+            return;
+        }
         let Some(primary) = self.face(s) else { return };
         let metrics = self.metrics(s);
         // Bullet glyphs may live in another face; fall back per character.
@@ -623,6 +641,7 @@ impl<'a> Layouter<'a> {
             color: s.color,
             baseline: metrics.ascent,
             decoration: css_subset::TextDecoration::empty(),
+            opacity: 1.0,
             metrics,
             glyphs,
         };
@@ -644,6 +663,14 @@ impl<'a> Layouter<'a> {
             next_sibling: NONE,
         });
         self.tree.append_child(idx, marker);
+    }
+
+    /// The `Marker` child the loader generated for a list item, if any.
+    fn marker_child(&self, node: u32) -> Option<u32> {
+        self.page.children(node).find(|&c| {
+            let n = &self.page.nodes[c as usize];
+            n.kind == NodeKind::Marker && n.text_len.to_native() > 0
+        })
     }
 
     /// 1-based position of a list item among its parent's list items.

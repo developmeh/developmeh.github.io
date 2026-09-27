@@ -457,7 +457,7 @@ impl Painter<'_> {
         clip: &Rect,
         alpha: f32,
     ) {
-        let color = scale_alpha(run.color, alpha);
+        let color = scale_alpha(run.color, alpha * run.opacity);
         if color.is_transparent() {
             return;
         }
@@ -466,8 +466,10 @@ impl Painter<'_> {
             let size = run.size * self.dpr;
             let data = pm.data_mut();
             for g in &run.glyphs {
-                let gx = (dev.x + g.x * self.dpr).round() as i32;
-                let gy = (baseline - g.y * self.dpr).round() as i32;
+                // `as i64` saturates, and the adds below cannot overflow
+                // i64 from a saturated i32-range value plus a mask offset.
+                let gx = (dev.x + g.x * self.dpr).round() as i64;
+                let gy = (baseline - g.y * self.dpr).round() as i64;
                 let Some(mask) = self.text.glyph(self.fonts, face, size, g.id) else {
                     continue;
                 };
@@ -476,8 +478,8 @@ impl Painter<'_> {
                     self.width,
                     self.band_h,
                     clip,
-                    gx + mask.left,
-                    gy - mask.top,
+                    gx + i64::from(mask.left),
+                    gy - i64::from(mask.top),
                     &mask.data,
                     mask.width,
                     mask.height,
@@ -553,8 +555,8 @@ impl Painter<'_> {
                 self.width,
                 self.band_h,
                 clip,
-                content.x.round() as i32,
-                content.y.round() as i32,
+                content.x.round() as i64,
+                content.y.round() as i64,
                 d,
                 alpha,
             );
@@ -607,42 +609,61 @@ fn fill_rounded(pm: &mut PixmapMut<'_>, r: &Rect, radii: [f32; 4], clip: &Rect, 
     );
 }
 
+/// Source range `[s0, s1)` of a `len`-long source placed at `origin` that
+/// falls inside the clip range `[c0, c1)`. All arithmetic is in `i64` so a
+/// box that layout placed near `i32::MAX` (a page may ask for a
+/// 2^31 px padding) cannot overflow; an empty range means "nothing".
+fn clipped_span(origin: i64, len: u32, c0: i64, c1: i64) -> std::ops::Range<u32> {
+    let len = i64::from(len);
+    let s0 = (c0 - origin).clamp(0, len);
+    let s1 = (c1 - origin).clamp(0, len);
+    if s1 <= s0 {
+        0..0
+    } else {
+        s0 as u32..s1 as u32
+    }
+}
+
+/// Clip rect in device pixels as `i64` edges `(x0, y0, x1, y1)`, bounded
+/// by the buffer.
+fn clip_edges(clip: &Rect, stride: u32, height: u32) -> (i64, i64, i64, i64) {
+    (
+        clip.x.floor().max(0.0) as i64,
+        clip.y.floor().max(0.0) as i64,
+        (clip.right().ceil() as i64).min(i64::from(stride)),
+        (clip.bottom().ceil() as i64).min(i64::from(height)),
+    )
+}
+
 /// Source-over of a straight colour through an A8 mask into premultiplied
-/// RGBA8, clipped to `clip` and the buffer.
+/// RGBA8, clipped to `clip` and the buffer. `(x0, y0)` is the mask origin
+/// in device pixels.
 #[allow(clippy::too_many_arguments)]
 fn blend_mask(
     data: &mut [u8],
     stride: u32,
     height: u32,
     clip: &Rect,
-    x0: i32,
-    y0: i32,
+    x0: i64,
+    y0: i64,
     mask: &[u8],
     mw: u32,
     mh: u32,
     color: Rgba,
 ) {
-    let cx0 = clip.x.floor().max(0.0) as i32;
-    let cy0 = clip.y.floor().max(0.0) as i32;
-    let cx1 = (clip.right().ceil() as i32).min(stride as i32);
-    let cy1 = (clip.bottom().ceil() as i32).min(height as i32);
+    let (cx0, cy0, cx1, cy1) = clip_edges(clip, stride, height);
     let ca = u32::from(color.a);
-    for my in 0..mh as i32 {
-        let y = y0 + my;
-        if y < cy0 || y >= cy1 {
-            continue;
-        }
-        for mx in 0..mw as i32 {
-            let x = x0 + mx;
-            if x < cx0 || x >= cx1 {
-                continue;
-            }
-            let cov = u32::from(mask[(my as u32 * mw + mx as u32) as usize]);
+    let xs = clipped_span(x0, mw, cx0, cx1);
+    for my in clipped_span(y0, mh, cy0, cy1) {
+        let y = (y0 + i64::from(my)) as u32;
+        for mx in xs.clone() {
+            let x = (x0 + i64::from(mx)) as u32;
+            let cov = u32::from(mask[(my * mw + mx) as usize]);
             if cov == 0 {
                 continue;
             }
             let sa = ca * cov / 255; // 0..255
-            let i = ((y as u32 * stride + x as u32) * 4) as usize;
+            let i = ((y * stride + x) * 4) as usize;
             let inv = 255 - sa;
             let px = &mut data[i..i + 4];
             px[0] = ((u32::from(color.r) * sa + u32::from(px[0]) * inv) / 255) as u8;
@@ -653,41 +674,34 @@ fn blend_mask(
     }
 }
 
-/// Source-over of a premultiplied RGBA8 image.
+/// Source-over of a premultiplied RGBA8 image whose top-left is at
+/// `(x0, y0)` device pixels.
 #[allow(clippy::too_many_arguments)]
 fn blend_rgba(
     data: &mut [u8],
     stride: u32,
     height: u32,
     clip: &Rect,
-    x0: i32,
-    y0: i32,
+    x0: i64,
+    y0: i64,
     src: &image::Decoded,
     alpha: f32,
 ) {
-    let cx0 = clip.x.floor().max(0.0) as i32;
-    let cy0 = clip.y.floor().max(0.0) as i32;
-    let cx1 = (clip.right().ceil() as i32).min(stride as i32);
-    let cy1 = (clip.bottom().ceil() as i32).min(height as i32);
+    let (cx0, cy0, cx1, cy1) = clip_edges(clip, stride, height);
     let ga = (alpha.clamp(0.0, 1.0) * 255.0).round() as u32;
-    for sy in 0..src.height as i32 {
-        let y = y0 + sy;
-        if y < cy0 || y >= cy1 {
-            continue;
-        }
-        for sx in 0..src.width as i32 {
-            let x = x0 + sx;
-            if x < cx0 || x >= cx1 {
-                continue;
-            }
-            let si = ((sy as u32 * src.width + sx as u32) * 4) as usize;
+    let xs = clipped_span(x0, src.width, cx0, cx1);
+    for sy in clipped_span(y0, src.height, cy0, cy1) {
+        let y = (y0 + i64::from(sy)) as u32;
+        for sx in xs.clone() {
+            let x = (x0 + i64::from(sx)) as u32;
+            let si = ((sy * src.width + sx) * 4) as usize;
             let s = &src.data[si..si + 4];
             let sa = u32::from(s[3]) * ga / 255;
             if sa == 0 {
                 continue;
             }
             let inv = 255 - sa;
-            let i = ((y as u32 * stride + x as u32) * 4) as usize;
+            let i = ((y * stride + x) * 4) as usize;
             let px = &mut data[i..i + 4];
             for c in 0..3 {
                 px[c] = ((u32::from(s[c]) * ga / 255) + u32::from(px[c]) * inv / 255) as u8;
@@ -728,6 +742,53 @@ mod tests {
         assert_eq!(&data[0..4], &[0, 0, 0, 255]);
         assert_eq!(&data[4..8], &[255, 255, 255, 255]);
         assert_eq!(data[8], 255 - 128);
+    }
+
+    #[test]
+    fn blends_placed_near_i32_max_do_not_overflow() {
+        // A page can put a box's content edge at ~2^31 px via padding; the
+        // blend must clip it away rather than wrap or panic.
+        let mut data = vec![0u8; 4 * 4];
+        let clip = Rect::new(0.0, 0.0, 2.0, 2.0);
+        let far = i64::from(i32::MAX);
+        blend_mask(
+            &mut data,
+            2,
+            2,
+            &clip,
+            far,
+            far,
+            &[255; 4],
+            2,
+            2,
+            Rgba::BLACK,
+        );
+        blend_mask(
+            &mut data,
+            2,
+            2,
+            &clip,
+            -far,
+            -far,
+            &[255; 4],
+            2,
+            2,
+            Rgba::BLACK,
+        );
+        let img = image::Decoded {
+            width: 2,
+            height: 2,
+            data: vec![255; 16],
+        };
+        blend_rgba(&mut data, 2, 2, &clip, far, 0, &img, 1.0);
+        blend_rgba(&mut data, 2, 2, &clip, 0, -far, &img, 1.0);
+        assert!(data.iter().all(|&b| b == 0));
+        // Partial overlap: only the source pixels inside the clip are used.
+        blend_rgba(&mut data, 2, 2, &clip, -1, -1, &img, 1.0);
+        assert_eq!(&data[0..4], &[255, 255, 255, 255]);
+        assert_eq!(&data[4..8], &[0, 0, 0, 0]);
+        assert_eq!(clipped_span(-1, 2, 0, 2), 1..2);
+        assert_eq!(clipped_span(5, 2, 0, 2), 0..0);
     }
 
     #[test]

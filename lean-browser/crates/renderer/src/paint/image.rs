@@ -11,9 +11,11 @@ use page_format::ImageFormat;
 
 /// Cap on the display-size RGBA buffer (plan §7).
 pub const DISPLAY_CAP: usize = 512 * 1024;
-/// Cap on the JPEG intermediate (`jpeg-decoder` has no row API; see
-/// STATUS.md). At most 4x the display cap.
-pub const JPEG_SCRATCH_CAP: usize = 4 * DISPLAY_CAP;
+/// Cap on the whole-image intermediate that JPEG (`jpeg-decoder` has no
+/// row API) and interlaced PNG (Adam7 needs every pass) decode into: 4x
+/// the display cap, a deliberate deviation from plan §7's 512 KB scratch
+/// recorded in STATUS.md. Also the `png` crate's byte limit.
+pub const WHOLE_IMAGE_SCRATCH_CAP: usize = 4 * DISPLAY_CAP;
 
 /// A decoded image at display size, premultiplied RGBA8.
 #[derive(Debug)]
@@ -62,9 +64,21 @@ struct Resampler {
     row_avg: Vec<u32>,
 }
 
+/// Bytes of an RGBA8 buffer of `w x h`, or `None` when the product
+/// overflows or exceeds `cap`. All size arithmetic goes through here so a
+/// page cannot make the renderer multiply two `u32`s unchecked.
+fn rgba_bytes(w: u32, h: u32, cap: usize) -> Option<usize> {
+    let n = u64::from(w).checked_mul(u64::from(h))?.checked_mul(4)?;
+    (n <= cap as u64).then_some(n as usize)
+}
+
 impl Resampler {
-    fn new(sw: u32, sh: u32, dw: u32, dh: u32) -> Resampler {
-        Resampler {
+    fn new(sw: u32, sh: u32, dw: u32, dh: u32) -> Result<Resampler, ImageError> {
+        let out_len = rgba_bytes(dw, dh, DISPLAY_CAP).ok_or(ImageError::TooLarge)?;
+        // Per-row scratch is 16 B per display column; the row cap follows
+        // from the buffer cap (a 1-row image cannot exceed DISPLAY_CAP / 4
+        // columns).
+        Ok(Resampler {
             sw,
             sh,
             dw,
@@ -72,9 +86,9 @@ impl Resampler {
             acc: vec![0; dw as usize * 4],
             count: 0,
             cur_ty: None,
-            out: vec![0; dw as usize * dh as usize * 4],
+            out: vec![0; out_len],
             row_avg: vec![0; dw as usize * 4],
-        }
+        })
     }
 
     /// Feeds source row `sy` as straight RGBA8.
@@ -145,10 +159,7 @@ impl Resampler {
 
 /// Decodes `bytes` to `dw x dh` device pixels.
 pub fn decode(bytes: &[u8], format: ImageFormat, dw: u32, dh: u32) -> Result<Decoded, ImageError> {
-    if dw == 0 || dh == 0 {
-        return Err(ImageError::TooLarge);
-    }
-    if dw as usize * dh as usize * 4 > DISPLAY_CAP {
+    if dw == 0 || dh == 0 || rgba_bytes(dw, dh, DISPLAY_CAP).is_none() {
         return Err(ImageError::TooLarge);
     }
     let _tag = scope(Tag::Image);
@@ -176,7 +187,7 @@ fn decode_png(bytes: &[u8], dw: u32, dh: u32) -> Result<Decoded, ImageError> {
         png::Transformations::EXPAND | png::Transformations::STRIP_16 | png::Transformations::ALPHA,
     );
     decoder.set_limits(png::Limits {
-        bytes: JPEG_SCRATCH_CAP,
+        bytes: WHOLE_IMAGE_SCRATCH_CAP,
     });
     let mut reader = decoder
         .read_info()
@@ -189,12 +200,13 @@ fn decode_png(bytes: &[u8], dw: u32, dh: u32) -> Result<Decoded, ImageError> {
         return Err(ImageError::Decode("empty image".into()));
     }
     let channels = reader.output_color_type().0.samples();
-    let mut rs = Resampler::new(sw, sh, dw, dh);
+    let mut rs = Resampler::new(sw, sh, dw, dh)?;
     let mut rgba = Vec::with_capacity(sw as usize * 4);
     if interlaced {
-        // Adam7 needs the whole image; only allowed within the scratch cap.
+        // Adam7 needs the whole image; only allowed within the scratch cap
+        // (the same 2 MB the JPEG path uses; see STATUS.md).
         let size = reader.output_buffer_size().ok_or(ImageError::TooLarge)?;
-        if size > JPEG_SCRATCH_CAP {
+        if size > WHOLE_IMAGE_SCRATCH_CAP {
             return Err(ImageError::TooLarge);
         }
         let mut buf = vec![0u8; size];
@@ -226,7 +238,7 @@ fn decode_png(bytes: &[u8], dw: u32, dh: u32) -> Result<Decoded, ImageError> {
 
 fn decode_jpeg(bytes: &[u8], dw: u32, dh: u32) -> Result<Decoded, ImageError> {
     let mut decoder = jpeg_decoder::Decoder::new(Cursor::new(bytes));
-    decoder.set_max_decoding_buffer_size(JPEG_SCRATCH_CAP);
+    decoder.set_max_decoding_buffer_size(WHOLE_IMAGE_SCRATCH_CAP);
     decoder
         .read_info()
         .map_err(|e| ImageError::Decode(e.to_string()))?;
@@ -240,7 +252,7 @@ fn decode_jpeg(bytes: &[u8], dw: u32, dh: u32) -> Result<Decoded, ImageError> {
         .info()
         .ok_or(ImageError::Decode("no header".into()))?;
     let bpp = info.pixel_format.pixel_bytes();
-    if sw as usize * sh as usize * bpp > JPEG_SCRATCH_CAP {
+    if u64::from(sw) * u64::from(sh) * bpp as u64 > WHOLE_IMAGE_SCRATCH_CAP as u64 {
         return Err(ImageError::TooLarge);
     }
     let pixels = decoder
@@ -250,7 +262,7 @@ fn decode_jpeg(bytes: &[u8], dw: u32, dh: u32) -> Result<Decoded, ImageError> {
     if sw == 0 || sh == 0 {
         return Err(ImageError::Decode("empty image".into()));
     }
-    let mut rs = Resampler::new(sw, sh, dw, dh);
+    let mut rs = Resampler::new(sw, sh, dw, dh)?;
     let mut rgba = Vec::with_capacity(sw as usize * 4);
     let stride = sw as usize * bpp;
     for sy in 0..sh {
@@ -339,6 +351,18 @@ mod tests {
             decode(&[], ImageFormat::Png, 1000, 1000).err(),
             Some(ImageError::TooLarge)
         );
+        // Sizes whose byte count overflows usize arithmetic are rejected
+        // before any multiplication (a page may style an <img> this big).
+        assert_eq!(
+            decode(&[], ImageFormat::Png, 1 << 31, 1 << 31).err(),
+            Some(ImageError::TooLarge)
+        );
+        assert_eq!(
+            decode(&[], ImageFormat::Png, u32::MAX, 1).err(),
+            Some(ImageError::TooLarge)
+        );
+        assert_eq!(rgba_bytes(256, 512, DISPLAY_CAP), Some(DISPLAY_CAP));
+        assert_eq!(rgba_bytes(256, 513, DISPLAY_CAP), None);
         assert!(matches!(
             decode(b"not a png", ImageFormat::Png, 1, 1),
             Err(ImageError::Decode(_))

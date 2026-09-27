@@ -10,7 +10,7 @@ src/
   lib.rs           deny(unsafe_code) crate root
   document.rs      Document: PageFile + tops[] (one f32 per top-level block), units in view
   fonts.rs         font discovery and read-only mmap (the crate's single `unsafe`)
-  text.rs          swash ShapeContext/ScaleContext, per-char face fallback, LRU glyph cache (256 KB)
+  text.rs          swash ShapeContext/ScaleContext, per-char face fallback, LRU glyph cache (256 KB incl. map)
   layout/mod.rs    LayoutTree/LayoutBox, Layouter, unit + absolute-position frames
   layout/block.rs  widths, heights, margin collapsing, positioning, list markers, intrinsic widths
   layout/inline.rs items, white-space, UAX #14 pieces, greedy lines, placement
@@ -71,8 +71,8 @@ Noto files the reference container installs.
 | what | where | lifetime |
 |---|---|---|
 | page file, fonts | mmap, read-only | process |
-| `tops[]` | `Document` (4 B per unit, grouped above 16k units) | per page |
+| `tops[]` | `Document` (4 B per unit; above 16k top-level blocks, consecutive blocks share a unit) | per page |
 | strip buffer | `StripBuffer` (≤ 320 KB, resized only on width change) | process |
-| glyph cache | `TextEngine` (≤ 256 KB of A8 masks, LRU by bytes) | process |
+| glyph cache | `TextEngine` (184 KB of A8 masks + a fixed 448-entry map, LRU by bytes; glyphs > 1024 device px are not rasterized) | process |
 | layout tree | `Document::layout_viewport` | one paint |
 | image decode | `paint::image` (display buffer ≤ 512 KB; JPEG scratch ≤ 2 MB) | one band |
