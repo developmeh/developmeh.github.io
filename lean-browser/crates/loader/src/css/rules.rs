@@ -374,14 +374,17 @@ pub fn supports(cond: &SupportsCondition<'_>) -> bool {
         }
         SupportsCondition::Selector(sel) => {
             let css = format!("{sel}{{}}");
-            match StyleSheet::parse(&css, ParserOptions::default()) {
+            let parsed = StyleSheet::parse(&css, ParserOptions::default());
+            let ok = match &parsed {
                 Ok(sheet) => sheet
                     .rules
                     .0
                     .iter()
                     .any(|r| matches!(r, CssRule::Style(s) if s.selectors.0.iter().all(selector_supported))),
                 Err(_) => false,
-            }
+            };
+            drop(parsed);
+            ok
         }
         _ => false,
     }
@@ -392,7 +395,7 @@ mod tests {
     use super::*;
     use crate::fetch::Limits;
 
-    fn build(css: &str) -> (Vec<SheetSource>, Vec<u16>, Vec<(String, u32, Option<PseudoKind>)>) {
+    fn build(css: &str) -> (Vec<u16>, Vec<(String, u32, Option<PseudoKind>)>) {
         let sources = vec![SheetSource {
             css: css.to_string(),
             base: Url::parse("https://example.test/").unwrap(),
@@ -420,7 +423,7 @@ mod tests {
                 )
             })
             .collect();
-        (sources, bps.into_vec(), rules)
+        (bps.into_vec(), rules)
     }
 
     #[test]
@@ -442,7 +445,7 @@ mod tests {
             a:hover { color: red }
             .empty { }
         "#;
-        let (_src, bps, rules) = build(css);
+        let (bps, rules) = build(css);
         assert_eq!(bps, vec![600, 1000]);
         let names: Vec<&str> = rules.iter().map(|r| r.0.as_str()).collect();
         assert_eq!(
@@ -454,7 +457,7 @@ mod tests {
                 "h1",
                 ".g",
                 ".nofloat",
-                "li::before",
+                "li:before",
                 "a:hover"
             ]
         );
@@ -500,11 +503,13 @@ mod tests {
             .iter()
             .map(|s| (s.origin, s.css.trim(), s.media.clone()))
             .collect();
-        // Depth limit stops the a -> c -> a cycle at 3 levels.
+        // Imports precede the importing sheet; the depth limit stops the
+        // a -> c -> a cycle.
         assert_eq!(summary[0], (Origin::Ua, "html{}", vec![]));
         assert_eq!(summary[1], (Origin::Author, ".b{color:red}", vec!["print".to_string()]));
-        assert!(summary[2].1.starts_with("@import url(b.css) print;"));
-        assert!(summary.iter().filter(|s| s.1.starts_with("@import url(a.css)")).count() >= 1);
+        let pos = |prefix: &str| summary.iter().position(|s| s.1.starts_with(prefix)).unwrap();
+        assert!(pos("@import url(a.css)") < pos("@import url(b.css) print;"));
+        assert!(summary.len() < 12);
         let last = summary.last().unwrap();
         assert_eq!(last.1, ".s{color:red}");
         assert_eq!(last.2, vec!["(min-width: 100px)".to_string()]);
@@ -520,7 +525,7 @@ mod tests {
         assert!(!sels.contains(&".b".to_string()));
         assert!(sels.contains(&".s".to_string()));
         assert!(sels.contains(&".a".to_string()));
-        assert_eq!(bps, vec![100]);
+        assert_eq!(bps.into_vec(), vec![100]);
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

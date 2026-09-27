@@ -24,13 +24,23 @@ impl<'i, I: parcel_selectors::SelectorImpl<'i>> ImplOf for parcel_selectors::par
 /// The `SelectorImpl` lightningcss selectors are parsed with.
 pub type SelImpl = <lightningcss::selector::Selector<'static> as ImplOf>::Impl;
 
-/// Which pseudo-element a match is being evaluated for.
+/// Which pseudo-element a rule or a match is for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PseudoKind {
     /// `::before`
     Before,
     /// `::after`
     After,
+}
+
+impl PseudoKind {
+    /// Whether a parsed pseudo-element is this kind.
+    pub fn accepts(self, pe: &PseudoElement<'_>) -> bool {
+        matches!(
+            (self, pe),
+            (PseudoKind::Before, PseudoElement::Before) | (PseudoKind::After, PseudoElement::After)
+        )
+    }
 }
 
 /// A borrowed element reference used for selector matching.
@@ -40,26 +50,16 @@ pub struct ElRef<'d> {
     pub dom: &'d Dom,
     /// The element.
     pub id: NodeId,
-    /// When matching rules for a pseudo-element, which one.
-    pub pseudo: Option<PseudoKind>,
 }
 
 impl<'d> ElRef<'d> {
     /// An element reference for normal matching.
     pub fn new(dom: &'d Dom, id: NodeId) -> Self {
-        ElRef {
-            dom,
-            id,
-            pseudo: None,
-        }
+        ElRef { dom, id }
     }
 
     fn with(&self, id: NodeId) -> Self {
-        ElRef {
-            dom: self.dom,
-            id,
-            pseudo: self.pseudo,
-        }
+        ElRef { dom: self.dom, id }
     }
 
     fn tag(&self) -> &'d str {
@@ -211,14 +211,12 @@ impl<'i, 'd> Element<'i> for ElRef<'d> {
 
     fn match_pseudo_element(
         &self,
-        pe: &PseudoElement<'i>,
+        _pe: &PseudoElement<'i>,
         _context: &mut MatchingContext<'_, 'i, Self::Impl>,
     ) -> bool {
-        match (pe, self.pseudo) {
-            (PseudoElement::Before, Some(PseudoKind::Before)) => true,
-            (PseudoElement::After, Some(PseudoKind::After)) => true,
-            _ => false,
-        }
+        // Stateless pseudo-element matching goes through
+        // `MatchingContext::pseudo_element_matching_fn` (see the cascade).
+        false
     }
 
     fn is_link(&self) -> bool {
@@ -326,7 +324,9 @@ mod tests {
             MatchingMode::Normal
         };
         let mut ctx = MatchingContext::new(mode, None, Some(&mut cache), QuirksMode::NoQuirks);
-        let el = ElRef { dom, id, pseudo };
+        let hook = move |pe: &PseudoElement<'_>| pseudo.is_some_and(|p| p.accepts(pe));
+        ctx.pseudo_element_matching_fn = Some(&hook);
+        let el = ElRef::new(dom, id);
         matches_selector(sel, 0, None, &el, &mut ctx, &mut |_, _| {})
     }
 
