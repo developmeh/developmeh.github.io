@@ -1,0 +1,6 @@
+/target
+*.lpg
+*.lpg.tmp
+/result
+/result-*
+.direnv

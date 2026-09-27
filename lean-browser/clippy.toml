@@ -1,0 +1,2 @@
+# Keep the renderer's stack shallow (plan §7): warn on very large stack frames.
+too-many-arguments-threshold = 8

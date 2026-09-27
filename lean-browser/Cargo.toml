@@ -1,0 +1,78 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/page-format",
+    "crates/lean-alloc",
+    "crates/css-subset",
+    "crates/loader",
+    "crates/renderer",
+    "crates/harness",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/developmeh/developmeh.github.io"
+publish = false
+
+# Every third-party dependency any milestone needs is declared here so that
+# crates only ever reference `workspace = true` and Cargo.lock stays settled.
+[workspace.dependencies]
+# --- internal crates ---
+page-format = { path = "crates/page-format" }
+lean-alloc = { path = "crates/lean-alloc" }
+css-subset = { path = "crates/css-subset" }
+
+# --- page-format / css-subset ---
+rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian"] }
+memmap2 = "0.9"
+bitflags = "2"
+
+# --- IPC (loader <-> renderer) ---
+serde = { version = "1", default-features = false, features = ["derive", "alloc"] }
+postcard = { version = "1", default-features = false, features = ["alloc", "use-std"] }
+rustix = { version = "1", features = ["process", "pipe", "fs", "stdio", "mm"] }
+
+# --- loader ---
+html5ever = "0.40"
+markup5ever_rcdom = "0.39"
+lightningcss = { version = "1.0.0-alpha.72", default-features = false }
+cssparser = "0.37"
+parcel_selectors = "0.28"
+ureq = { version = "3", default-features = false, features = ["rustls", "gzip", "brotli"] }
+url = "2"
+flate2 = "1"
+brotli = "9"
+seccompiler = "0.5"
+rquickjs = { version = "0.14", default-features = false }
+
+# --- renderer ---
+winit = { version = "0.30", default-features = false, features = ["x11", "wayland", "wayland-dlopen", "rwh_06"] }
+softbuffer = { version = "0.4", default-features = false, features = ["x11", "x11-dlopen", "wayland", "wayland-dlopen"] }
+tiny-skia = { version = "0.12", default-features = false, features = ["std", "simd"] }
+swash = "0.2"
+taffy = { version = "0.14", default-features = false, features = ["std", "flexbox", "grid"] }
+unicode-linebreak = "0.1"
+png = "0.18"
+jpeg-decoder = { version = "0.3", default-features = false }
+accesskit = "0.25"
+accesskit_winit = { version = "0.34", default-features = false, features = ["accesskit_unix", "async-io", "rwh_06"] }
+
+# --- harness ---
+image = { version = "0.25", default-features = false, features = ["png"] }
+serde_json = "1"
+tiny_http = "0.12"
+
+# Release profile per plan §3: size over speed, no unwinding, single codegen unit.
+[profile.release]
+opt-level = "s"
+lto = "fat"
+panic = "abort"
+codegen-units = 1
+strip = true
+
+# Harness and tests want backtraces; keep dev fast to compile.
+[profile.dev]
+opt-level = 0

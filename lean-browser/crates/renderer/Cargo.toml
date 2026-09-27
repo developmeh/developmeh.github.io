@@ -1,0 +1,37 @@
+[package]
+name = "renderer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "lean-browser"
+path = "src/main.rs"
+
+[features]
+default = []
+# Opens a real window through winit/softbuffer and exposes the a11y tree.
+# Off by default so the headless `--paint-png` path builds without a display.
+window = ["dep:winit", "dep:softbuffer", "dep:accesskit", "dep:accesskit_winit"]
+
+[dependencies]
+page-format = { workspace = true }
+css-subset = { workspace = true }
+lean-alloc = { workspace = true }
+rkyv = { workspace = true }
+serde = { workspace = true }
+postcard = { workspace = true }
+rustix = { workspace = true }
+memmap2 = { workspace = true }
+tiny-skia = { workspace = true }
+swash = { workspace = true }
+taffy = { workspace = true }
+unicode-linebreak = { workspace = true }
+png = { workspace = true }
+jpeg-decoder = { workspace = true }
+winit = { workspace = true, optional = true }
+softbuffer = { workspace = true, optional = true }
+accesskit = { workspace = true, optional = true }
+accesskit_winit = { workspace = true, optional = true }

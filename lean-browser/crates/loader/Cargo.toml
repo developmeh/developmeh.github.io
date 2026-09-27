@@ -1,0 +1,36 @@
+[package]
+name = "loader"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "lean-loader"
+path = "src/main.rs"
+
+[features]
+default = []
+# M5: QuickJS run-to-idle inside the worker sandbox.
+js = ["dep:rquickjs"]
+
+[dependencies]
+page-format = { workspace = true }
+css-subset = { workspace = true }
+lean-alloc = { workspace = true }
+rkyv = { workspace = true }
+serde = { workspace = true }
+postcard = { workspace = true }
+rustix = { workspace = true }
+html5ever = { workspace = true }
+markup5ever_rcdom = { workspace = true }
+lightningcss = { workspace = true }
+cssparser = { workspace = true }
+parcel_selectors = { workspace = true }
+ureq = { workspace = true }
+url = { workspace = true }
+flate2 = { workspace = true }
+brotli = { workspace = true }
+seccompiler = { workspace = true }
+rquickjs = { workspace = true, optional = true }
