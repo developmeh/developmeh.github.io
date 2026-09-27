@@ -44,9 +44,13 @@ pub const MAX_DEPTH: u32 = 96;
 /// An axis-aligned rectangle in CSS px.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Rect {
+    /// Left edge.
     pub x: f32,
+    /// Top edge.
     pub y: f32,
+    /// Width.
     pub w: f32,
+    /// Height.
     pub h: f32,
 }
 
@@ -94,9 +98,13 @@ impl Rect {
 /// Four edge widths in CSS px.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Edges {
+    /// Top edge width.
     pub top: f32,
+    /// Right edge width.
     pub right: f32,
+    /// Bottom edge width.
     pub bottom: f32,
+    /// Left edge width.
     pub left: f32,
 }
 

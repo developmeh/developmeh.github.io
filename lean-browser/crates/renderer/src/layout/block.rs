@@ -418,7 +418,7 @@ impl<'a> Layouter<'a> {
 
     /// Resolves `auto` horizontal margins for a box of `outer_w` (border-box
     /// width) in a containing block of `cb_w`.
-    fn auto_margins(&self, sides: &Sides, cb_w: f32, outer_w: f32, mode: BlockMode) -> (f32, f32) {
+    pub(crate) fn auto_margins(&self, sides: &Sides, cb_w: f32, outer_w: f32, mode: BlockMode) -> (f32, f32) {
         let (ml, mr) = (sides.margin[Side::Left as usize], sides.margin[Side::Right as usize]);
         if !matches!(mode, BlockMode::Flow) {
             return (ml.unwrap_or(0.0), mr.unwrap_or(0.0));

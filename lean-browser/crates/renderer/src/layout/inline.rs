@@ -86,7 +86,6 @@ enum Item {
 
 struct Piece {
     item: usize,
-    range: Range<usize>,
     glyphs: Range<usize>,
     width: f32,
     /// Width without hanging trailing spaces.
@@ -459,7 +458,6 @@ impl<'a> Layouter<'a> {
                         }
                         pieces.push(Piece {
                             item: ii,
-                            range: a..b,
                             glyphs: gstart..gend,
                             width,
                             trimmed,
@@ -476,10 +474,8 @@ impl<'a> Layouter<'a> {
                             prev.break_after = Some(BreakOpportunity::Allowed);
                         }
                     }
-                    let p = ifc.para.len();
                     pieces.push(Piece {
                         item: ii,
-                        range: p..p,
                         glyphs: 0..0,
                         width: a.w,
                         trimmed: a.w,
@@ -490,10 +486,8 @@ impl<'a> Layouter<'a> {
                     });
                 }
                 Item::Open(o) => {
-                    let p = ifc.para.len();
                     pieces.push(Piece {
                         item: ii,
-                        range: p..p,
                         glyphs: 0..0,
                         width: o.left_edge,
                         trimmed: o.left_edge,
@@ -504,11 +498,9 @@ impl<'a> Layouter<'a> {
                     });
                 }
                 Item::Close => {
-                    let p = ifc.para.len();
                     let width = self.close_width(&ifc.items, ii);
                     pieces.push(Piece {
                         item: ii,
-                        range: p..p,
                         glyphs: 0..0,
                         width,
                         trimmed: width,
@@ -519,10 +511,8 @@ impl<'a> Layouter<'a> {
                     });
                 }
                 Item::Break => {
-                    let p = ifc.para.len();
                     pieces.push(Piece {
                         item: ii,
-                        range: p..p,
                         glyphs: 0..0,
                         width: 0.0,
                         trimmed: 0.0,
@@ -533,10 +523,8 @@ impl<'a> Layouter<'a> {
                     });
                 }
                 Item::Wbr => {
-                    let p = ifc.para.len();
                     pieces.push(Piece {
                         item: ii,
-                        range: p..p,
                         glyphs: 0..0,
                         width: 0.0,
                         trimmed: 0.0,

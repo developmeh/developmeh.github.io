@@ -13,7 +13,7 @@ use lean_alloc::{scope, Tag};
 use page_format::{ArchivedPage, NodeKind, PageFile, NONE};
 
 use crate::fonts::FontSet;
-use crate::layout::{collapse_margins, ContainingBlock, LayoutTree, Layouter, Level};
+use crate::layout::{collapse_margins, ContainingBlock, LayoutTree, Layouter};
 use crate::text::TextEngine;
 
 /// Cap on `tops[]` from plan §7 (64 KB of `f32`).
@@ -239,10 +239,9 @@ impl Document {
         if n == 0 {
             return 0..0;
         }
-        // tops is ascending: first unit whose bottom (next top) is > y0.
-        let start = self.tops[..n].partition_point(|_| false).max(
-            self.tops[1..=n].partition_point(|&b| b <= y0),
-        );
+        // tops is ascending: the first unit whose bottom (the next top) is
+        // beyond y0, up to the first unit that starts at or after y1.
+        let start = self.tops[1..=n].partition_point(|&b| b <= y0);
         let end = self.tops[..n].partition_point(|&t| t < y1);
         start.min(end)..end
     }
@@ -278,12 +277,5 @@ impl Document {
             n = node.parent.to_native();
         }
         None
-    }
-
-    /// Whether the node classifies as block-level at the top level (used
-    /// by tests and the dump).
-    pub fn is_block_unit(&self, fonts: &FontSet, text: &mut TextEngine, unit: u32) -> bool {
-        let layouter = Layouter::new(self.page(), fonts, text, self.viewport.0, self.viewport.1);
-        layouter.level(unit, false) == Level::Block
     }
 }

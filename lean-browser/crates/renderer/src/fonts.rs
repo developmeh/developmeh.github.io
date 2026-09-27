@@ -31,9 +31,13 @@ pub type FaceId = u8;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Variant {
+    /// Normal weight, upright.
     Regular = 0,
+    /// Bold, upright.
     Bold = 1,
+    /// Normal weight, italic/oblique.
     Italic = 2,
+    /// Bold italic/oblique.
     BoldItalic = 3,
 }
 
