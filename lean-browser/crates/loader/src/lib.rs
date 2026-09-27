@@ -1,6 +1,8 @@
 //! Lean Browser loader library: fetch, parse, cascade, compress, serialize.
 #![forbid(unsafe_code)]
 
+pub mod a11y;
 pub mod css;
 pub mod dom;
 pub mod fetch;
+pub mod image;

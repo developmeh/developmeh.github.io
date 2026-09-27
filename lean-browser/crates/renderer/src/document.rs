@@ -42,7 +42,8 @@ impl Document {
     ) -> Result<Document, String> {
         let file = {
             let _tag = scope(Tag::PageFile);
-            PageFile::open(path).map_err(|e| format!("rejected page file {}: {e}", path.display()))?
+            PageFile::open(path)
+                .map_err(|e| format!("rejected page file {}: {e}", path.display()))?
         };
         Ok(Document::from_file(file, viewport, fonts, text))
     }
@@ -127,7 +128,13 @@ impl Document {
                     let d = page.styles[n.style.to_native() as usize].display;
                     d.is_block_level() || d == css_subset::Display::None
                 });
-            units = if all_blocks { children } else if page.nodes.len() > 1 { vec![body] } else { Vec::new() };
+            units = if all_blocks {
+                children
+            } else if page.nodes.len() > 1 {
+                vec![body]
+            } else {
+                Vec::new()
+            };
         }
         // Plan §7: group into at most MAX_UNITS scrollbar units.
         if units.len() > MAX_UNITS {
@@ -139,7 +146,9 @@ impl Document {
 
     fn compute_background(&self) -> Rgba {
         let page = self.page();
-        let style_of = |n: u32| page.styles[page.nodes[n as usize].style.to_native() as usize].background_color;
+        let style_of = |n: u32| {
+            page.styles[page.nodes[n as usize].style.to_native() as usize].background_color
+        };
         let html_bg = style_of(0);
         if !html_bg.is_transparent() {
             return html_bg;
@@ -190,9 +199,17 @@ impl Document {
             let content_w = match layouter.len(s.width, w) {
                 Some(cw) if s.box_sizing == BoxSizing::BorderBox => (cw - edges_h).max(0.0),
                 Some(cw) => cw.max(0.0),
-                None => (w - sides.margin_or0(Side::Left) - sides.margin_or0(Side::Right) - edges_h).max(0.0),
+                None => {
+                    (w - sides.margin_or0(Side::Left) - sides.margin_or0(Side::Right) - edges_h)
+                        .max(0.0)
+                }
             };
-            let (ml, _) = layouter.auto_margins(&sides, w, content_w + edges_h, crate::layout::BlockMode::Flow);
+            let (ml, _) = layouter.auto_margins(
+                &sides,
+                w,
+                content_w + edges_h,
+                crate::layout::BlockMode::Flow,
+            );
             x += ml + sides.border.left + sides.padding.left;
             w = content_w;
             pending = collapse_margins(pending, sides.margin_or0(Side::Top));
@@ -247,7 +264,12 @@ impl Document {
     }
 
     /// Lays out the units visible at `scroll_y` into a transient tree.
-    pub fn layout_viewport(&self, scroll_y: f32, fonts: &FontSet, text: &mut TextEngine) -> LayoutTree {
+    pub fn layout_viewport(
+        &self,
+        scroll_y: f32,
+        fonts: &FontSet,
+        text: &mut TextEngine,
+    ) -> LayoutTree {
         let _tag = scope(Tag::Layout);
         let page = self.file.page();
         let mut layouter = Layouter::new(page, fonts, text, self.viewport.0, self.viewport.1);
@@ -263,11 +285,10 @@ impl Document {
     /// viewport tree and walks up the DOM to a `LINK` node.
     pub fn link_at(&self, tree: &LayoutTree, x: f32, y: f32) -> Option<&str> {
         let page = self.page();
-        let hit = tree
-            .boxes
-            .iter()
-            .rev()
-            .find(|b| b.rect.intersects(&crate::layout::Rect::new(x, y, 0.001, 0.001)))?;
+        let hit = tree.boxes.iter().rev().find(|b| {
+            b.rect
+                .intersects(&crate::layout::Rect::new(x, y, 0.001, 0.001))
+        })?;
         let mut n = hit.node;
         while n != NONE {
             let node = &page.nodes[n as usize];

@@ -332,7 +332,10 @@ impl FontSet {
                     .and_then(|id| self.faces.get(id as usize))
                     .map(|f| f.path.display().to_string())
                     .unwrap_or_else(|| "(fallback)".into());
-                s.push_str(&format!("{:<5} {:<11} {path}\n", families[fam], variants[var]));
+                s.push_str(&format!(
+                    "{:<5} {:<11} {path}\n",
+                    families[fam], variants[var]
+                ));
             }
         }
         s

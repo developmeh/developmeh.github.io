@@ -93,14 +93,16 @@ impl Resampler {
             }
             let n = (x1 - x0) as u32;
             let t = tx as usize * 4;
-            for c in 0..4 {
-                self.row_avg[t + c] = s[c] / n;
+            for (dst, v) in self.row_avg[t..t + 4].iter_mut().zip(s) {
+                *dst = v / n;
             }
         }
         // Vertical: which target rows does sy feed?
         let (sh, dh) = (self.sh as u64, self.dh as u64);
         let ty0 = (u64::from(sy) * dh / sh) as u32;
-        let ty1 = (((u64::from(sy) + 1) * dh).div_ceil(sh) as u32).max(ty0 + 1).min(self.dh);
+        let ty1 = (((u64::from(sy) + 1) * dh).div_ceil(sh) as u32)
+            .max(ty0 + 1)
+            .min(self.dh);
         for ty in ty0..ty1 {
             if self.cur_ty != Some(ty) {
                 self.flush();
@@ -229,9 +231,14 @@ fn decode_jpeg(bytes: &[u8], dw: u32, dh: u32) -> Result<Decoded, ImageError> {
         .read_info()
         .map_err(|e| ImageError::Decode(e.to_string()))?;
     let (sw, sh) = decoder
-        .scale(dw.min(u16::MAX as u32) as u16, dh.min(u16::MAX as u32) as u16)
+        .scale(
+            dw.min(u16::MAX as u32) as u16,
+            dh.min(u16::MAX as u32) as u16,
+        )
         .map_err(|e| ImageError::Decode(e.to_string()))?;
-    let info = decoder.info().ok_or(ImageError::Decode("no header".into()))?;
+    let info = decoder
+        .info()
+        .ok_or(ImageError::Decode("no header".into()))?;
     let bpp = info.pixel_format.pixel_bytes();
     if sw as usize * sh as usize * bpp > JPEG_SCRATCH_CAP {
         return Err(ImageError::TooLarge);
@@ -294,7 +301,13 @@ mod tests {
     #[test]
     fn png_downscales_with_box_filter() {
         // 4x4 image, left half red, right half blue -> 2x1.
-        let png = make_png(4, 4, |x, _| if x < 2 { [255, 0, 0, 255] } else { [0, 0, 255, 255] });
+        let png = make_png(4, 4, |x, _| {
+            if x < 2 {
+                [255, 0, 0, 255]
+            } else {
+                [0, 0, 255, 255]
+            }
+        });
         let d = decode(&png, ImageFormat::Png, 2, 1).unwrap();
         assert_eq!((d.width, d.height), (2, 1));
         assert_eq!(&d.data[0..4], &[255, 0, 0, 255]);
@@ -318,8 +331,14 @@ mod tests {
 
     #[test]
     fn caps_and_unsupported() {
-        assert_eq!(decode(&[], ImageFormat::Svg, 1, 1).err(), Some(ImageError::Unsupported));
-        assert_eq!(decode(&[], ImageFormat::Png, 1000, 1000).err(), Some(ImageError::TooLarge));
+        assert_eq!(
+            decode(&[], ImageFormat::Svg, 1, 1).err(),
+            Some(ImageError::Unsupported)
+        );
+        assert_eq!(
+            decode(&[], ImageFormat::Png, 1000, 1000).err(),
+            Some(ImageError::TooLarge)
+        );
         assert!(matches!(
             decode(b"not a png", ImageFormat::Png, 1, 1),
             Err(ImageError::Decode(_))

@@ -28,7 +28,9 @@ use lightningcss::properties::grid::{
     GridLine as LGridLine, RepeatCount, TrackBreadth, TrackListItem, TrackSize as LTrackSize,
     TrackSizing,
 };
-use lightningcss::properties::list::{CounterStyle, ListStyleType as LListStyleType};
+use lightningcss::properties::list::{
+    CounterStyle, ListStyleType as LListStyleType, PredefinedCounterStyle,
+};
 use lightningcss::properties::overflow::OverflowKeyword;
 use lightningcss::properties::position::{Position as LPosition, ZIndex};
 use lightningcss::properties::size::{BoxSizing as LBoxSizing, MaxSize, Size};
@@ -37,7 +39,7 @@ use lightningcss::properties::text::{
     WordBreak as LWordBreak,
 };
 use lightningcss::properties::{custom::TokenOrValue, Property};
-use lightningcss::values::calc::Calc;
+use lightningcss::values::calc::{Calc, MathFunction};
 use lightningcss::values::color::CssColor;
 use lightningcss::values::length::{LengthPercentage, LengthPercentageOrAuto, LengthValue};
 use lightningcss::traits::ToCss;
@@ -180,7 +182,44 @@ fn eval_calc(c: &Calc<LengthPercentage>, ctx: &LenCtx) -> Option<(f32, f32)> {
             let (p, q) = eval_calc(v, ctx)?;
             Some((p * k, q * k))
         }
-        Calc::Function(_) => None,
+        Calc::Function(f) => match &**f {
+            MathFunction::Calc(inner) => eval_calc(inner, ctx),
+            MathFunction::Min(list) | MathFunction::Max(list) => {
+                let vals: Option<Vec<(f32, f32)>> = list.iter().map(|c| eval_calc(c, ctx)).collect();
+                let vals = vals?;
+                // Only comparable when every operand is in the same unit.
+                let all_px = vals.iter().all(|v| v.1 == 0.0);
+                let all_pct = vals.iter().all(|v| v.0 == 0.0);
+                if !(all_px || all_pct) {
+                    return None;
+                }
+                let it = vals.iter().map(|v| if all_px { v.0 } else { v.1 });
+                let v = if matches!(&**f, MathFunction::Min(_)) {
+                    it.fold(f32::INFINITY, f32::min)
+                } else {
+                    it.fold(f32::NEG_INFINITY, f32::max)
+                };
+                Some(if all_px { (v, 0.0) } else { (0.0, v) })
+            }
+            MathFunction::Clamp(lo, mid, hi) => {
+                let (lp, lq) = eval_calc(lo, ctx)?;
+                let (mp, mq) = eval_calc(mid, ctx)?;
+                let (hp, hq) = eval_calc(hi, ctx)?;
+                if lq == 0.0 && mq == 0.0 && hq == 0.0 {
+                    Some((mp.max(lp).min(hp), 0.0))
+                } else if lp == 0.0 && mp == 0.0 && hp == 0.0 {
+                    Some((0.0, mq.max(lq).min(hq)))
+                } else {
+                    // Mixed units: keep the preferred value.
+                    Some((mp, mq))
+                }
+            }
+            MathFunction::Abs(inner) => {
+                let (p, q) = eval_calc(inner, ctx)?;
+                Some((p.abs(), q.abs()))
+            }
+            _ => None,
+        },
     }
 }
 
@@ -564,7 +603,14 @@ fn list_style_type(t: &LListStyleType<'_>) -> ListStyleType {
     match t {
         LListStyleType::None | LListStyleType::String(_) => ListStyleType::None,
         LListStyleType::CounterStyle(cs) => match cs {
-            CounterStyle::Predefined(_) => ListStyleType::Decimal,
+            CounterStyle::Predefined(p) => match p {
+                PredefinedCounterStyle::Disc
+                | PredefinedCounterStyle::DisclosureOpen
+                | PredefinedCounterStyle::DisclosureClosed => ListStyleType::Disc,
+                PredefinedCounterStyle::Circle => ListStyleType::Circle,
+                PredefinedCounterStyle::Square => ListStyleType::Square,
+                _ => ListStyleType::Decimal,
+            },
             CounterStyle::Name(n) => match &*n.0.to_ascii_lowercase() {
                 "disc" => ListStyleType::Disc,
                 "circle" => ListStyleType::Circle,

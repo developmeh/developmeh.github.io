@@ -114,3 +114,129 @@ the code, it has not been considered.
 - **Seccomp/Landlock sandbox** (§11): `seccompiler` and `rustix` are
   declared; nothing implemented (M3).
 - **JS** (`rquickjs`, M5): declared behind the loader's `js` feature only.
+
+## Stage: renderer, M0–M2 (`crates/renderer`)
+
+Built concurrently with the loader stage; only `crates/renderer/` and this
+file were touched. Page files for the tests come from `page-format`'s
+writer through `renderer::testing::PageBuilder` (also behind
+`lean-browser --write-demo`), so nothing here depends on the loader.
+
+### Done
+
+- **Document / `heights[]`** (`document.rs`): `PageFile` map + validate,
+  then one `f32` per scrollbar unit (`tops[]`, the unit's border-box top,
+  plus an end sentinel; 4 B/unit, grouped when a page has more than 16 k
+  units). Units are `Page.top_level`, else the body's block children, else
+  the body itself. The `html`/`body` chain contributes width, auto
+  margins, padding/border and collapsed margins; the canvas background is
+  `html`'s, else `body`'s, else white. `layout_viewport(scroll)` lays out
+  only the units intersecting the viewport into a transient tree.
+- **Block layout** (`layout/block.rs`): `width`/`height`/`min-*`/`max-*`
+  with `box-sizing`, `%`/`vw`/`vh`, auto-margin centring, margin
+  collapsing (siblings, first/last child through parents without
+  padding/border, BFC roots excluded), `overflow: hidden` clipping,
+  `position: relative`, `absolute` (and `fixed` as absolute, plan §5)
+  against the nearest positioned ancestor or the unit (plan R2), replaced
+  elements with intrinsic ratio, `display: list-item` with outside markers
+  (disc/circle/square/decimal), `inline-block` shrink-to-fit from
+  min/max-content measurement, `table*` as block/inline-block and
+  flex/grid containers as block with blockified children (pre-M4 fallbacks
+  from plan §5). Recursion is bounded by `MAX_DEPTH = 96`.
+- **Inline layout** (`layout/inline.rs`): all five `white-space` values
+  (tabs to 8-column stops in `pre`), `text-transform`, `text-indent`,
+  `text-align` (`justify` = left), `text-decoration` propagated to
+  descendants, `word-break: break-all`, `<br>`, `<wbr>`, inline box
+  fragments with background/border/padding per line, `vertical-align`
+  (baseline, middle, top, bottom), the container strut, hanging trailing
+  spaces, `unicode-linebreak` (UAX #14) opportunities, greedy first-fit
+  with overflow when a word never fits.
+- **Text** (`text.rs`, `fonts.rs`): one `swash` `ShapeContext` and one
+  `ScaleContext` for the process, per-character face fallback across all
+  mapped faces, hinted A8 masks rasterized at device size, LRU-by-bytes
+  glyph cache capped at 256 KB (plan §7). Fonts are discovered without
+  fontconfig (`--font`, `--font-dir`/`LEAN_FONT_DIR`, then system dirs;
+  see `crates/renderer/README.md`) and memory-mapped read-only.
+- **Painting** (`paint/mod.rs`): the single strip allocation
+  (`rows = min(64, 320 KB / (width*4))`), band loop, iterative tree walk
+  with rect clips and multiplicative opacity, backgrounds, per-side solid
+  borders (dashed/dotted as solid), `border-radius` (rounded background;
+  rounded ring border when uniform), underline/overline/line-through,
+  `visibility: hidden`, placeholders for unsupported replaced content and
+  form controls, and headless `--paint-png` streaming each band into the
+  PNG encoder. `--dpr` scales layout-to-device.
+- **Images** (`paint/image.rs`): PNG decoded row by row (`EXPAND`,
+  `STRIP_16`, `ALPHA`) and box-filtered into a display-size premultiplied
+  buffer (≤ 512 KB, else placeholder); JPEG via `jpeg-decoder::scale`
+  (nearest 1/8 ≥ display size) then box-filtered (L8, RGB, CMYK). One
+  decoded image is kept across bands within a paint so a tall image is
+  not re-decoded per band.
+- **Window mode** (`window.rs`, feature `window`): winit 0.30 +
+  softbuffer 0.4, wheel/keyboard scrolling, resize → re-layout, left
+  click on a link prints its `href` to stdout, `q`/Escape quit. It
+  compiles under `clippy -D warnings` but could not be run (no display).
+- **CLI**: `lean-browser page.lpg --headless --paint-png out.png
+  --viewport 1280x800 [--scroll-to 0.5 | --scroll <px>] [--dpr n]
+  [--font f | --font-dir d] [--list-fonts] [--dump-boxes] [--stats]
+  [--write-demo p]`.
+- **Tests**: 21 unit tests (fonts, glyph cache eviction, shaping and
+  rasterization with system fonts, white-space processing, image
+  resampling, mask blending), 11 layout tests against hand-computed boxes
+  (margins/padding/borders/auto centring, collapse-through vs BFC,
+  inline-block alignment, absolute/relative/fixed, unit selection when
+  scrolled, replaced ratio under `max-width`, wrapping + `text-align`,
+  `nowrap`/`pre`/`<br>`, list markers, link hit-testing, top-aligned
+  atomics) and 5 golden-ish paint tests (pixel-exact borders/fills,
+  scrolling, DPR 2 across two bands, seamless band stitching, decoded PNG
+  and placeholder pixels, glyph ink). Text tests skip themselves when the
+  machine has no font.
+
+### Deviations from the plan (deliberate)
+
+- **One `unsafe` in the renderer** (`fonts::map_readonly`, `memmap2`), the
+  same read-only private mapping `page-format` uses. Plan §11 lists only
+  `page-format` and `lean-alloc`; the clean fix is a font-mapping helper
+  in `page-format`, which this stage could not edit.
+- **JPEG is not row-streamed**: `jpeg-decoder` has no row API, so the
+  DCT-scaled image is decoded whole (≤ 2 MB transient) and box-filtered.
+  PNG *is* streamed. Images whose display buffer exceeds 512 KB draw as
+  placeholders as planned.
+- **`tops[]` instead of `heights[]`**: same 4 B/unit; storing top edges
+  makes unit selection a binary search.
+- **No bundled Noto**: fonts are found on the machine (see README);
+  Chromium comparisons need `LEAN_FONT_DIR` pointing at the same Noto
+  files. Glyphs are placed at integer device pixels (no subpixel
+  positioning), which will cost some SSIM against Chromium.
+- **`renderer::testing`** (page builder + demo page) is compiled into the
+  library (`#[doc(hidden)]`) so integration tests and `--write-demo` share
+  it.
+
+### Deferred / approximated (renderer)
+
+- Floats and `clear` are laid out in flow (plan puts floats in M4 even
+  though §5 lists `float` "simple").
+- Flex, grid (`taffy` is declared but unused), table layout with
+  `colspan`: M4.
+- `z-index`/stacking contexts: paint order is tree order. `opacity`
+  multiplies primitive alpha rather than compositing a group.
+- Rect clips only: a rounded background under an `overflow: hidden`
+  ancestor is not clipped to it.
+- Margin collapse-through of empty (zero-height) blocks is not modelled;
+  negative margins use the CSS 2.1 sum rule only at sibling boundaries.
+- Absolute boxes: static position approximated by the flow cursor; the
+  unit is the initial containing block (plan R2), so `fixed` scrolls
+  away. `inline-block` baselines are their bottom margin edge (CSS uses
+  the last line box).
+- Percent heights against an auto-height containing block resolve to
+  auto; `text-align: justify` renders as left; RTL/bidi is LTR-ordered
+  (documented defect in §5).
+- Form controls draw as outlined boxes; `<img>` without an image record,
+  inline SVG, iframes and media draw as grey placeholders (M3/M4).
+- No IPC client, loader spawning, fragment navigation, keyboard focus
+  ring, find-in-page (M3); no accesskit tree (M4, deps compile only).
+- `tops[]` is recomputed by laying every unit out once at open and on
+  every resize (CPU only, plan-accepted); no incremental relayout.
+- Headless `--paint-png` allocates the PNG encoder's zlib buffers
+  (untagged, ~380 KB peak); they do not exist in window mode.
+- `malloc_trim`/musl static-pie packaging and a `LEAN_FONT_DIR` for the
+  Nix package are build/Nix work not touched here.

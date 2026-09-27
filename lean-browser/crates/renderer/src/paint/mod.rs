@@ -179,7 +179,12 @@ fn scale_alpha(c: Rgba, alpha: f32) -> Rgba {
     if alpha >= 1.0 {
         return c;
     }
-    Rgba::new(c.r, c.g, c.b, (f32::from(c.a) * alpha.clamp(0.0, 1.0)).round() as u8)
+    Rgba::new(
+        c.r,
+        c.g,
+        c.b,
+        (f32::from(c.a) * alpha.clamp(0.0, 1.0)).round() as u8,
+    )
 }
 
 fn skia_rect(r: &Rect) -> Option<tiny_skia::Rect> {
@@ -239,12 +244,8 @@ impl Painter<'_> {
     fn paint_tree(&mut self, pm: &mut PixmapMut<'_>, tree: &LayoutTree) {
         let band = self.band_rect();
         // (box, clip in device space, accumulated opacity)
-        let mut stack: Vec<(u32, Option<Rect>, f32)> = tree
-            .roots
-            .iter()
-            .rev()
-            .map(|&r| (r, None, 1.0))
-            .collect();
+        let mut stack: Vec<(u32, Option<Rect>, f32)> =
+            tree.roots.iter().rev().map(|&r| (r, None, 1.0)).collect();
         while let Some((idx, clip, alpha)) = stack.pop() {
             let b = &tree.boxes[idx as usize];
             let s = self.style(b.style);
@@ -263,7 +264,12 @@ impl Painter<'_> {
                     BoxKind::Text(t) => t.size * self.dpr * 0.5,
                     _ => 0.0,
                 };
-                let probe = Rect::new(dev.x - reach, dev.y - reach, dev.w + 2.0 * reach, dev.h + 2.0 * reach);
+                let probe = Rect::new(
+                    dev.x - reach,
+                    dev.y - reach,
+                    dev.w + 2.0 * reach,
+                    dev.h + 2.0 * reach,
+                );
                 if probe.intersects(&vc) {
                     self.paint_box(pm, b, &s, &dev, &vc, alpha);
                 }
@@ -313,14 +319,31 @@ impl Painter<'_> {
             BoxKind::Placeholder => {
                 self.paint_background_and_borders(pm, b, s, dev, clip, alpha);
                 let content = self.dev(&b.content_box());
-                fill_rect(pm, &content, clip, scale_alpha(Rgba::rgb(0xEE, 0xEE, 0xEE), alpha));
-                stroke_rect(pm, &content, clip, scale_alpha(Rgba::rgb(0x99, 0x99, 0x99), alpha), self.dpr);
+                fill_rect(
+                    pm,
+                    &content,
+                    clip,
+                    scale_alpha(Rgba::rgb(0xEE, 0xEE, 0xEE), alpha),
+                );
+                stroke_rect(
+                    pm,
+                    &content,
+                    clip,
+                    scale_alpha(Rgba::rgb(0x99, 0x99, 0x99), alpha),
+                    self.dpr,
+                );
             }
             BoxKind::Control => {
                 self.paint_background_and_borders(pm, b, s, dev, clip, alpha);
                 let content = self.dev(&b.content_box());
                 fill_rect(pm, &content, clip, scale_alpha(Rgba::WHITE, alpha));
-                stroke_rect(pm, &content, clip, scale_alpha(Rgba::rgb(0x76, 0x76, 0x76), alpha), self.dpr);
+                stroke_rect(
+                    pm,
+                    &content,
+                    clip,
+                    scale_alpha(Rgba::rgb(0x76, 0x76, 0x76), alpha),
+                    self.dpr,
+                );
             }
         }
     }
@@ -365,14 +388,21 @@ impl Painter<'_> {
         let uniform = colors.iter().all(|c| *c == colors[0]) && bw.iter().all(|&w| w == bw[0]);
         if rounded && uniform && !colors[0].is_transparent() {
             // Ring between the outer and inner rounded rects.
-            let inner = Rect::new(dev.x + bw[3], dev.y + bw[0], dev.w - bw[1] - bw[3], dev.h - bw[0] - bw[2]);
+            let inner = Rect::new(
+                dev.x + bw[3],
+                dev.y + bw[0],
+                dev.w - bw[1] - bw[3],
+                dev.h - bw[0] - bw[2],
+            );
             let inner_radii = [
                 (radii[0] - bw[0]).max(0.0),
                 (radii[1] - bw[0]).max(0.0),
                 (radii[2] - bw[0]).max(0.0),
                 (radii[3] - bw[0]).max(0.0),
             ];
-            if let (Some(outer), Some(inner)) = (rounded_path(dev, radii), rounded_path(&inner, inner_radii)) {
+            if let (Some(outer), Some(inner)) =
+                (rounded_path(dev, radii), rounded_path(&inner, inner_radii))
+            {
                 let mut pb = PathBuilder::new();
                 pb.push_path(&outer);
                 pb.push_path(&inner);
@@ -380,7 +410,13 @@ impl Painter<'_> {
                     let mut paint = Paint::default();
                     paint.set_color_rgba8(colors[0].r, colors[0].g, colors[0].b, colors[0].a);
                     paint.anti_alias = true;
-                    pm.fill_path(&path, &paint, FillRule::EvenOdd, Transform::identity(), None);
+                    pm.fill_path(
+                        &path,
+                        &paint,
+                        FillRule::EvenOdd,
+                        Transform::identity(),
+                        None,
+                    );
                 }
             }
             return;
@@ -456,7 +492,12 @@ impl Painter<'_> {
         }
         let thickness = (run.metrics.stroke_size * self.dpr).max(1.0);
         let mut line = |y: f32| {
-            fill_rect(pm, &Rect::new(dev.x, y.round(), dev.w, thickness), clip, color);
+            fill_rect(
+                pm,
+                &Rect::new(dev.x, y.round(), dev.w, thickness),
+                clip,
+                color,
+            );
         };
         if deco.contains(TextDecoration::UNDERLINE) {
             line(baseline - run.metrics.underline_offset * self.dpr);
@@ -470,10 +511,18 @@ impl Painter<'_> {
         let _ = b;
     }
 
-    fn paint_image(&mut self, pm: &mut PixmapMut<'_>, image: u32, content: &Rect, clip: &Rect, alpha: f32) {
+    fn paint_image(
+        &mut self,
+        pm: &mut PixmapMut<'_>,
+        image: u32,
+        content: &Rect,
+        clip: &Rect,
+        alpha: f32,
+    ) {
         let dw = content.w.round().max(1.0) as u32;
         let dh = content.h.round().max(1.0) as u32;
-        let cached = matches!(&self.image_cache, Some((i, w, h, _)) if *i == image && *w == dw && *h == dh);
+        let cached =
+            matches!(&self.image_cache, Some((i, w, h, _)) if *i == image && *w == dw && *h == dh);
         if !cached {
             let img = &self.page.images[image as usize];
             let bytes = self.page.blob_of(img);
@@ -481,8 +530,19 @@ impl Painter<'_> {
                 Ok(d) => self.image_cache = Some((image, dw, dh, d)),
                 Err(_) => {
                     self.image_cache = None;
-                    fill_rect(pm, content, clip, scale_alpha(Rgba::rgb(0xEE, 0xEE, 0xEE), alpha));
-                    stroke_rect(pm, content, clip, scale_alpha(Rgba::rgb(0x99, 0x99, 0x99), alpha), self.dpr);
+                    fill_rect(
+                        pm,
+                        content,
+                        clip,
+                        scale_alpha(Rgba::rgb(0xEE, 0xEE, 0xEE), alpha),
+                    );
+                    stroke_rect(
+                        pm,
+                        content,
+                        clip,
+                        scale_alpha(Rgba::rgb(0x99, 0x99, 0x99), alpha),
+                        self.dpr,
+                    );
                     return;
                 }
             }
@@ -532,11 +592,19 @@ fn fill_rounded(pm: &mut PixmapMut<'_>, r: &Rect, radii: [f32; 4], clip: &Rect, 
     if !r.intersects(clip) {
         return;
     }
-    let Some(path) = rounded_path(r, radii) else { return };
+    let Some(path) = rounded_path(r, radii) else {
+        return;
+    };
     let mut paint = Paint::default();
     paint.set_color_rgba8(color.r, color.g, color.b, color.a);
     paint.anti_alias = true;
-    pm.fill_path(&path, &paint, FillRule::Winding, Transform::identity(), None);
+    pm.fill_path(
+        &path,
+        &paint,
+        FillRule::Winding,
+        Transform::identity(),
+        None,
+    );
 }
 
 /// Source-over of a straight colour through an A8 mask into premultiplied

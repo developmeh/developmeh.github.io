@@ -8,8 +8,7 @@ use css_subset::{
 use page_format::NodeKind;
 
 use super::{
-    collapse_margins, BoxKind, Edges, LayoutBox, Layouter, Level, PlacedGlyph, Rect, TextRun,
-    NONE,
+    collapse_margins, BoxKind, Edges, LayoutBox, Layouter, Level, PlacedGlyph, Rect, TextRun, NONE,
 };
 
 /// The containing block a box is laid out in: content box of the parent.
@@ -181,7 +180,12 @@ impl<'a> Layouter<'a> {
         r
     }
 
-    fn layout_block_inner(&mut self, node: u32, cb: ContainingBlock, mode: BlockMode) -> BlockResult {
+    fn layout_block_inner(
+        &mut self,
+        node: u32,
+        cb: ContainingBlock,
+        mode: BlockMode,
+    ) -> BlockResult {
         let s = self.style(node);
         let sides = self.sides(&s, cb.w);
         let replaced = self.replaced_kind(node);
@@ -191,7 +195,10 @@ impl<'a> Layouter<'a> {
         // Insets (absolute positioning) resolved against the containing block.
         let inset = |l: &Layouter, side: Side, base: f32| l.len(s.inset[side as usize], base);
         let (left, right) = if is_abs {
-            (inset(self, Side::Left, cb.w), inset(self, Side::Right, cb.w))
+            (
+                inset(self, Side::Left, cb.w),
+                inset(self, Side::Right, cb.w),
+            )
         } else {
             (None, None)
         };
@@ -209,7 +216,11 @@ impl<'a> Layouter<'a> {
             .filter(|_| s.max_height.unit != LengthUnit::Percent || cb.h.is_some())
             .unwrap_or(f32::INFINITY);
 
-        let x = if is_abs { cb.x + left.unwrap_or(0.0) + ml } else { cb.x + ml };
+        let x = if is_abs {
+            cb.x + left.unwrap_or(0.0) + ml
+        } else {
+            cb.x + ml
+        };
         let y = cb.y;
         let idx = self.tree.push(LayoutBox {
             node,
@@ -240,8 +251,10 @@ impl<'a> Layouter<'a> {
         let content_x = x + sides.border.left + sides.padding.left;
         let content_y = y + sides.border.top + sides.padding.top;
         let collapse_top = !bfc && sides.border.top == 0.0 && sides.padding.top == 0.0;
-        let collapse_bottom =
-            !bfc && sides.border.bottom == 0.0 && sides.padding.bottom == 0.0 && explicit_h.is_none();
+        let collapse_bottom = !bfc
+            && sides.border.bottom == 0.0
+            && sides.padding.bottom == 0.0
+            && explicit_h.is_none();
 
         let flow = if let Some(h) = content_h_replaced {
             FlowResult {
@@ -355,7 +368,13 @@ impl<'a> Layouter<'a> {
     ) -> (f32, Option<f32>, f32, f32) {
         let edges_h = sides.edges_h();
         let border_box = s.box_sizing == BoxSizing::BorderBox;
-        let to_content = |w: f32| if border_box { (w - edges_h).max(0.0) } else { w };
+        let to_content = |w: f32| {
+            if border_box {
+                (w - edges_h).max(0.0)
+            } else {
+                w
+            }
+        };
         let min_w = self.len(s.min_width, cb.w).map(to_content).unwrap_or(0.0);
         let max_w = self
             .len(s.max_width, cb.w)
@@ -402,12 +421,15 @@ impl<'a> Layouter<'a> {
                     (w, None, ml0, mr0)
                 }
                 BlockMode::Absolute { .. } if left.is_some() && right.is_some() => {
-                    let w = clamp(cb.w - left.unwrap_or(0.0) - right.unwrap_or(0.0) - ml0 - mr0 - edges_h);
+                    let w = clamp(
+                        cb.w - left.unwrap_or(0.0) - right.unwrap_or(0.0) - ml0 - mr0 - edges_h,
+                    );
                     (w, None, ml0, mr0)
                 }
                 _ => {
-                    let avail = (cb.w - left.unwrap_or(0.0) - right.unwrap_or(0.0) - ml0 - mr0 - edges_h)
-                        .max(0.0);
+                    let avail =
+                        (cb.w - left.unwrap_or(0.0) - right.unwrap_or(0.0) - ml0 - mr0 - edges_h)
+                            .max(0.0);
                     let (min_c, max_c) = self.intrinsic_widths(node);
                     let w = clamp(min_c.max(avail.min(max_c)));
                     (w, None, ml0, mr0)
@@ -418,8 +440,17 @@ impl<'a> Layouter<'a> {
 
     /// Resolves `auto` horizontal margins for a box of `outer_w` (border-box
     /// width) in a containing block of `cb_w`.
-    pub(crate) fn auto_margins(&self, sides: &Sides, cb_w: f32, outer_w: f32, mode: BlockMode) -> (f32, f32) {
-        let (ml, mr) = (sides.margin[Side::Left as usize], sides.margin[Side::Right as usize]);
+    pub(crate) fn auto_margins(
+        &self,
+        sides: &Sides,
+        cb_w: f32,
+        outer_w: f32,
+        mode: BlockMode,
+    ) -> (f32, f32) {
+        let (ml, mr) = (
+            sides.margin[Side::Left as usize],
+            sides.margin[Side::Right as usize],
+        );
         if !matches!(mode, BlockMode::Flow) {
             return (ml.unwrap_or(0.0), mr.unwrap_or(0.0));
         }
@@ -539,7 +570,14 @@ impl<'a> Layouter<'a> {
     }
 
     /// Adds an outside list marker for a `display: list-item` box.
-    fn add_marker(&mut self, idx: u32, node: u32, s: &ComputedStyle, content_x: f32, content_y: f32) {
+    fn add_marker(
+        &mut self,
+        idx: u32,
+        node: u32,
+        s: &ComputedStyle,
+        content_x: f32,
+        content_y: f32,
+    ) {
         let text = match s.list_style_type {
             ListStyleType::Disc => "\u{2022} ".to_string(),
             ListStyleType::Circle => "\u{25E6} ".to_string(),
@@ -553,7 +591,8 @@ impl<'a> Layouter<'a> {
         let segs = self.text.segment_by_coverage(self.fonts, primary, &text);
         let face = segs.first().map_or(primary, |(f, _)| *f);
         let mut shaped = Vec::new();
-        self.text.shape(self.fonts, face, s.font_size, &text, &mut shaped);
+        self.text
+            .shape(self.fonts, face, s.font_size, &text, &mut shaped);
         let width: f32 = shaped.iter().map(|g| g.advance).sum();
         let mut glyphs = Vec::with_capacity(shaped.len());
         let mut pen = 0.0;
@@ -681,7 +720,13 @@ impl<'a> Layouter<'a> {
         let (mut min_c, mut max_c) = (0.0f32, 0.0f32);
         let mut run: Vec<u32> = Vec::new();
         let children: Vec<u32> = page.children(node).collect();
-        for (i, child) in children.iter().copied().map(Some).chain(std::iter::once(None)).enumerate() {
+        for (i, child) in children
+            .iter()
+            .copied()
+            .map(Some)
+            .chain(std::iter::once(None))
+            .enumerate()
+        {
             let _ = i;
             let level = child.map_or(Level::Block, |c| self.level(c, blockify));
             if child.is_none() || level == Level::Block {

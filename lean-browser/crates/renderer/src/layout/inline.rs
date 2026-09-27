@@ -20,7 +20,9 @@
 
 use std::ops::Range;
 
-use css_subset::{ComputedStyle, TextAlign, TextDecoration, TextTransform, VerticalAlign, WhiteSpace, WordBreak};
+use css_subset::{
+    ComputedStyle, TextAlign, TextDecoration, TextTransform, VerticalAlign, WhiteSpace, WordBreak,
+};
 use unicode_linebreak::{linebreaks, BreakOpportunity};
 
 use super::{
@@ -121,7 +123,12 @@ enum Visit {
 
 /// Appends `text` to the paragraph with `white-space` processing and
 /// returns the byte range it occupies.
-fn append_text(para: &mut String, text: &str, ws: WhiteSpace, last_was_space: &mut bool) -> Range<usize> {
+fn append_text(
+    para: &mut String,
+    text: &str,
+    ws: WhiteSpace,
+    last_was_space: &mut bool,
+) -> Range<usize> {
     let start = para.len();
     let collapsible = |c: char| matches!(c, ' ' | '\t' | '\n' | '\r' | '\x0c');
     for c in text.chars() {
@@ -157,7 +164,9 @@ fn append_text(para: &mut String, text: &str, ws: WhiteSpace, last_was_space: &m
             WhiteSpace::Pre | WhiteSpace::PreWrap => match c {
                 '\r' => {}
                 '\t' => {
-                    let col = para[para.rfind('\n').map_or(0, |i| i + 1)..].chars().count();
+                    let col = para[para.rfind('\n').map_or(0, |i| i + 1)..]
+                        .chars()
+                        .count();
                     let n = 8 - (col % 8);
                     for _ in 0..n {
                         para.push(' ');
@@ -214,7 +223,13 @@ impl<'a> Layouter<'a> {
     /// Builds the items, paragraph, glyphs and pieces for `run`.
     /// With `parent_box == NONE` (measurement) atomics are measured, not
     /// laid out, and nothing is written to the tree.
-    fn build_ifc(&mut self, parent_box: u32, run: &[u32], container: &ComputedStyle, cw: f32) -> Ifc {
+    fn build_ifc(
+        &mut self,
+        parent_box: u32,
+        run: &[u32],
+        container: &ComputedStyle,
+        cw: f32,
+    ) -> Ifc {
         let measure = parent_box == NONE;
         let page = self.page;
         let cm = self.metrics(container);
@@ -248,7 +263,8 @@ impl<'a> Layouter<'a> {
                     let s = self.style(node);
                     let raw = page.text_of(&page.nodes[node as usize]);
                     let text = transform_text(raw, s.text_transform);
-                    let range = append_text(&mut ifc.para, &text, s.white_space, &mut last_was_space);
+                    let range =
+                        append_text(&mut ifc.para, &text, s.white_space, &mut last_was_space);
                     if range.is_empty() {
                         continue;
                     }
@@ -271,7 +287,13 @@ impl<'a> Layouter<'a> {
                         let gstart = ifc.glyphs.len();
                         if let Some(face) = face {
                             let mut shaped = Vec::new();
-                            self.text.shape(self.fonts, face, s.font_size, &ifc.para[seg.clone()], &mut shaped);
+                            self.text.shape(
+                                self.fonts,
+                                face,
+                                s.font_size,
+                                &ifc.para[seg.clone()],
+                                &mut shaped,
+                            );
                             for g in &mut shaped {
                                 g.cluster += seg.start as u32;
                             }
@@ -355,7 +377,8 @@ impl<'a> Layouter<'a> {
                     } else {
                         let sides = self.sides(&s, cw);
                         let me = sides.margin_edges();
-                        let r = self.layout_block(node, ContainingBlock::new(0.0, 0.0, cw, None), mode);
+                        let r =
+                            self.layout_block(node, ContainingBlock::new(0.0, 0.0, cw, None), mode);
                         if r.idx == NONE {
                             continue;
                         }
@@ -470,7 +493,9 @@ impl<'a> Layouter<'a> {
                 }
                 Item::Atomic(a) => {
                     if let Some(prev) = pieces.last_mut() {
-                        if prev.break_after.is_none() && matches!(ifc.items[prev.item], Item::Text(_)) {
+                        if prev.break_after.is_none()
+                            && matches!(ifc.items[prev.item], Item::Text(_))
+                        {
                             prev.break_after = Some(BreakOpportunity::Allowed);
                         }
                     }
@@ -621,7 +646,11 @@ impl<'a> Layouter<'a> {
     }
 
     /// `(min-content, max-content)` of an inline run (measurement mode).
-    pub(crate) fn measure_inline_run(&mut self, run: &[u32], container: &ComputedStyle) -> (f32, f32) {
+    pub(crate) fn measure_inline_run(
+        &mut self,
+        run: &[u32],
+        container: &ComputedStyle,
+    ) -> (f32, f32) {
         let ifc = self.build_ifc(NONE, run, container, 0.0);
         let pieces = &ifc.pieces;
         let mut max_c = 0.0f32;
@@ -629,7 +658,8 @@ impl<'a> Layouter<'a> {
         let mut seg_w = 0.0f32;
         let mut word_w = 0.0f32;
         for (i, p) in pieces.iter().enumerate() {
-            let last_of_seg = p.break_after == Some(BreakOpportunity::Mandatory) || i + 1 == pieces.len();
+            let last_of_seg =
+                p.break_after == Some(BreakOpportunity::Mandatory) || i + 1 == pieces.len();
             let breakable = Self::can_break_after(pieces, i);
             if breakable || last_of_seg {
                 word_w += p.min_w;
@@ -738,7 +768,10 @@ impl<'a> Layouter<'a> {
             let mut runs: Vec<LayoutBox> = Vec::new();
             let mut cur: Option<(usize, f32, f32, Vec<PlacedGlyph>)> = None; // item, start x, pen, glyphs
 
-            let flush = |cur: &mut Option<(usize, f32, f32, Vec<PlacedGlyph>)>, runs: &mut Vec<LayoutBox>, items: &[Item], baseline: f32| {
+            let flush = |cur: &mut Option<(usize, f32, f32, Vec<PlacedGlyph>)>,
+                         runs: &mut Vec<LayoutBox>,
+                         items: &[Item],
+                         baseline: f32| {
                 if let Some((item, start_x, pen, glyphs)) = cur.take() {
                     let Item::Text(t) = &items[item] else { return };
                     runs.push(LayoutBox {
@@ -818,7 +851,9 @@ impl<'a> Layouter<'a> {
                         x += p.width;
                         if let Some(o) = open.pop() {
                             if let Item::Open(oi) = &ifc.items[o.item] {
-                                frags.push(inline_fragment(oi, o.start_x, x, o.has_left, true, baseline));
+                                frags.push(inline_fragment(
+                                    oi, o.start_x, x, o.has_left, true, baseline,
+                                ));
                             }
                         }
                     }
@@ -828,7 +863,9 @@ impl<'a> Layouter<'a> {
             flush(&mut cur, &mut runs, &ifc.items, baseline);
             for o in &open {
                 if let Item::Open(oi) = &ifc.items[o.item] {
-                    frags.push(inline_fragment(oi, o.start_x, x, o.has_left, false, baseline));
+                    frags.push(inline_fragment(
+                        oi, o.start_x, x, o.has_left, false, baseline,
+                    ));
                 }
             }
             for f in frags {
@@ -847,7 +884,14 @@ impl<'a> Layouter<'a> {
 }
 
 /// One line's fragment of an inline element.
-fn inline_fragment(o: &OpenItem, start_x: f32, end_x: f32, has_left: bool, has_right: bool, baseline: f32) -> LayoutBox {
+fn inline_fragment(
+    o: &OpenItem,
+    start_x: f32,
+    end_x: f32,
+    has_left: bool,
+    has_right: bool,
+    baseline: f32,
+) -> LayoutBox {
     let ml = if has_left { o.margin_left } else { 0.0 };
     let mr = if has_right { o.margin_right } else { 0.0 };
     let border = Edges {
@@ -886,7 +930,12 @@ mod tests {
     fn collapses_whitespace() {
         let mut para = String::new();
         let mut last = true;
-        let r = append_text(&mut para, "  Hello \n  world  ", WhiteSpace::Normal, &mut last);
+        let r = append_text(
+            &mut para,
+            "  Hello \n  world  ",
+            WhiteSpace::Normal,
+            &mut last,
+        );
         assert_eq!(&para[r], "Hello world ");
         let r2 = append_text(&mut para, " again", WhiteSpace::Normal, &mut last);
         assert_eq!(&para[r2], "again");
@@ -910,7 +959,10 @@ mod tests {
 
     #[test]
     fn transforms() {
-        assert_eq!(transform_text("hello world", TextTransform::Capitalize), "Hello World");
+        assert_eq!(
+            transform_text("hello world", TextTransform::Capitalize),
+            "Hello World"
+        );
         assert_eq!(transform_text("Hi", TextTransform::Uppercase), "HI");
         assert_eq!(transform_text("Hi", TextTransform::Lowercase), "hi");
     }

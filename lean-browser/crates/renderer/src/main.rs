@@ -26,6 +26,7 @@ const USAGE: &str = "\
 usage: lean-browser [<page.lpg>] [--headless] [--paint-png <out.png>] [--viewport <WxH>]
                     [--dpr <n>] [--scroll-to <0..1> | --scroll <px>] [--page <page.lpg>]
                     [--font <file> | --font-dir <dir>] [--list-fonts] [--dump-boxes] [--stats]
+                    [--write-demo <page.lpg>]
 
   <page.lpg> / --page   page file to map and validate (required to paint content)
   --headless            no window (the only mode without the `window` feature)
@@ -39,6 +40,7 @@ usage: lean-browser [<page.lpg>] [--headless] [--paint-png <out.png>] [--viewpor
   --list-fonts          print which font file each family/variant resolved to
   --dump-boxes          print the viewport layout tree to stderr
   --stats               print lean-alloc per-tag peaks to stderr at exit
+  --write-demo <path>   write a demonstration page file (no loader needed) and exit
 ";
 
 struct Options {
@@ -54,6 +56,7 @@ struct Options {
     list_fonts: bool,
     dump_boxes: bool,
     stats: bool,
+    write_demo: Option<PathBuf>,
 }
 
 fn parse_args() -> Result<Options, String> {
@@ -70,6 +73,7 @@ fn parse_args() -> Result<Options, String> {
         list_fonts: false,
         dump_boxes: false,
         stats: false,
+        write_demo: None,
     };
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -81,13 +85,16 @@ fn parse_args() -> Result<Options, String> {
             "--dump-boxes" => o.dump_boxes = true,
             "--paint-png" => o.paint_png = Some(PathBuf::from(value()?)),
             "--page" => o.page = Some(PathBuf::from(value()?)),
+            "--write-demo" => o.write_demo = Some(PathBuf::from(value()?)),
             "--font" => o.font = FontSource::File(PathBuf::from(value()?)),
             "--font-dir" => o.font = FontSource::Dir(PathBuf::from(value()?)),
             "--dpr" => o.dpr = value()?.parse().map_err(|_| "--dpr needs an integer")?,
             "--scroll-to" => {
                 o.scroll_to = Some(value()?.parse().map_err(|_| "--scroll-to needs a number")?)
             }
-            "--scroll" => o.scroll_px = Some(value()?.parse().map_err(|_| "--scroll needs a number")?),
+            "--scroll" => {
+                o.scroll_px = Some(value()?.parse().map_err(|_| "--scroll needs a number")?)
+            }
             "--viewport" => {
                 let v = value()?;
                 let (w, h) = v.split_once('x').ok_or("--viewport needs WxH")?;
@@ -98,7 +105,9 @@ fn parse_args() -> Result<Options, String> {
                 print!("{USAGE}");
                 std::process::exit(0);
             }
-            other if !other.starts_with('-') && o.page.is_none() => o.page = Some(PathBuf::from(other)),
+            other if !other.starts_with('-') && o.page.is_none() => {
+                o.page = Some(PathBuf::from(other))
+            }
             other => return Err(format!("unknown argument {other}")),
         }
     }
@@ -130,6 +139,15 @@ fn main() -> ExitCode {
 }
 
 fn run(opts: &Options) -> Result<(), String> {
+    if let Some(path) = &opts.write_demo {
+        renderer::testing::demo_page(opts.width as u16)
+            .write(path)
+            .map_err(|e| format!("{}: {e}", path.display()))?;
+        eprintln!("lean-browser: wrote demo page to {}", path.display());
+        if opts.page.is_none() && opts.paint_png.is_none() {
+            return Ok(());
+        }
+    }
     let fonts = FontSet::load(&opts.font)?;
     if opts.list_fonts {
         eprint!("{}", fonts.describe());
@@ -215,13 +233,20 @@ fn paint_png(
         Some(d) => d.page(),
         None => {
             empty_bytes = page_format::encode(&empty, 0).map_err(|e| e.to_string())?;
-            empty_file = page_format::PageFile::from_bytes(empty_bytes).map_err(|e| e.to_string())?;
+            empty_file =
+                page_format::PageFile::from_bytes(empty_bytes).map_err(|e| e.to_string())?;
             empty_file.page()
         }
     };
-    paint_viewport(page, fonts, text, &tree, &params, &mut strip, |bytes, _, _| {
-        std::io::Write::write_all(&mut writer, bytes).map_err(|e| e.to_string())
-    })?;
+    paint_viewport(
+        page,
+        fonts,
+        text,
+        &tree,
+        &params,
+        &mut strip,
+        |bytes, _, _| std::io::Write::write_all(&mut writer, bytes).map_err(|e| e.to_string()),
+    )?;
     drop(tree);
     writer.finish().map_err(|e| e.to_string())
 }
@@ -235,7 +260,13 @@ fn window_mode(
 ) -> Result<(), String> {
     let _tag = scope(Tag::Window);
     let doc = doc.ok_or("window mode needs a page file")?;
-    renderer::window::run(doc, fonts, text, (opts.width, opts.height), scroll_offset(opts, None))
+    renderer::window::run(
+        doc,
+        fonts,
+        text,
+        (opts.width, opts.height),
+        scroll_offset(opts, None),
+    )
 }
 
 #[cfg(not(feature = "window"))]

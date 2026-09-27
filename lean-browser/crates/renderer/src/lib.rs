@@ -16,6 +16,8 @@ pub mod document;
 pub mod fonts;
 pub mod layout;
 pub mod paint;
+#[doc(hidden)]
+pub mod testing;
 pub mod text;
 #[cfg(feature = "window")]
 pub mod window;
