@@ -54,9 +54,9 @@ Two pages are exempt from "must operate fully without JS", by name:
 - **`static/how-burl-stores-a-notebook.html`** - burl's exact hash layout over
   a sample notebook the reader edits, with the saved roots that keep earlier
   states alive and how long each lives. The hashes are live SHA-256 over
-  burl's real byte layout, so they match a real `.burl` file. It is a copy of
-  `docs/how-burl-stores-a-notebook.html` in the burl repository, and carries
-  the same `<noscript>` notice and fetches nothing.
+  burl's real byte layout, so they match a real `.burl` file. This is the only copy;
+  burl's guide links here. It carries the same `<noscript>` notice and
+  fetches nothing.
 
 This is a carve-out for a computational artefact, not precedent. Content pages
 - posts, sections, landings, navigation - still work without JS. Any further
