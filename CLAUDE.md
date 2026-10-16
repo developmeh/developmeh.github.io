@@ -42,19 +42,25 @@ This is a Zola-based static site for developmeh.com, a personal blog about softw
 
 ### Named carve-outs to Principle 1
 
-One page is exempt from "must operate fully without JS", by name:
+Two pages are exempt from "must operate fully without JS", by name:
 
 - **`static/merkle-merge-explainer.html`** - a working model of a merkle merge
   between two copies, built from sample text the reader edits. Every hash it
   shows is a live SHA-256 over the model's own illustrative bytes, recomputed
-  as the text changes; burl's exact bytes live in burl's own repository.
+  as the text changes; burl's exact bytes are on the next page.
   Pre-rendering them would turn the page into a picture of the thing it is
   arguing. It carries a `<noscript>`
   notice saying so, and it fetches nothing over the network.
+- **`static/how-burl-stores-a-notebook.html`** - burl's exact hash layout over
+  a sample notebook the reader edits, with the saved roots that keep earlier
+  states alive and how long each lives. The hashes are live SHA-256 over
+  burl's real byte layout, so they match a real `.burl` file. It is a copy of
+  `docs/how-burl-stores-a-notebook.html` in the burl repository, and carries
+  the same `<noscript>` notice and fetches nothing.
 
 This is a carve-out for a computational artefact, not precedent. Content pages
-- posts, sections, landings, navigation - still work without JS. If a second
-page ever needs the same exemption, it gets its own line here.
+- posts, sections, landings, navigation - still work without JS. Any further
+page that needs the same exemption gets its own line here.
 
 ## Development Commands
 
