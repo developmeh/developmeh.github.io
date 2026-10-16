@@ -223,12 +223,32 @@ when the row is written and when it goes.</p>
 <p>The operation that uses a pin removes it. A fork pin advances with each import from its copy. The base and theirs pins go when the last conflict of that import is resolved. A consumed record is removed after 365 days (<code>CONSUMED_KEEP_DAYS</code>).</p>
 <p>Reverting to a checkpoint exists in the code as <code>Checkout.revert!</code> in <a href="https://git.sr.ht/~ninjapanzer/burl/tree/master/item/backend/src/burl/checkout.cr"><code>backend/src/burl/checkout.cr</code></a>, which retains a history root for the tree it replaces. The app's windows, the <code>burl-backend</code> command line and the MCP server do not call it; only the specs and a playground script do. A user of burl cannot revert to a checkpoint today, and Ctrl/Cmd+Z undo is a separate mechanism.</p>
 
-<h3>Checkpoint thinning, computed</h3>
-<p>Say you save <input id="sim-per" type="number" min="1" max="24" value="6" style="width:4em"> times a day for
-<input id="sim-days" type="number" min="1" max="4000" value="800" style="width:5em"> days, every save changing something.
-The page applies the three passes of <code>Merkle#prune_checkpoints!</code> to the checkpoints that save history produces
-(a day is a UTC calendar day).</p>
-<table id="sim"><thead><tr><th>age band</th><th>written</th><th>kept</th><th></th></tr></thead><tbody></tbody></table>
+<h3 id="thinning">What thinning keeps, and the disk it saves</h3>
+<p>burl writes a checkpoint on every save that changes something. The note you are typing in autosaves 1.5 seconds after
+you stop, or every 15 seconds while you keep going, so a busy day is thousands of checkpoints. Kept forever, they would
+grow the file without limit. Thinning keeps every checkpoint for 48 hours, then the last one of each day for a year, then
+the last one of each month for ten years, and none after that.</p>
+<p class="card">Saves a day: <input id="sim-per" type="number" min="1" max="5760" value="1000" style="width:6em">
+<span class="small">(5,760 is one every 15 seconds, all day)</span>
+&nbsp; Days of use: <input id="sim-days" type="number" min="1" max="4000" value="1000" style="width:6em"></p>
+<svg id="sim-svg" viewBox="0 0 1000 200" width="100%" role="img" aria-label="Checkpoints written and kept, by age"></svg>
+<table id="sim"><thead><tr><th>age</th><th>what is kept</th><th>written</th><th>kept</th></tr></thead><tbody></tbody></table>
+<div class="two" style="margin-top:14px">
+  <div class="pane"><h4>History on disk without thinning</h4><div id="disk-all" class="mono" style="font-size:20px"></div></div>
+  <div class="pane"><h4>History on disk with thinning</h4><div id="disk-kept" class="mono" style="font-size:20px"></div><div id="disk-save" class="small"></div></div>
+</div>
+<p class="small">Each checkpoint is counted at about 3.9 KB. That is what one save that rewrites a line of a 40-line note
+added to a vacuumed file, measured with burl 1.64.2: the new line, the new note and the new root, plus the note's 41 edge
+rows. A longer note costs more per save, because the note lists every line. A kept checkpoint can also hold every line
+that changed since the one kept before it, so read the thinned figure as a floor. The notebook's current text is not counted.</p>
+
+<div class="warn"><strong>The cost: under heavy editing, bring a copy made with <code>cp</code> home within 48 hours.</strong>
+An import of a plain file copy merges from the newest checkpoint both files still name. Each file thins on its own and
+keeps <em>its own</em> last checkpoint of each day, so once the day of the copy is more than 48 hours old the two files
+share nothing from it, and the merge falls back to the end of the day before. Every line edited on the day of the copy,
+before it and then again after it on either side, then comes back as a conflict. Measured: two files that merged 20 lines
+with no conflicts gave 40 conflicts once their checkpoints were aged three days and thinned. A copy made with
+<strong>Save as...</strong> is not affected: it records the moment it was made, and the merge starts from there.</div>
 
 <h2>4. Archiving</h2>
 <p>Archive a note and burl moves it under the Archive section, sets its <code>archived</code> field to
@@ -498,32 +518,83 @@ $('v-body').addEventListener('input',checkPaste); $('v-edges').addEventListener(
 
 // ------------------------------------------------------- checkpoint thinning
 // Mirrors Merkle#prune_checkpoints_now!: pass 1 keeps the newest checkpoint per UTC day among those
-// older than the dense window; pass 2 keeps the newest per month among those older than the daily
-// limit; pass 3 drops those older than the monthly limit.
-var DENSE_H=48, DAILY_D=365, MONTHLY_D=3650;
+// older than the dense window; pass 2 keeps the newest per month among pass 1's survivors older than
+// the daily limit; pass 3 drops those older than the monthly limit. Saves are spread evenly, newest
+// at "now", so a day's newest save is found by arithmetic rather than by listing every save.
+var DENSE_H=48, DAILY_D=365, MONTHLY_D=3650, KB_PER_CHECKPOINT=3.9;
 function sim(){
-  var per=Math.max(1,Math.min(24,parseInt($('sim-per').value,10)||1)), days=Math.max(1,Math.min(4000,parseInt($('sim-days').value,10)||1));
-  var now=Date.UTC(2026,9,16,12,0,0), step=24*3600e3/per, cps=[];
-  for(var i=0;i<per*days;i++) cps.push(now-i*step);           // newest first
-  var H=3600e3, D=24*H;
-  function day(t){ return new Date(t).toISOString().slice(0,10); }
-  function month(t){ return new Date(t).toISOString().slice(0,7); }
-  var seen={}, k1=[];
-  cps.forEach(function(t){ var age=now-t;
-    if(age<DENSE_H*H){ k1.push(t); return; }
-    var d=day(t); if(!seen[d]){ seen[d]=1; k1.push(t); } });
-  var seenM={}, k2=[];
-  k1.forEach(function(t){ var age=now-t;
-    if(age<DAILY_D*D){ k2.push(t); return; }
-    var m=month(t); if(!seenM[m]){ seenM[m]=1; k2.push(t); } });
-  var k3=k2.filter(function(t){ return now-t<MONTHLY_D*D; });
-  function band(list,lo,hi){ return list.filter(function(t){ var a=now-t; return a>=lo&&a<hi; }).length; }
-  var bands=[['newer than 48 hours',0,DENSE_H*H],['48 hours to 365 days',DENSE_H*H,DAILY_D*D],['365 days to 3650 days',DAILY_D*D,MONTHLY_D*D],['older than 3650 days',MONTHLY_D*D,Infinity]];
-  var maxw=Math.max(1,band(cps,0,Infinity));
+  var per=Math.max(1,Math.min(5760,parseInt($('sim-per').value,10)||1)), days=Math.max(1,Math.min(4000,parseInt($('sim-days').value,10)||1));
+  var H=3600e3, D=24*H, now=Date.UTC(2026,9,16,12,0,0), step=D/per, N=per*days, oldest=now-(N-1)*step;
+  // Newest save at or before time t (null if none in [lo, t]).
+  function newestAtOrBefore(t,lo){ if(t<oldest) return null; var k=Math.max(0,Math.floor((now-t)/step)); if(now-k*step>t+1e-3) k++; var s=now-k*step; return (s>=lo&&s>=oldest)?s:null; }
+  var kept=[];                                                       // ages in ms
+  // burl prunes only rows strictly older than each limit, so a checkpoint exactly 48 hours old is kept.
+  var dense=Math.min(N,Math.floor(DENSE_H*H/step+1e-9)+1);
+  for(var i=0;i<dense;i++) kept.push(i*step);
+  // Pass 1: one per UTC day, among saves older than the dense window.
+  var cut1=now-dense*step, daySurv=[];
+  for(var dStart=Math.floor(cut1/D)*D; dStart+D>oldest; dStart-=D){
+    var s=newestAtOrBefore(Math.min(dStart+D-1,cut1),dStart); if(s!==null) daySurv.push(s);
+  }
+  // Pass 2: one per UTC month, among day survivors older than the daily limit.
+  var seenM={};
+  daySurv.forEach(function(s){
+    if(now-s<=DAILY_D*D){ kept.push(now-s); return; }
+    var m=new Date(s).toISOString().slice(0,7); if(seenM[m]) return; seenM[m]=1;
+    if(now-s<=MONTHLY_D*D) kept.push(now-s);                        // pass 3
+  });
+  // Counts by band.
+  var bands=[['under 48 hours','every save',0,DENSE_H*H],['48 hours to 1 year','last save of each day',DENSE_H*H,DAILY_D*D],
+             ['1 to 10 years','last save of each month',DAILY_D*D,MONTHLY_D*D],['over 10 years','nothing',MONTHLY_D*D,Infinity]];
+  function written(lo,hi){ var a=Math.max(lo,0), b=Math.min(hi,(N-1)*step+1); return b<=a?0:Math.ceil(b/step)-Math.ceil(a/step); }
+  function keptIn(lo,hi){ var c=0; kept.forEach(function(a){ if(a>=lo&&a<hi) c++; }); return c; }
+  var fmt=function(n){ return n.toLocaleString('en-US'); };
   $('sim').querySelector('tbody').innerHTML=bands.map(function(b){
-    var w=band(cps,b[1],b[2]), kept=band(k3,b[1],b[2]);
-    return '<tr><td>'+b[0]+'</td><td>'+w+'</td><td>'+kept+'</td><td><span class="bar" style="width:'+Math.round(300*kept/maxw)+'px"></span></td></tr>';
-  }).join('')+'<tr><td><strong>total</strong></td><td>'+cps.length+'</td><td>'+k3.length+'</td><td></td></tr>';
+    return '<tr><td>'+b[0]+'</td><td>'+b[1]+'</td><td>'+fmt(written(b[2],b[3]))+'</td><td>'+fmt(keptIn(b[2],b[3]))+'</td></tr>';
+  }).join('')+'<tr><td colspan="2"><strong>total</strong></td><td><strong>'+fmt(N)+'</strong></td><td><strong>'+fmt(kept.length)+'</strong></td></tr>';
+  function size(kb){ return kb<1024?Math.round(kb)+' KB':kb<1024*1024?(kb/1024).toFixed(1)+' MB':(kb/1024/1024).toFixed(2)+' GB'; }
+  $('disk-all').textContent=size(N*KB_PER_CHECKPOINT);
+  $('disk-kept').textContent=size(kept.length*KB_PER_CHECKPOINT);
+  $('disk-save').textContent=N>kept.length?(100*(1-kept.length/N)).toFixed(1)+'% less, '+fmt(N-kept.length)+' checkpoints retired':'nothing retired yet';
+  drawTimeline(N,step,kept,bands);
+}
+
+// The timeline: age on a log scale, newest at the left. Each column is a slice of time; the grey
+// bar is how many checkpoints were written in it and the blue bar how many are kept, both on one
+// log scale, so the gap between them is what thinning removes.
+function drawTimeline(N,step,kept,bands){
+  var L=20, R=990, TOP=26, BASE=150, MIN=60e3, D=864e5, span=Math.max((N-1)*step,MIN*2), MAX=Math.max(span,MONTHLY_D*D)*1.15;
+  var lmin=Math.log(MIN), lmax=Math.log(MAX);
+  function x(age){ return L+(R-L)*(Math.log(Math.max(age,MIN))-lmin)/(lmax-lmin); }
+  function age(px){ return Math.exp(lmin+(px-L)/(R-L)*(lmax-lmin)); }
+  var COL=4, cols=Math.floor((R-L)/COL), wr=new Array(cols).fill(0), kp=new Array(cols).fill(0);
+  for(var c=0;c<cols;c++){
+    var a=c===0?0:age(L+c*COL), b=Math.min(age(L+(c+1)*COL),span+1);
+    if(b>a) wr[c]=Math.max(0,Math.ceil(b/step)-Math.ceil(a/step));
+  }
+  kept.forEach(function(a){ var c=Math.floor((x(a)-L)/COL); if(c>=0&&c<cols) kp[c]++; });
+  var maxc=Math.max(1,Math.max.apply(null,wr));
+  function h(n){ return n<=0?0:(BASE-TOP)*Math.log(1+n)/Math.log(1+maxc); }
+  var zone=['#eef8fd','#e9f2e6','#eef3dc','#e0e0e0'], name=['every save','one a day','one a month','none'], s='';
+  bands.forEach(function(b,i){
+    var x0=x(Math.max(b[2],MIN)), x1=b[3]===Infinity?R:x(b[3]);
+    s+='<rect x="'+x0.toFixed(1)+'" y="'+TOP+'" width="'+(x1-x0).toFixed(1)+'" height="'+(BASE-TOP)+'" fill="'+zone[i]+'"/>';
+    if(x1-x0>70) s+='<text x="'+((x0+x1)/2).toFixed(1)+'" y="'+(TOP-8)+'" font-size="12" text-anchor="middle" fill="#2b2b2b">kept: '+name[i]+'</text>';
+  });
+  for(c=0;c<cols;c++){
+    var hw=h(wr[c]), hk=h(kp[c]), cx=L+c*COL;
+    if(hw) s+='<rect x="'+cx+'" y="'+(BASE-hw).toFixed(1)+'" width="'+(COL-1)+'" height="'+hw.toFixed(1)+'" fill="#a9a9a9"/>';
+    if(hk) s+='<rect x="'+cx+'" y="'+(BASE-hk).toFixed(1)+'" width="'+(COL-1)+'" height="'+hk.toFixed(1)+'" fill="#0492c7"/>';
+  }
+  [[MIN,'1 min'],[3600e3,'1 hour'],[2*D,'48 hours'],[30*D,'1 month'],[365*D,'1 year'],[3650*D,'10 years']].forEach(function(t){
+    if(t[0]>MAX) return; var tx=x(t[0]).toFixed(1);
+    s+='<line x1="'+tx+'" y1="'+BASE+'" x2="'+tx+'" y2="'+(BASE+6)+'" stroke="#838383"/><text x="'+tx+'" y="'+(BASE+20)+'" font-size="11" text-anchor="middle" fill="#5c5c5c">'+t[1]+'</text>';
+  });
+  s+='<line x1="'+L+'" y1="'+BASE+'" x2="'+R+'" y2="'+BASE+'" stroke="#838383"/>';
+  s+='<rect x="'+L+'" y="'+(BASE+30)+'" width="10" height="10" fill="#a9a9a9"/><text x="'+(L+15)+'" y="'+(BASE+39)+'" font-size="11" fill="#2b2b2b">written</text>';
+  s+='<rect x="'+(L+75)+'" y="'+(BASE+30)+'" width="10" height="10" fill="#0492c7"/><text x="'+(L+90)+'" y="'+(BASE+39)+'" font-size="11" fill="#2b2b2b">kept</text>';
+  s+='<text x="'+R+'" y="'+(BASE+39)+'" font-size="11" text-anchor="end" fill="#5c5c5c">age of the checkpoint, log scale; bar height is the count in that slice, log scale</text>';
+  $('sim-svg').innerHTML=s;
 }
 $('sim-per').addEventListener('input',sim); $('sim-days').addEventListener('input',sim);
 
