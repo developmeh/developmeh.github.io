@@ -16,7 +16,7 @@ generate_feeds = false
 
 [extra]
 desc = "Interactive demos and documentation for my open source projects"
-keywords = "kwike, cando, beamlet, wavelet, agentic workflows, LLM agents, event-driven, Unix philosophy, WebAssembly, capability security, multi-agent coordination"
+keywords = "kwike, cando, beamlet, wavelet, burl, agentic workflows, LLM agents, event-driven, Unix philosophy, WebAssembly, capability security, multi-agent coordination"
 +++
 
 Interactive sites and documentation for projects I'm building.
@@ -94,5 +94,24 @@ A conversation store that is naturally forked, replayable, and cheap to assemble
 - Provenance for free: which agent asserted what, when, in response to what
 
 [Read more →](/projects/wavelet/) | [Source](https://git.sr.ht/~ninjapanzer/wavelet)
+
+</div>
+
+---
+
+<div class="project-card">
+
+## [burl](/projects/burl/)
+
+**A Notebook That Merges Its Copies**
+
+A desktop notebook for Linux and macOS that keeps a tree of notes in a single file.
+
+- Every note is both a folder and a document
+- Links, attachments, tasks and HTML export
+- Copies merge back line by line, without conflicts, through a merkle tree
+- Two interactive explainers: [the general merge model](/merkle-merge-explainer.html) and [how burl stores a notebook](/how-burl-stores-a-notebook.html)
+
+[Read more →](/projects/burl/) | [Source](https://git.sr.ht/~ninjapanzer/burl)
 
 </div>

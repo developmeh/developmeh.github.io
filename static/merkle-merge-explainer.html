@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>burl — the merkle merge, as a working model</title>
+<title>Merging copies without conflicts, as a working model</title>
 <style>
   :root{
     --bg:#e8e8e8; --panel:#f5f5f5; --line:#838383; --line-soft:#c9c9c9;
@@ -82,26 +82,23 @@
 <body>
 <div class="wrap">
 
-<h1>burl: the merkle merge, as a working model</h1>
+<h1>Merging copies without conflicts: a working model</h1>
 <noscript>
-  <div class="warn"><strong>This page needs JavaScript.</strong> It is not an article about
-  hashing &mdash; it is a working model that computes every value it shows. The hashes are real
-  SHA-256 digests taken in your browser over the exact bytes burl hashes, and the tree diagrams,
-  the block-by-block merge table and the timeline of root hashes are all built from those digests
-  as you edit the sample text. With scripting off there is nothing left to build them from, so
-  only the prose and the headings below will appear. Nothing is fetched from the network either
-  way.</div>
+  <div class="warn"><strong>This page needs JavaScript.</strong> It is a working model, not an article about
+  hashing: it computes every value it shows. The hashes are real SHA-256 digests taken in your browser over
+  the layout this page defines, and the tree diagrams, the block-by-block merge table and the timeline of
+  root hashes are built from those digests as you edit the sample text. With scripting off there is nothing
+  to build them from, so only the prose and the headings below will appear. Nothing is fetched from the
+  network either way.</div>
 </noscript>
-<p class="sub">How a task note breaks into hashes, how the history of root hashes is kept, and what
-happens block by block when a copy of a notebook is merged back into the notebook it came from.
-Everything below the words section is <em>computed</em> on this page, not drawn: every hash is a
-real SHA-256 over the exact bytes burl hashes, so a value here can be checked against a real
-<code>.burl</code> file with <code>sqlite3</code> (<a href="#verify">how, at the end</a>).
-Edit the Mine and Theirs text and everything recomputes.</p>
+<p class="sub">This page shows how two copies of a notebook can be merged without conflicts in most cases,
+when each note is a merkle tree of blocks. It is a working model: every hash is a real SHA-256, computed in
+your browser, over a byte layout this page defines. Edit the Mine and Theirs text and everything recomputes.</p>
 
-<p class="small">Line numbers cite burl at commit <code>5ddb31ef</code>. Where the page could not
-verify a rule it says so in place rather than guessing. The one behaviour on this page that had no
-test under it before it was drawn now has one: <code>backend/spec/import_remint_spec.cr</code>.</p>
+<p class="small">The layout is illustrative. It shows the idea, and it is not any program's file format.
+<a href="https://git.sr.ht/~ninjapanzer/burl">burl</a>, the note-taking program this model is drawn from,
+hashes different bytes and keeps more kinds of saved state. Its exact bytes and retention rules are on
+<a href="#burl">its own page</a>, listed at the end. Where this page does not model a rule, it says so in place.</p>
 
 <div id="selftest" class="status">SHA-256 self-test: running…</div>
 
@@ -112,42 +109,35 @@ with it, so what they show and what the table shows are one computation.</p>
 <div id="frames"></div>
 
 <h2>Words this page uses</h2>
-<p>burl is a note-taking program whose notebook is one SQLite file, <code>something.burl</code>.
-One sentence each for the terms that follow, in the order they are needed.</p>
+<p>A notebook here is one file holding notes. One sentence each for the terms that follow, in the order they are needed.</p>
 <dl class="words">
-  <dt>note</dt><dd>One entry in the notebook: a title, a format (this page's note is a <code>todotxt</code> task list), some settings, and a body of text.</dd>
+  <dt>note</dt><dd>One entry in the notebook: a title, a format (this page's note is a task list), and a body of text.</dd>
   <dt>block</dt><dd>One line of a note's body; the body is exactly the blocks' texts joined with newlines, and a blank line is a block whose text is empty.</dd>
-  <dt>stable id</dt><dd>A random 32-hex-character identity every note and every block carries, so two files can talk about "the same block" without comparing text or position.</dd>
-  <dt>object</dt><dd>A fixed byte string describing one block, one note, or the whole tree, stored under the SHA-256 of itself in an append-only table; the hash <em>is</em> the object's name.</dd>
-  <dt>tag</dt><dd>The first field of every object, naming its kind and version (<code>burl-block-v1</code>, <code>burl-note-v3</code>, <code>burl-tree-v2</code>), so a reader can never mistake one kind for another.</dd>
+  <dt>stable id</dt><dd>A random identity every note and every block carries, so two copies can talk about "the same block" without comparing text or position.</dd>
+  <dt>object</dt><dd>A fixed byte string describing one block, one note, or the whole tree, stored under the SHA-256 of itself; the hash <em>is</em> the object's name.</dd>
+  <dt>tag</dt><dd>The first field of every object, naming its kind and version (this page uses <code>block-v1</code>, <code>note-v1</code>, <code>tree-v1</code>), so one kind can never be mistaken for another.</dd>
   <dt>root</dt><dd>The one object at the top: it lists the hashes of the top-level notes, so its hash summarises the entire notebook and changes whenever anything under it changes.</dd>
-  <dt>named roots (<code>merkle_roots</code>)</dt><dd>A table of names pointing at root hashes; a root that nothing names is garbage and gets collected, so these names are what keeps history alive.</dd>
-  <dt><code>live</code></dt><dd>The one name that always points at the current tree; it is replaced in place on every edit and never retired.</dd>
-  <dt><code>checkpoint</code></dt><dd>A name written automatically every time <code>live</code> moves, later thinned out by age; it is how "an earlier state of this file" exists at all after a plain edit.</dd>
-  <dt><code>history</code></dt><dd>A name written on purpose just before something destructive (a delete, a merge), with a reason attached, so the operation can be undone.</dd>
-  <dt><code>pin</code></dt><dd>A name that marks a point two files agreed on, kept until the operation that needs it is finished and then retired.</dd>
-  <dt>published copy</dt><dd>A second <code>.burl</code> file burl wrote from this one, stamped in both files with a shared <em>copy id</em> and a <em>fork pin</em> naming the root they parted at.</dd>
-  <dt>drain (import)</dt><dd>Merging a published copy's changes back into the notebook that published it, using the fork pin's tree as the common ancestor of a three-way merge.</dd>
+  <dt>named roots</dt><dd>A table of names pointing at root hashes; a root that nothing names is garbage and gets collected, so these names are what keeps a state alive.</dd>
+  <dt><code>live</code></dt><dd>The one name that always points at the current tree; it is replaced in place on every edit.</dd>
+  <dt><code>pin</code></dt><dd>A name that marks a point two copies agreed on, kept until the merge that needs it is finished.</dd>
+  <dt>copy</dt><dd>A second notebook file made from this one. Both files record a shared <em>copy id</em> and a <em>fork pin</em> naming the root they parted at.</dd>
+  <dt>drain</dt><dd>Merging a copy's changes back into the notebook it came from, using the fork pin's tree as the common ancestor of a three-way merge.</dd>
   <dt>base, mine, theirs</dt><dd>The three sides of that merge: the tree at the fork pin, this notebook's current tree, and the copy's current tree.</dd>
-  <dt><code>merge_conflicts</code></dt><dd>The queue a drain leaves behind: one row per block it could not merge, holding the three sides' object hashes, with mine left in the note.</dd>
-  <dt><code>write_conflicts</code></dt><dd>The <em>other</em> queue, for when two programs write the same open file at the same moment (a person typing and an assistant writing the same line), holding the losing text itself.</dd>
+  <dt>conflict queue</dt><dd>What a drain leaves behind: one row per block it could not merge, holding the three sides' object hashes, with mine left in the note.</dd>
+  <dt>live-write queue</dt><dd>The <em>other</em> queue, for when two programs write the same open file at the same moment, holding the losing text itself.</dd>
 </dl>
 
 <!-- ============================================================ 1 -->
 <h2>1. A task note becomes hashes</h2>
-<p>Start with a todo.txt note, five lines. burl splits the body on newlines, and each line is a block
+<p>Start with a task-list note, five lines. The model splits the body on newlines, and each line is a block
 with its own stable id. The block's bytes are a fixed sequence of <em>netstrings</em> —
 <code>&lt;byte length&gt;:&lt;bytes&gt;,</code> — beginning with the tag; a field that may be absent is written
 as <code>-</code> when absent and <code>+</code> followed by a netstring when present. The block's hash is the
 SHA-256 of exactly those bytes. Note that the stable id is <em>inside</em> the hash: two blocks with the same
 text and different ids are different blocks, which is what lets a merge tell "one line retyped" from "one
 line moved".</p>
-<p class="cite">Split and join: <code>backend/src/burl/blocks.cr:12-22,131-140</code>. Ids:
-<code>blocks.cr:204-206</code> (UUIDv7 as 32 lowercase hex). Netstrings and the <code>+</code>/<code>-</code>
-marker: <code>backend/src/burl/merkle.cr:340-369</code>. Block bytes: <code>merkle.cr:414-421</code>.
-Digest: <code>merkle.cr:461</code> (<code>Digest::SHA256.hexdigest</code>). ADR-0016 part 3 and its
-2026-08-15 addendum.</p>
-
+<p class="small">This layout is the model's own. A real store hashes more fields in a different order, and the
+merge works the same way.</p>
 <div class="side-tabs" style="margin:10px 0 6px">
   Show the breakdown for:
   <button data-view="base" class="on">base</button>
@@ -162,8 +152,8 @@ Digest: <code>merkle.cr:461</code> (<code>Digest::SHA256.hexdigest</code>). ADR-
   <thead><tr><th>#</th><th>stable id</th><th>text</th><th>hash</th></tr></thead>
   <tbody></tbody>
 </table>
-<p class="small">Click any hash or id to see the whole value. Ids on this page are illustrative 32-hex strings;
-real ones are time-ordered UUIDv7 and cannot be predicted from the text.</p>
+<p class="small">Click any hash or id to see the whole value. Ids on this page are derived from labels so they stay put while you type;
+real ones are random or time-ordered and cannot be predicted from the text.</p>
 <details><summary>The exact bytes of block #1, and what each field is</summary>
 <pre class="bytes" id="block-bytes"></pre>
 </details>
@@ -173,60 +163,41 @@ real ones are time-ordered UUIDv7 and cannot be predicted from the text.</p>
 hashes of its child notes. No row ids and no timestamps: a wall-clock value in the hash would make two devices
 disagree about nothing. Editing one line therefore changes one block hash, which changes the note hash, which
 changes every ancestor's hash, which changes the root.</p>
-<p class="cite">Field order: <code>merkle.cr:371-405</code> (<code>burl-note-v3</code>: stable id, parent's stable
-id, sort key, title, format, extension, icon, rich spans, blocks, children). Rehash-on-write:
-<code>merkle.cr:1026-1034</code> (<code>touch!</code>). Which fields a diff compares:
-<code>backend/src/burl/merkle_diff.cr:188-213</code>.</p>
 <pre class="bytes" id="note-bytes"></pre>
 <p>Note hash: <span id="note-hash"></span></p>
 
 <h3>The root</h3>
-<p>burl's notes are a forest (many notes have no parent), so the root is a synthetic object over the top-level
-notes' hashes, with one optional field before them for the file's pinned settings (absent here, so
+<p>Notes form a forest (many notes have no parent), so the root is a synthetic object over the top-level
+notes' hashes, with one optional field before them for notebook-wide settings (absent here, so
 <code>-</code>). This example has two top-level notes: the one both sides edit, and one nobody touches (so the pictures at the top can show a branch being skipped).</p>
-<p class="cite">Root bytes: <code>merkle.cr:437-443</code>; the settings field is ADR-0040 §5. Storage:
-<code>backend/db/schema.sql:798</code> (<code>objects</code>), <code>:878</code> (<code>object_edges</code>,
-parent→children so garbage collection never parses an object), <code>:894</code> (<code>note_hashes</code>).</p>
 <pre class="bytes" id="root-bytes"></pre>
 <p>Root hash: <span id="root-hash"></span></p>
 
 <!-- ============================================================ 2 -->
-<h2>2. How the history of root hashes is kept</h2>
-<p>Objects are never edited, only added, so every tree that ever existed is still in the store — until garbage
-collection removes what nothing names. The names live in one table, <code>merkle_roots(name, hash, kind)</code>,
-and the rows differ only in lifecycle:</p>
+<h2>2. How roots are named while a merge is in flight</h2>
+<p>Objects are never edited, only added, so every tree that ever existed is still in the store until garbage
+collection removes what nothing names. The merge needs two kinds of name:</p>
 <ul>
-  <li><span class="kind live">live</span> the current tree. Exactly one row (a partial unique index says so); replaced in place on every write.</li>
-  <li><span class="kind checkpoint">checkpoint</span> written every time <code>live</code> moves, unless the newest checkpoint already has that hash; thinned into hourly/daily/weekly tiers by <code>compact!</code>.</li>
-  <li><span class="kind history">history</span> written by <code>retain!</code> before a destructive write, with a <code>reason</code>; pruned by count and age.</li>
-  <li><span class="kind pin">pin</span> a fork point or an import's base/theirs tree; advanced or retired by the operation that consumes it. A <code>pin</code> with no live import is a checkable leak.</li>
+  <li><span class="kind live">live</span> the current tree. Exactly one, replaced in place on every write.</li>
+  <li><span class="kind pin">pin</span> a fork point, or a merge's base and theirs trees while conflicts are still waiting. The operation that needs it advances or retires it.</li>
 </ul>
-<p>A drain is an event that both <em>consumes</em> named roots and <em>produces</em> one. It records itself in a second
-table, <code>imports</code>, with four roots: <code>fork_root</code> (the base it merged against), <code>theirs_root</code>
-(the copy's tree), <code>pre_import_root</code> (this file's tree just before, also retained as a <code>history</code> row),
-and <code>merged_root</code> (the result). Afterwards the fork pin advances to <em>theirs'</em> root, not the merged root:
-the merged root is not an ancestor of the copy, and diffing the next drain against it would read every home-side
-change as a deletion on the copy's side.</p>
-<p class="cite">Kinds and lifecycles: <code>schema.sql:905-956</code>, ADR-0026. <code>live</code>+<code>checkpoint</code>:
-<code>merkle.cr:1188-1233</code> (<code>publish_root!</code>, <code>checkpoint!</code>). <code>pin!</code>:
-<code>merkle.cr:1242</code>; <code>retain!</code>: <code>:1296</code>; pruning: <code>:1315,1358</code>. The drain's
-writes: <code>backend/src/burl/import.cr:600-620</code> (history root, <code>imports</code> row, <code>merged_root</code>),
-<code>:634-635</code> (fork pin advance), <code>:705-708</code> (base/theirs pins, only when something queued),
-<code>:711-716</code> (<code>published_copies.consumed_root</code>). Why theirs' root and not the merged one:
-<code>import.cr:156-165</code>. What retires each pin: the table in <code>backend/src/burl/conflicts.cr</code>,
-<code>retire_pins_if_drained</code>. The drain writes <code>live</code> through <code>Merkle#rebuild!</code>
-(<code>merkle.cr:1995</code>), which does <em>not</em> name a checkpoint; the next ordinary save does.</p>
+<p>A drain both <em>consumes</em> named roots and <em>produces</em> one. It reads the fork pin (base), <code>live</code> (mine) and
+the copy's root (theirs), and writes the merged tree to <code>live</code>. Afterwards the fork pin advances to <em>theirs'</em> root,
+not the merged root: the merged root is not an ancestor of the copy, and diffing the next drain against it would
+read every home-side change as a deletion on the copy's side.</p>
+<p class="small">A real notebook usually names more states than these two: automatic checkpoints, undo points before a
+destructive write, and rules for thinning them out. The model leaves them out because the merge does not need them.
+burl's are on <a href="#burl">its own page</a>.</p>
 
 <h3>The timeline for this page's example</h3>
-<p class="small">Driven by section 3's texts. The drain is collapsed; open it to see the four roots it consumed and produced.
+<p class="small">Driven by section 3's texts. The drain is collapsed; open it to see the roots it consumed and produced.
 Resolving a queued conflict in section 3 appends to this list.</p>
 <ul class="tl" id="timeline"></ul>
 
-<h3><code>merkle_roots</code> as it stands now</h3>
+<h3>Named roots as they stand now</h3>
 <table id="roots-table"><thead><tr><th>name</th><th>kind</th><th>hash</th><th>reason / note</th></tr></thead><tbody></tbody></table>
-<p class="small">Garbage collection walks from every row here regardless of kind, and additionally from the three hashes of
-every unresolved <code>merge_conflicts</code> row (<code>conflicts.cr:13-23</code>, ticket #361). Nothing reachable from
-those is ever collected.</p>
+<p class="small">Garbage collection walks from every row here, and additionally from the three hashes of
+every unresolved conflict row. Nothing reachable from those is ever collected.</p>
 
 <!-- ============================================================ 3 -->
 <h2>3. A sample task-note merge, block by block</h2>
@@ -236,17 +207,11 @@ comparison. For a note both sides touched, its scalar fields merge per field and
 three tiers:</p>
 <ol>
   <li><b>One side changed it</b> — take that side. Not a conflict.</li>
-  <li><b>Both changed it, in different places within the line</b> — compose the two edits (<code>Diff3</code>). Not a conflict.</li>
+  <li><b>Both changed it, in different places within the line</b> — compose the two edits with a three-way text merge (diff3). Not a conflict.</li>
   <li><b>Both changed the same characters</b> — keep mine in the note, queue theirs. A conflict, and it never stops the drain.</li>
 </ol>
 <p>Two more rules apply in both directions: <b>deletion loses to edit</b> (a block one side deleted and the other edited
 comes back with the edit), and a block only one side ever had is kept.</p>
-<p class="cite">Diff walk: <code>merkle_diff.cr:1-28,101-163</code>. Tier table: <code>import.cr:117-155</code>. Per-note plan:
-<code>import.cr:1929-1958</code>; scalar fields: <code>:1979-2008</code>. Per-block: <code>import.cr:2034-2105</code>.
-<code>Diff3</code> rule: <code>backend/src/burl/diff3.cr:1-28</code>; <code>merge</code> <code>:55-69</code>; hunks
-<code>:78-144</code>; what counts as overlap <code>:151-154</code>; compose <code>:176-210</code>. ADR-0016 §6 and its
-2026-09-08 amendment.</p>
-
 <div class="grid">
   <div class="pane"><h4>Base (what both files held at the fork pin)</h4>
     <textarea id="base-text" spellcheck="false"></textarea>
@@ -254,23 +219,21 @@ comes back with the edit), and a block only one side ever had is kept.</p>
   </div>
   <div class="pane"><h4>Mine (home, after the fork)</h4>
     <textarea id="mine-text" spellcheck="false"></textarea>
-    <label class="mode"><input type="radio" name="mine-mode" value="editor" checked> editor edit (<code>set_text</code>): line <i>n</i> keeps block <i>n</i>'s id; a blank line deletes it; extra lines are new blocks</label>
-    <label class="mode"><input type="radio" name="mine-mode" value="body"> whole-body write (<code>set_body</code>): a changed line gets a <em>new</em> id; a blank line is a real block</label>
+    <label class="mode"><input type="radio" name="mine-mode" value="editor" checked> editor edit: line <i>n</i> keeps block <i>n</i>'s id; a blank line deletes it; extra lines are new blocks</label>
+    <label class="mode"><input type="radio" name="mine-mode" value="body"> whole-body write: a changed line gets a <em>new</em> id; a blank line is a real block</label>
   </div>
   <div class="pane"><h4>Theirs (the copy, after the fork)</h4>
     <textarea id="theirs-text" spellcheck="false"></textarea>
-    <label class="mode"><input type="radio" name="theirs-mode" value="editor" checked> editor edit (<code>set_text</code>)</label>
-    <label class="mode"><input type="radio" name="theirs-mode" value="body"> whole-body write (<code>set_body</code>)</label>
+    <label class="mode"><input type="radio" name="theirs-mode" value="editor" checked> editor edit</label>
+    <label class="mode"><input type="radio" name="theirs-mode" value="body"> whole-body write</label>
   </div>
 </div>
 <p style="margin:10px 0">
   <button id="load-d">Load the worked example</button>
   <button id="load-remint">Load the re-mint edge (the spec's scenario)</button>
-  <span class="small">Whole-body writers are the MCP server's <code>burl_note_set_body</code> without a base, the CLI, and importers; burl's own editor is the editor path.</span>
+  <span class="small">Whole-body writers are scripts, importers and assistants that send the full text; an editor sends per-line edits.</span>
 </p>
-<p class="cite">Identity rules: editor path keeps the id (<code>blocks.cr:213-219</code>, <code>reconcile</code>); whole-body
-path re-mints a changed line's id in the same slot (<code>blocks.cr:640-668</code>, the identity-rule comment above
-<code>Notes#set_body</code> at <code>backend/src/burl/notes.cr:490</code>). The page models the whole-body rule exactly:
+<p class="small">An editor edit keeps the line's id. A whole-body write gives a changed line a new id in the same slot:
 identical text at the same index keeps the id, anything else is a new id, and extra or missing trailing lines are
 adds or deletes.</p>
 
@@ -294,81 +257,54 @@ adds or deletes.</p>
 <p><b>Free of conflicts by construction:</b> different notes; different fields of one note; different blocks of one note;
 disjoint character spans of one block; identical edits made on both sides. Most of what a whole-note or whole-file sync
 would have flagged is in this list. <b>Not free, and queued:</b> overlapping spans of one block; a scalar field
-(title, parent, icon, format, extension, note-level formatting) changed differently on both sides — mine is kept and the
+(title, parent, icon, format) changed differently on both sides — mine is kept and the
 note itself is queued; a block with rich-text formatting on either side (no text merge can reposition the spans, so it
 is not attempted). <b>Not free, and not queued either:</b> both sides reordering the same note's blocks differently —
 mine's order stands and the drain <em>reports</em> the declined reorder rather than queueing it, because a conflict row's
 three sides are objects that carry no ordering and would show a person two identical lines to choose between.
 The rule throughout is that <b>a conflict never blocks the drain</b>: the queue is a to-do list, not a modal.</p>
-<p class="cite">Scalar collisions: <code>import.cr:1979-2008</code>. Rich spans: <code>import.cr:2076-2083</code>.
-Reorders: <code>import.cr:2128-2167</code> (the four answers; "why the last one is a rule and not a queued row").
-Never blocks: <code>import.cr:151-155</code>, <code>conflicts.cr:6-10</code>. This page simulates the block tiers and the
-re-mint edge; it does not simulate scalar fields, rich spans, or reorders.</p>
+<p class="small">This page simulates the block tiers and the re-mint edge; it does not simulate scalar fields, rich spans, or reorders.</p>
 
 <h3>The fourth case: the re-mint edge</h3>
-<p>The three tiers are defined over block <em>identity</em>. A whole-body write (<code>set_body</code>) gives a changed line a
+<p>The three tiers are defined over block <em>identity</em>. A whole-body write gives a changed line a
 fresh stable id, so if <em>both</em> files rewrite the same line that way, the drain never sees one block with two edits.
 It sees the base block gone on both sides and one unknown block added on each — and an added block has no base to
-compare with. Both survive as two lines, <code>Diff3</code> never runs, and <b>nothing is queued</b>: the drain reports zero
+compare with. Both survive as two lines, the text merge never runs, and <b>nothing is queued</b>: the drain reports zero
 conflicts and the note holds both versions. Press "Load the re-mint edge" above to watch it. The same two texts through
 the editor path (identity kept) produce one block and one queued conflict.</p>
-<p class="cite">Evidence: <code>backend/spec/import_remint_spec.cr</code> — two examples, the second a control through
-<code>set_text</code>, 0 failures. The branches that produce it: <code>import.cr:2087</code> ("mine added it, theirs never
-saw it") and <code>:2096-2102</code> ("theirs added it"). Ordinal collision between the two survivors is re-keyed by
-<code>import.cr:2213</code> (<code>rekey_collisions</code>); their relative order there is decided by comparing device-suffixed
-sort keys, which this page cannot know, so it shows mine first and says so.</p>
+<p class="small">The order of the two survivors is decided in a real store by comparing per-device sort keys, which this page cannot know, so it shows mine first and says so.</p>
 
 <h3>Resolving what was queued</h3>
-<p>Every row in <code>merge_conflicts</code> names three objects by hash (base, mine, theirs), never text, and an
+<p>Every row in the conflict queue names three objects by hash (base, mine, theirs), never text, and an
 unresolved row is itself a garbage-collection root. What the resolver <em>shows</em> as mine is read live from the note,
 because the block goes on being edited while the row waits. The person has three answers, and none of them is chosen for
 them: <b>Mine</b> writes nothing at all (mine is already in the note); <b>Theirs</b> writes theirs' text over the block;
 <b>Edited</b> writes text the person typed, seeded with the best composition the engine could make and the colliding span
 highlighted. There is no "keep both": an engine has no basis to pick an ordering, so that was dropped once a person could
-type instead. The assistant-facing MCP server can list both queues and resolve neither (ticket #149).</p>
-<p class="cite">Hashes, GC root: <code>conflicts.cr:13-23</code>, <code>schema.sql:1023</code>. Mine read live:
-<code>conflicts.cr:41-63</code> (#384). <code>Resolution = Mine | Theirs | Edited</code>: <code>conflicts.cr:188-192</code>;
-<code>resolve!</code>: <code>:365-412</code>. The seed for Edited: <code>diff3.cr:274-335</code>
-(<code>compose_partial</code>), ADR-0027. No keep-both: ADR-0016 amendment 2026-09-08. MCP read-only: ADR-0015, ADR-0027.</p>
+type instead.</p>
 <div id="conflicts"></div>
 
 <!-- ============================================================ sidebar -->
-<h2>Sidebar: the second queue, <code>write_conflicts</code></h2>
-<p>Everything above happens between two <em>files</em>. burl also lets two <em>programs</em> write one open file — the
-person typing in burl and an assistant writing through the MCP server — and a collision there has none of a drain's
-shape: no import to reference, no fork pin, and the losing text was never stored as an object, so there is no hash to
-name. It gets its own table. The rules are the same three tiers, applied by <code>Blocks#merge_buffer</code> against the
-block list the buffer was loaded from; what differs is what a collision does: the body keeps the version belonging to the
-person at the screen (the caller says which side that is — there is no default), the incoming version is stored
-<em>as text</em> in <code>write_conflicts</code>, the line carries a mark in the editor's gutter, and hovering the mark shows
-both. A line can collect several incoming versions, so rows are numbered 1..N per line and answering one supersedes the
-others. Before this table existed the collision wrote both versions into the body, one under the other, silently and
-permanently — which is exactly the "keep both" the drain's resolver also refuses.</p>
-<p>The two queues are separate tables and separate counts: the drain's queue says nothing about the live one and
-vice versa, which is how ticket #365 was found. Neither auto-resolves.</p>
-<p class="cite"><code>backend/src/burl/write_conflicts.cr:1-60,121-135</code>; <code>schema.sql:1115</code>;
-<code>blocks.cr:942-950</code> (<code>Side</code>), <code>:1000-1020</code> (the tiers), <code>:1211,1276</code>
-(<code>Diff3</code> then <code>queue!</code>). A re-minted line carries its marks with it: <code>blocks.cr:657-668</code>.
-Tickets #338, #365.</p>
+<h2>Sidebar: a second queue for live writes</h2>
+<p>Everything above happens between two <em>files</em>. Two <em>programs</em> can also write one open file, such as a
+person typing and an assistant writing the same line. A collision there has none of a drain's shape: no copy to
+reference, no fork pin, and the losing text was never stored as an object, so there is no hash to name. It gets its own
+queue. The rules are the same three tiers, applied against the block list the writer loaded. A collision keeps the version
+belonging to the person at the screen (the caller says which side that is, with no default), stores the incoming version
+<em>as text</em>, marks the line in the editor's gutter, and shows both on hover. A line can collect several incoming
+versions, and answering one supersedes the others. Writing both versions into the body, one under the other, would be a
+silent "keep both", which the drain's resolver also refuses.</p>
+<p>The two queues are separate and have separate counts: the drain's queue says nothing about the live one and
+vice versa. Neither auto-resolves.</p>
 
-<!-- ============================================================ verify -->
-<h2 id="verify">Checking this page against a real <code>.burl</code></h2>
-<p>The hashes here are honest only if they are the same function of the same bytes as burl's. Two checks, both with stock
-<code>sqlite3</code>:</p>
-<pre># 1. any object's hash is the SHA-256 of its body, byte for byte
-sqlite3 -noheader notes.burl "SELECT hash, kind FROM objects LIMIT 3"
-sqlite3 -noheader notes.burl "SELECT body FROM objects WHERE hash = '&lt;one of them&gt;'" | head -c -1 | sha256sum
-#   (head -c -1 strips the newline sqlite3 appends; the body itself contains none)
-
-# 2. the named roots, and that 'live' names a root object whose children are the top-level notes
-sqlite3 -header notes.burl "SELECT name, kind, substr(hash,1,8) AS h, reason, created_at FROM merkle_roots ORDER BY created_at"
-sqlite3 -noheader notes.burl "SELECT body FROM objects WHERE hash = (SELECT hash FROM merkle_roots WHERE kind = 'live')"</pre>
-<p>Or paste an <code>objects.body</code> value here; the page hashes it with the same function it used above, and the result
-must equal that row's <code>hash</code>:</p>
-<textarea id="verify-in" spellcheck="false" placeholder="paste the body column of one objects row"></textarea>
+<!-- ============================================================ burl -->
+<h2 id="burl">Where burl's exact bytes are</h2>
+<p>The hashes on this page are computed from the layout above, so they will not match a real <code>.burl</code> file.
+How burl lays out its objects, how it names and thins its saved roots, and how to check a hash against your own file
+are on a page of their own: <a href="how-burl-stores-a-notebook.html">How burl stores a notebook</a>.</p>
+<p>You can still hash any text with this page's SHA-256:</p>
+<textarea id="verify-in" spellcheck="false" placeholder="paste any text"></textarea>
 <p>SHA-256: <span id="verify-out" class="mono"></span></p>
-<p class="small">The field order in section 1 is transcribed from <code>merkle.cr</code>; if a future tag version changes it,
-the comparison above is what will say so.</p>
 
 </div>
 <script>
@@ -422,11 +358,10 @@ function sha256Bytes(msg){
 var enc=new TextEncoder();
 function sha(s){ return sha256Bytes(enc.encode(s)); }
 
-// ------------------------------------------------------- the bytes burl hashes
-// Transcribed from backend/src/burl/merkle.cr: tags at 189-193, `net`/`opt` at
-// 353-369, serialize_note 382-405, serialize_block 414-421, serialize_root
-// 437-443. Byte length, not character length, before each field.
-var BLOCK_TAG='burl-block-v1', NOTE_TAG='burl-note-v3', ROOT_TAG='burl-tree-v2';
+// -------------------------------------------------- the bytes this page hashes
+// This page's own illustrative layout, not any program's file format.
+// Byte length, not character length, before each field.
+var BLOCK_TAG='block-v1', NOTE_TAG='note-v1', ROOT_TAG='tree-v1';
 function net(s){ return enc.encode(s).length+':'+s+','; }
 function opt(s){ return (s===null||s===undefined) ? '-' : '+'+net(s); }
 function blockBytes(id,text,spans){ return net(BLOCK_TAG)+net(id)+net(text)+opt(spans); }
@@ -445,12 +380,12 @@ function rootBytes(children,settings){
 }
 
 // ---------------------------------------------------------------- identities
-// Illustrative 32-hex ids. Real ones are UUIDv7 (time-ordered, random tail);
+// Illustrative 32-hex ids. Real ones are random or time-ordered;
 // these are derived from a label so the page is stable while you type.
-function fakeId(label){ return '0199'+sha('burl-explainer:'+label).slice(0,28); }
+function fakeId(label){ return '0199'+sha('explainer:'+label).slice(0,28); }
 var NOTE={stable_id:fakeId('note:Groceries'), parent:null, sort_key:'V1a4kQz', title:'Groceries',
           format:'todotxt', extension:null, icon:null, rich_spans:null};
-var COPY_ID=fakeId('copy'), IMPORT_ID=fakeId('import'), HISTORY_ID=fakeId('history');
+var COPY_ID=fakeId('copy'), IMPORT_ID=fakeId('import');
 // A second, untouched top-level note, so the pictures at the top can show
 // a branch whose fingerprint matches on every side and is skipped whole.
 // Its sort key sorts after Groceries', so it is the root's second child.
@@ -463,8 +398,7 @@ var OTHER=(function(){
 })();
 
 // ---------------------------------------------------------------- Diff3 port
-// backend/src/burl/diff3.cr. `hunks` 78-144, `overlapping?` 151-154,
-// `stitch` 161-171, `compose` 176-210, `compose_partial` 274-335, `merge` 55-69.
+// Three-way text merge: hunks, overlap test, stitch, compose, compose_partial.
 var MAX_CHARS=5000, MAX_TABLE_CELLS=4000000;
 function hunks(base,other){
   var prefix=0, maxP=Math.min(base.length,other.length);
@@ -566,12 +500,12 @@ function sideBlocks(base,text,mode,side){
   var lines=text.split('\n'), out=[], n=Math.min(base.length,lines.length), i;
   for(i=0;i<n;i++){
     if(mode==='body'){
-      // Blocks#replace_all: same text at the same index keeps the id,
-      // anything else is a new id in the same slot (blocks.cr:640-668).
+      // Whole-body write: same text at the same index keeps the id,
+      // anything else is a new id in the same slot.
       if(lines[i]===base[i].text) out.push(base[i]);
       else out.push({id:fakeId(side+':remint:'+i),text:lines[i],pos:i,slot:i,minted:true});
     } else {
-      // set_text keeps the id whatever the text (blocks.cr:213-219). A
+      // An editor edit keeps the id whatever the text. A
       // blank line is this page's convention for "deleted".
       if(lines[i]==='') continue;
       out.push({id:base[i].id,text:lines[i],pos:i,slot:i,minted:false});
@@ -581,24 +515,23 @@ function sideBlocks(base,text,mode,side){
   return out;
 }
 
-// ------------------------------------------------------ merge_blocks port
-// backend/src/burl/import.cr:2034-2105, text tiers only. Ordinals: the page
-// orders rows by base position, mine before theirs on a tie; the code
-// compares device-suffixed fractional keys (import.cr:2213 re-keys ties).
+// ------------------------------------------------------ the block merge
+// Text tiers only. Ordinals: the page orders rows by base position, mine
+// before theirs on a tie; a real store compares per-device sort keys.
 var RULES={
-  unchanged:{cls:'same',rule:'unchanged on both sides: one string comparison',cite:'import.cr:2069'},
-  both_same:{cls:'same',rule:'both sides made the identical edit: one edit',cite:'import.cr:2069'},
-  theirs_only:{cls:'theirs',rule:'base == mine, so theirs’ text is taken (tier 1)',cite:'import.cr:2071'},
-  mine_only:{cls:'mine',rule:'base == theirs, so mine’s edit stands (tier 1)',cite:'import.cr:2073'},
-  diff3:{cls:'diff3',rule:'both edited disjoint spans: Diff3 composed them (tier 2)',cite:'import.cr:2084; diff3.cr:55-69,176-210'},
-  queued:{cls:'queued',rule:'both edited the same span: mine kept, theirs queued (tier 3)',cite:'import.cr:2086-2088; diff3.cr:151-154'},
-  mine_added:{cls:'mine',rule:'mine added it; theirs never saw it',cite:'import.cr:2087'},
-  mine_over_delete:{cls:'resurrect',rule:'theirs deleted a block mine edited: deletion loses to edit',cite:'import.cr:2091-2092'},
-  theirs_deleted:{cls:'deleted',rule:'theirs deleted a block mine left alone: the delete wins',cite:'import.cr:2089-2090'},
-  theirs_added:{cls:'theirs',rule:'theirs added it',cite:'import.cr:2096-2102'},
-  theirs_over_delete:{cls:'resurrect',rule:'mine deleted a block theirs edited: theirs’ version comes back',cite:'import.cr:2096-2102'},
-  mine_deleted:{cls:'deleted',rule:'mine deleted a block theirs left alone: stays deleted',cite:'import.cr:2098'},
-  remint:{cls:'remint',rule:'both rewrote this line through set_body: two new ids, no base for either, both kept, nothing queued',cite:'import.cr:2087,2096-2102; spec import_remint_spec.cr'}
+  unchanged:{cls:'same',rule:'unchanged on both sides: one string comparison'},
+  both_same:{cls:'same',rule:'both sides made the identical edit: one edit'},
+  theirs_only:{cls:'theirs',rule:'base == mine, so theirs’ text is taken (tier 1)'},
+  mine_only:{cls:'mine',rule:'base == theirs, so mine’s edit stands (tier 1)'},
+  diff3:{cls:'diff3',rule:'both edited disjoint spans: Diff3 composed them (tier 2)'},
+  queued:{cls:'queued',rule:'both edited the same span: mine kept, theirs queued (tier 3)'},
+  mine_added:{cls:'mine',rule:'mine added it; theirs never saw it'},
+  mine_over_delete:{cls:'resurrect',rule:'theirs deleted a block mine edited: deletion loses to edit'},
+  theirs_deleted:{cls:'deleted',rule:'theirs deleted a block mine left alone: the delete wins'},
+  theirs_added:{cls:'theirs',rule:'theirs added it'},
+  theirs_over_delete:{cls:'resurrect',rule:'mine deleted a block theirs edited: theirs’ version comes back'},
+  mine_deleted:{cls:'deleted',rule:'mine deleted a block theirs left alone: stays deleted'},
+  remint:{cls:'remint',rule:'both rewrote this line through a whole-body write: two new ids, no base for either, both kept, nothing queued'}
 };
 function mergeBlocks(base,mine,theirs){
   var baseBy={}, mineBy={}, theirsBy={};
@@ -698,8 +631,8 @@ function compute(){
   var m=mergeBlocks(base,mine,theirs);
   var mergedBlocks=m.rows.filter(function(r){ return r.result!==null; })
     .map(function(r){ return {id:r.id,text:r.result,pos:r.pos}; });
-  var drain=hashSide(mergedBlocks); // what the drain wrote: imports.merged_root, live
-  // resolutions, in the order they were made (each is one set_text at home)
+  var drain=hashSide(mergedBlocks); // what the drain wrote to live
+  // resolutions, in the order they were made (each is one write at home)
   var steps=[];
   state.resolutions.forEach(function(res){
     var q=m.queued.filter(function(x){ return x.id===res.id; })[0]; if(!q) return;
@@ -755,9 +688,9 @@ function renderMerge(c){
   var tb=$('merge-table').querySelector('tbody'), html='';
   var nothing = c.theirs.rootHash===c.base.rootHash;
   $('drain-status').textContent = nothing
-    ? 'Theirs’ root equals the base: the drain has nothing to do and writes nothing (import.cr:587, `nothing_to_do`).'
-    : 'Drain result: conflict_count = '+c.queued.length+', '+c.rows.filter(function(r){return r.result!==null;}).length
-      +' blocks in the merged note. merged_root = '+c.drain.rootHash.slice(0,8)+(c.steps.length?'; after the resolutions below, live = '+c.merged.rootHash.slice(0,8):'')+'.';
+    ? 'Theirs’ root equals the base: the drain has nothing to do and writes nothing.'
+    : 'Drain result: conflicts queued = '+c.queued.length+', '+c.rows.filter(function(r){return r.result!==null;}).length
+      +' blocks in the merged note. Merged root = '+c.drain.rootHash.slice(0,8)+(c.steps.length?'; after the resolutions below, live = '+c.merged.rootHash.slice(0,8):'')+'.';
   c.rows.forEach(function(r){
     var R=RULES[r.kind];
     html+='<tr class="'+R.cls+'"><td>'+(r.pos+1)+'</td>'
@@ -765,14 +698,14 @@ function renderMerge(c){
       +'<td class="mono">'+sideCell(r.mine,r.mineState,'above')+'</td>'
       +'<td class="mono">'+sideCell(r.theirs,r.theirsState,'below')+'</td>'
       +'<td class="mono">'+(r.result===null?'<span class="small">gone</span>':esc(r.result))+'</td>'
-      +'<td>'+R.rule+'<div class="cite">'+idc(r.id)+' · '+R.cite+'</div></td></tr>';
+      +'<td>'+R.rule+'<div class="cite">'+idc(r.id)+'</div></td></tr>';
   });
   tb.innerHTML=html;
   $('merged-body').textContent=c.merged.blocks.map(function(b){ return b.text; }).join('\n');
   var remint=c.rows.some(function(r){ return r.kind==='remint'; });
   $('order-note').textContent = remint
-    ? 'Two survivors share one base slot: the code re-keys the ordinal collision (import.cr:2213) and orders them by device-suffixed sort keys, which this page cannot know. Mine is shown first.'
-    : 'Order shown is base order, with new blocks at the position they were written; both sides’ additions at the same position interleave by device-suffixed sort keys in the code (ADR-0016 part 4).';
+    ? 'Two survivors share one base slot: a real store orders them by per-device sort keys, which this page cannot know. Mine is shown first.'
+    : 'Order shown is base order, with new blocks at the position they were written; both sides’ additions at the same position interleave by per-device sort keys in a real store.';
 }
 
 function renderConflicts(c){
@@ -782,7 +715,7 @@ function renderConflicts(c){
   c.queued.forEach(function(q){
     var res=state.resolutions.filter(function(r){ return r.id===q.id; }).slice(-1)[0];
     var B=Array.from(q.base_text||''), cp=composePartial(B,hunks(B,Array.from(q.mine_text))||[],hunks(B,Array.from(q.theirs_text))||[]);
-    html+='<div class="conflict"><div><b>merge_conflicts row</b> — import '+idc(IMPORT_ID)+', note '+idc(NOTE.stable_id)+', block '+idc(q.id)
+    html+='<div class="conflict"><div><b>conflict row</b> — drain '+idc(IMPORT_ID)+', note '+idc(NOTE.stable_id)+', block '+idc(q.id)
       +(res?' — <b>resolved: '+res.choice+'</b>':' — unresolved (a GC root while it waits)')+'</div>'
       +'<div class="sides"><div class="side"><b>base_hash '+h(q.base_hash)+'</b>'+esc(q.base_text)+'</div>'
       +'<div class="side"><b>mine_hash '+h(q.mine_hash)+' (shown live from the note)</b>'+esc(q.mine_text)+'</div>'
@@ -790,9 +723,9 @@ function renderConflicts(c){
       +'<div class="small">Colliding spans over the base: '+cp.overlaps.map(function(o){
           return 'mine replaced base['+o.mine.start+'…'+o.mine.stop+') with “'+esc(o.mine.text.join(''))+'”; theirs with “'+esc(o.theirs.text.join(''))+'”'; }).join('; ')+'.</div>'
       +'<div style="margin-top:6px"><button data-res="mine" data-id="'+q.id+'">Mine — writes nothing</button> '
-      +'<button data-res="theirs" data-id="'+q.id+'">Theirs — set_text(theirs)</button> '
-      +'<button data-res="edited" data-id="'+q.id+'">Edited — set_text(what you typed)</button></div>'
-      +'<div class="small" style="margin-top:4px">Edited, seeded with compose_partial’s best composition (mine’s text kept in the colliding span):</div>'
+      +'<button data-res="theirs" data-id="'+q.id+'">Theirs — writes theirs’ text</button> '
+      +'<button data-res="edited" data-id="'+q.id+'">Edited — writes what you typed</button></div>'
+      +'<div class="small" style="margin-top:4px">Edited, seeded with the best composition the merge could make (mine’s text kept in the colliding span):</div>'
       +'<textarea class="edited" data-id="'+q.id+'" style="min-height:44px">'+esc(res&&res.choice==='edited'?res.text:cp.merged)+'</textarea>'
       +'</div>';
   });
@@ -800,43 +733,37 @@ function renderConflicts(c){
 }
 
 function renderTimeline(c){
-  var ev=[], roots={}, chk=0, tl=$('timeline');
+  var ev=[], roots={}, tl=$('timeline');
   function root(name,kind,hash,reason){ roots[name]={name:name,kind:kind,hash:hash,reason:reason||''}; }
-  function ckpt(hash){ chk++; var name='checkpoint:'+fakeId('ckpt:'+chk).slice(0,32); root(name,'checkpoint',hash,''); return name; }
   var R0=c.base.rootHash, Rm=c.mine.rootHash, Rt=c.theirs.rootHash, Rx=c.drain.rootHash;
-  root('live','live',R0); var c1=ckpt(R0);
-  ev.push({cls:'',what:'Seed: the note is written and saved',rows:['<span class="kind live">live</span> = '+h(R0),'<span class="kind checkpoint">checkpoint</span> '+c1.slice(0,19)+'… = '+h(R0)+' (publish_root!, merkle.cr:1188-1210)']});
+  root('live','live',R0);
+  ev.push({cls:'',what:'Seed: the note is written and saved',rows:['<span class="kind live">live</span> = '+h(R0)]});
   root('fork:'+COPY_ID,'pin',R0,'fork point of copy '+COPY_ID.slice(0,8));
-  ev.push({cls:'',what:'Publish a copy',rows:['<span class="kind pin">pin</span> fork:'+COPY_ID.slice(0,8)+'… = '+h(R0)+' in <em>both</em> files (import.cr:1856 for the copy’s side)',
-    'published_copies: copy_id '+COPY_ID.slice(0,8)+', fork_root '+R0.slice(0,8)+', is_copy 0 here / 1 in the copy (schema.sql:975)']});
-  if(Rm!==R0){ root('live','live',Rm); var c2=ckpt(Rm);
-    ev.push({cls:'',what:'Home edits, one save',rows:['<span class="kind live">live</span> → '+h(Rm)+' (replaced in place)','<span class="kind checkpoint">checkpoint</span> '+c2.slice(0,19)+'… = '+h(Rm)]}); }
-  else ev.push({cls:'',what:'Home edits nothing',rows:['live stays '+h(R0)+'; a save that moves nothing writes no checkpoint (merkle.cr:1222-1233)']});
+  ev.push({cls:'',what:'Publish a copy',rows:['<span class="kind pin">pin</span> fork:'+COPY_ID.slice(0,8)+'… = '+h(R0)+' in <em>both</em> files']});
+  if(Rm!==R0){ root('live','live',Rm);
+    ev.push({cls:'',what:'Home edits, one save',rows:['<span class="kind live">live</span> → '+h(Rm)+' (replaced in place)']}); }
+  else ev.push({cls:'',what:'Home edits nothing',rows:['live stays '+h(R0)]});
   ev.push({cls:'',what:'The copy edits, on its own device',rows:['in the copy’s file: <span class="kind live">live</span> → '+h(Rt)+(Rt===R0?' (unchanged)':'')+'; home’s table is untouched']});
   var nothing = Rt===R0;
   if(nothing){
-    ev.push({cls:'drain',what:'Drain: nothing to do',rows:['theirs_root == fork_root, so no imports row, no history root, no pin advance (import.cr:587)']});
+    ev.push({cls:'drain',what:'Drain: nothing to do',rows:['theirs root == fork root, so nothing is written and the pin does not move']});
   } else {
-    var hist='history:'+HISTORY_ID; root(hist,'history',Rm,'import '+IMPORT_ID.slice(0,8));
     root('live','live',Rx); root('fork:'+COPY_ID,'pin',Rt,'consumed root after the drain');
     var pins=[];
-    if(c.queued.length){ root('import:'+IMPORT_ID+':base','pin',R0,'unwind base, while conflicts pend'); root('import:'+IMPORT_ID+':theirs','pin',Rt,'unwind theirs, while conflicts pend');
-      pins=['<span class="kind pin">pin</span> import:'+IMPORT_ID.slice(0,8)+':base = '+h(R0)+', :theirs = '+h(Rt)+' — only because '+c.queued.length+' row(s) queued (import.cr:705-708); retired when the last resolves']; }
+    if(c.queued.length){ root('drain:'+IMPORT_ID+':base','pin',R0,'base, while conflicts pend'); root('drain:'+IMPORT_ID+':theirs','pin',Rt,'theirs, while conflicts pend');
+      pins=['<span class="kind pin">pin</span> drain:'+IMPORT_ID.slice(0,8)+':base = '+h(R0)+', :theirs = '+h(Rt)+' — only because '+c.queued.length+' row(s) queued; retired when the last resolves']; }
     ev.push({cls:'drain',what:'Drain the copy back (one transaction)',consumed:'consumes fork:'+COPY_ID.slice(0,8)+' = '+R0.slice(0,8)+' as base, theirs = '+Rt.slice(0,8)+'; produces merged = '+Rx.slice(0,8),
-      rows:['<span class="kind history">history</span> '+hist.slice(0,16)+'… = '+h(Rm)+' reason “import '+IMPORT_ID.slice(0,8)+'” (retain!, import.cr:602)',
-        'imports row: fork_root '+h(R0)+' · theirs_root '+h(Rt)+' · pre_import_root '+h(Rm)+' · merged_root '+h(Rx)+' (import.cr:604-620)',
-        '<span class="kind live">live</span> → '+h(Rx)+' via rebuild! (merkle.cr:1995) — no checkpoint is named here',
-        '<span class="kind pin">pin</span> fork:'+COPY_ID.slice(0,8)+' → '+h(Rt)+' — theirs’ root, not the merged one (import.cr:634)',
-        'published_copies.consumed_root = '+h(Rt)+' (import.cr:711-716)'].concat(pins),
+      rows:['<span class="kind live">live</span> → '+h(Rx)+', rebuilt from the merged blocks',
+        '<span class="kind pin">pin</span> fork:'+COPY_ID.slice(0,8)+' → '+h(Rt)+' — theirs’ root, not the merged one'].concat(pins),
       conflicts:c.queued.length});
     c.steps.forEach(function(s,i){
       var wrote=s.after!==s.before;
       var rows=[];
-      if(s.res.choice==='mine') rows.push('Mine: the row is stamped resolved and nothing is written (conflicts.cr:365-369); live stays '+h(s.before));
-      else if(wrote){ root('live','live',s.after); var ck=ckpt(s.after); rows.push('set_text → touch! → <span class="kind live">live</span> → '+h(s.after)+', <span class="kind checkpoint">checkpoint</span> '+ck.slice(0,19)+'…'); }
+      if(s.res.choice==='mine') rows.push('Mine: the row is stamped resolved and nothing is written; live stays '+h(s.before));
+      else if(wrote){ root('live','live',s.after); rows.push('write → <span class="kind live">live</span> → '+h(s.after)); }
       else rows.push('the text written equals what was there: no hash moves');
       var last = i===c.steps.length-1 && resolvedAll(c);
-      if(last && c.queued.length){ delete roots['import:'+IMPORT_ID+':base']; delete roots['import:'+IMPORT_ID+':theirs']; rows.push('last conflict of this import resolved: import:'+IMPORT_ID.slice(0,8)+':base and :theirs unpinned (conflicts.cr, retire_pins_if_drained); the history root stays so the import can still be reverted'); }
+      if(last && c.queued.length){ delete roots['drain:'+IMPORT_ID+':base']; delete roots['drain:'+IMPORT_ID+':theirs']; rows.push('last conflict of this drain resolved: drain:'+IMPORT_ID.slice(0,8)+':base and :theirs unpinned'); }
       ev.push({cls:'conf',what:'Resolve block '+s.q.id.slice(0,8)+' as '+s.res.choice,rows:rows});
     });
   }
@@ -846,7 +773,7 @@ function renderTimeline(c){
     else body+='<ul class="rows">'+e.rows.map(function(r){return '<li>'+r+'</li>';}).join('')+'</ul>';
     return '<li class="'+e.cls+'">'+body+'</li>';
   }).join('');
-  var order={live:0,pin:1,history:2,checkpoint:3};
+  var order={live:0,pin:1};
   var tb=$('roots-table').querySelector('tbody');
   tb.innerHTML=Object.keys(roots).map(function(k){return roots[k];}).sort(function(a,b){ return order[a.kind]-order[b.kind] || a.name.localeCompare(b.name); })
     .map(function(r){ return '<tr><td class="mono">'+esc(r.name.length>40?r.name.slice(0,40)+'…':r.name)+'</td><td><span class="kind '+r.kind+'">'+r.kind+'</span></td><td>'+h(r.hash)+'</td><td class="small">'+esc(r.reason)+'</td></tr>'; }).join('');
@@ -956,7 +883,7 @@ function renderFrames(c){
   var r1y=notesY+34+8;
   b+=svgLine(noteR,r1y+RW/2,cx,r1y+RW/2,'#838383')+svgText(cx+6,r1y+8,'line fingerprint (block hash):',11,'#1a1a1a',null,'bold')+svgText(cx+6,r1y+22,'made from the line\'s text and its id',11,'#333');
   b+=svgText(cx+6,r1y+60,'So: change one line, and exactly three fingerprints change --',11,'#1a1a1a')+svgText(cx+6,r1y+74,'the line\'s, its note\'s, the notebook\'s. Every other one stays.',11,'#1a1a1a');
-  b+=svgText(cx+6,r1y+100,'Each fingerprint here is a real SHA-256, 8 of 64 characters shown;',10,'#666')+svgText(cx+6,r1y+113,'sections 1 and 2 below show the exact bytes it is made from.',10,'#666');
+  b+=svgText(cx+6,r1y+100,'Each fingerprint here is a real SHA-256, 8 of 64 characters shown;',10,'#666')+svgText(cx+6,r1y+113,'section 1 below shows the exact bytes it is made from.',10,'#666');
   figs.push({svg:frameSvg(t1.width+520,Math.max(t1.height,r1y+125),b),cap:'1. One notebook (root) holds notes; each note holds lines (blocks). Every box carries a fingerprint (hash) made from what is under it.'+truncNote(baseRows)});
   // Frame 2: a copy leaves, both remember the fingerprint they share.
   var t2a=treeSvg({label:'this notebook',rootHash:c.base.rootHash,notes:[{label:'Groceries',hash:c.base.noteHash,rows:baseRows,litColor:'#838383'},otherNote(false)]},0);

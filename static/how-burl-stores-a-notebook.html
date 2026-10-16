@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- No network: nothing on this page is fetched. No fonts, scripts or images load from anywhere. -->
+<title>How burl stores a notebook</title>
+<style>
+  :root{
+    --bg:#e8e8e8; --panel:#f5f5f5; --line:#838383; --line-soft:#c9c9c9;
+    --text:#2b2b2b; --muted:#5c5c5c; --strong:#1a1a1a;
+    --blue:#0492c7; --blue-bg:#eef8fd; --warn:#b06a00; --warn-bg:#fdf5ea;
+    --t-same:#f5f5f5; --t-mine:#e9f2e6; --t-theirs:#e6eef7; --t-diff3:#eef3dc;
+    --t-queued:#fbe7e2; --t-resurrect:#f1e6f7; --t-deleted:#e0e0e0; --t-remint:#fdf0d5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 24px 80px;background:var(--bg);color:var(--text);
+       font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:-.01em;color:var(--strong)}
+  h2{font-size:17px;margin:48px 0 8px;color:var(--strong);border-bottom:1px solid var(--line-soft);padding-bottom:4px}
+  h3{font-size:14px;margin:26px 0 6px;color:var(--strong)}
+  p,li{max-width:80ch}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:80ch}
+  .cite{font-size:11.5px;color:var(--muted);margin:4px 0 0;max-width:90ch}
+  .cite code{font-size:11px}
+  .note{border-left:3px solid var(--blue);background:var(--blue-bg);padding:10px 14px;margin:14px 0;font-size:13px;color:#33586b;max-width:90ch}
+  .warn{border-left:3px solid var(--warn);background:var(--warn-bg);padding:10px 14px;margin:14px 0;font-size:13px;color:#6b4f2a;max-width:90ch}
+  code,pre,textarea,.mono{font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace}
+  code{font-size:12.5px;background:#efefef;padding:0 3px;border-radius:2px}
+  pre{background:var(--panel);border:1px solid var(--line-soft);padding:10px 12px;font-size:12px;overflow-x:auto;max-width:100%;white-space:pre-wrap;word-break:break-all}
+  pre.bytes{white-space:pre-wrap}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:var(--panel);border:1px solid var(--line-soft)}
+  th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  th{font-weight:600;color:var(--strong);background:#ececec}
+  td.mono,th.mono{font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .h{cursor:pointer;background:#efefef;border-radius:2px;padding:0 3px;font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;white-space:nowrap}
+  .h.full{white-space:normal;word-break:break-all}
+  .id{color:#4a5a6a}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .pane{background:var(--panel);border:1px solid var(--line-soft);padding:10px 12px}
+  .pane h4{margin:0 0 6px;font-size:13px;color:var(--strong)}
+  textarea{width:100%;min-height:120px;font-size:12.5px;padding:6px 8px;border:1px solid var(--line);background:#fff;color:var(--text);resize:vertical}
+  label.mode{display:block;font-size:12px;color:var(--muted);margin:6px 0 0}
+  button{font:inherit;font-size:12.5px;padding:3px 10px;border:1px solid var(--line);background:#fff;cursor:pointer;border-radius:2px}
+  button:hover{background:#eef8fd;border-color:var(--blue)}
+  button.on{background:#c9effe;border-color:var(--blue)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;margin:8px 0}
+  .legend span{display:inline-block;padding:1px 8px;border:1px solid var(--line-soft)}
+  tr.same td{background:var(--t-same)} tr.mine td{background:var(--t-mine)} tr.theirs td{background:var(--t-theirs)}
+  tr.diff3 td{background:var(--t-diff3)} tr.queued td{background:var(--t-queued)} tr.resurrect td{background:var(--t-resurrect)}
+  tr.deleted td{background:var(--t-deleted);color:var(--muted);text-decoration:line-through} tr.remint td{background:var(--t-remint)}
+  .legend .same{background:var(--t-same)} .legend .mine{background:var(--t-mine)} .legend .theirs{background:var(--t-theirs)}
+  .legend .diff3{background:var(--t-diff3)} .legend .queued{background:var(--t-queued)} .legend .resurrect{background:var(--t-resurrect)}
+  .legend .deleted{background:var(--t-deleted)} .legend .remint{background:var(--t-remint)}
+  .tl{list-style:none;margin:0;padding:0;border-left:2px solid var(--line);margin-left:10px}
+  .tl>li{margin:0 0 14px 0;padding-left:16px;position:relative}
+  .tl>li::before{content:"";position:absolute;left:-7px;top:6px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--line)}
+  .tl>li.drain::before{background:var(--blue);border-color:var(--blue)}
+  .tl>li.conf::before{background:var(--warn);border-color:var(--warn)}
+  .tl .what{font-weight:600;color:var(--strong)}
+  .tl .rows{font-size:12.5px;margin:3px 0 0;padding-left:16px}
+  .tl details{margin:4px 0 0}
+  .tl summary{cursor:pointer;font-size:12.5px;color:#33586b}
+  .kind{display:inline-block;font-size:11px;padding:0 6px;border:1px solid var(--line-soft);border-radius:8px;background:#fff;margin-right:4px}
+  .kind.live{border-color:var(--blue)} .kind.pin{border-color:#6a3fb5} .kind.history{border-color:var(--warn)} .kind.checkpoint{border-color:#4a8a4a}
+  .conflict{border:1px solid #d99a8a;background:#fff;padding:8px 10px;margin:8px 0}
+  .conflict .sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:6px 0}
+  .conflict .side{background:var(--panel);padding:6px 8px;font-size:12px}
+  .conflict .side b{display:block;font-size:11px;color:var(--muted)}
+  .ov{background:#ffd9c9}
+  .small{font-size:12px;color:var(--muted)}
+  dl.words dt{font-weight:600;color:var(--strong);margin-top:8px}
+  dl.words dd{margin:0 0 0 0;max-width:85ch}
+  .status{font-size:12px;color:var(--muted);margin:6px 0 0}
+  .status.bad{color:#a33}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:760px){.two{grid-template-columns:1fr}}
+  .lineno{color:var(--muted);width:2em;display:inline-block}
+  .side-tabs button{margin-right:4px}
+</style>
+<style>
+  .nojs{border:2px solid var(--warn);background:var(--warn-bg);padding:12px 16px;margin:0 0 20px;max-width:90ch}
+  details.obj{margin:6px 0}
+  td.bytes{font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all;white-space:pre-wrap}
+  td.hash{font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;word-break:break-all}
+  .card{background:var(--panel);border:1px solid var(--line-soft);padding:10px 12px;margin:10px 0}
+  .card h4{margin:0 0 6px;font-size:13px}
+  .card label{display:inline-block;margin:2px 10px 2px 0;font-size:12px;color:var(--muted)}
+  .card input[type=text],.card select{font:12px "DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;padding:2px 4px;border:1px solid var(--line);background:#fff;color:var(--text)}
+  .lrow{display:flex;gap:6px;margin:3px 0;align-items:center}
+  .lrow input.lid{width:34ch}.lrow input.ltx{flex:1;min-width:12ch}
+  .bar{display:inline-block;height:12px;background:var(--blue);vertical-align:middle}
+  .match{color:#1e6b1e;font-weight:600}
+  .col-live{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<noscript><div class="nojs"><strong>This page needs JavaScript.</strong> Every hash on it is computed in your browser from the sample notebook, and nothing is fetched from the network. With scripts off you see the explanations without the numbers.</div></noscript>
+
+<h1>How burl stores a notebook</h1>
+<p class="sub">Reference for what a <code>.burl</code> file holds under its notes: the exact bytes burl hashes, the
+named roots that keep earlier states of the notebook alive, how long each kind of root lives, and what
+archiving removes. It is for a reader who wants to check burl's hashes with <code>sqlite3</code>, or
+understand why a file is the size it is. The merge itself, in general, is explained on
+<a href="merkle-merge-explainer.html">its own page</a>; this page covers only what is specific to burl.</p>
+
+<div id="selftest" class="status">SHA-256 self-test: running…</div>
+
+<h2>The sample notebook</h2>
+<p>The sample below is three notes: <em>Groceries</em> with a child note <em>Dairy</em>, and <em>Guided</em>, which
+carries two lines of guidance (rules attached to a note for AI assistants). Its stable ids and sort keys are the ones burl generated when the sample was created,
+so the hashes on this page are the hashes burl stored for it
+(<a href="#verified">what was compared</a>). Edit any field, and every table below recomputes. Change a single
+character of a line's text and watch which hashes move.</p>
+<div id="editor"></div>
+<p><button id="reset" type="button">Reset to the real file's values</button></p>
+
+<h2>1. How burl hashes</h2>
+<p>Take the first line of <em id="ex-note">Groceries</em>. burl stores it as a <em>block object</em>: a fixed sequence of
+<em>netstrings</em> (each field written as its byte length, a colon, the bytes and a comma; spelled out below the table), and the object's hash is the SHA-256 of exactly those bytes.</p>
+<table id="block-fields"><thead><tr><th>field</th><th>bytes written</th><th>what it is</th></tr></thead><tbody></tbody></table>
+<p>A netstring is <code>&lt;byte length&gt;:&lt;bytes&gt;,</code>, with the length counted in UTF-8 bytes. A field that may be
+absent is written as <code>-</code>, or as <code>+</code> followed by a netstring when present. The stable id is inside the
+hash: two lines with the same text and different ids are different blocks, which is what lets a merge tell
+a retyped line from a moved one. The first field, <code>burl-block-v1</code>, is the object's <em>tag</em>: its kind
+and layout version, so no reader mistakes one kind for another. The block's hash is
+<span id="block-hash" class="mono"></span>.</p>
+<p class="cite">Symbols: <code>Merkle.serialize_block</code>, <code>Merkle.digest</code>, <code>Merkle::BLOCK_TAG</code>;
+the private <code>Merkle.net</code> and <code>Merkle.opt</code> write the netstrings and markers.</p>
+
+<h3>A note: a body, then edges</h3>
+<p>A note's lines are not inside the note's bytes. The note object stores its scalar fields and two counts, and the
+hashes of what it contains are kept as <em>edges</em>: the first edges are the guidance and remarks objects if present, then
+one edge per line, then one per child note. Choose a note to see its fields.</p>
+<p><select id="note-pick"></select></p>
+<table id="note-fields"><thead><tr><th>field</th><th>bytes written</th><th>what it is</th></tr></thead><tbody></tbody></table>
+<p class="cite">Symbols: <code>Merkle.serialize_note</code>, <code>Merkle::NOTE_TAG</code> (<code>burl-note-v7</code>),
+<code>Merkle::ANNOTATED_NOTE_TAG</code> (<code>burl-note-v8</code>, used only when the note has remarks),
+<code>Merkle.note_edges</code>. No row id and no timestamp is in any note, so two devices holding the same content
+compute the same hash.</p>
+<p>The hash is taken over the body followed by each edge's hash, each written as a netstring of its 64 hex characters.
+<code>Merkle.preimage</code> builds that string. For this note it is:</p>
+<pre class="bytes" id="note-pre"></pre>
+<p>and its SHA-256 is <span id="note-hash" class="mono"></span>. A block has no edges, so a block's preimage is its body
+and nothing more. A note's hash changes when any line, any scalar field or any child changes, and that change
+carries up through every ancestor to the root.</p>
+
+<h3>The root</h3>
+<p>burl's notes form a forest, since many have no parent. The root object stands over the top-level notes, in sort-key
+order. Its body is the tag <code>burl-tree-v3</code>, a marker saying whether the file has pinned settings (an object
+that would be the first edge), and the number of top-level notes.</p>
+<table id="root-fields"><thead><tr><th>field</th><th>bytes written</th><th>what it is</th></tr></thead><tbody></tbody></table>
+<pre class="bytes" id="root-pre"></pre>
+<p>Root hash: <span id="root-hash" class="mono"></span>. This is the value in <code>merkle_roots</code> under the name
+<code>live</code>. Symbols: <code>Merkle.serialize_root</code>, <code>Merkle::ROOT_TAG</code>.</p>
+
+<h3>The other object kinds</h3>
+<p>Every row of <code>objects</code> has a <code>kind</code>. Three are above (block, note and root); the rest hang off notes and the root.</p>
+<table>
+  <thead><tr><th>kind</th><th>tag</th><th>body</th><th>edges</th></tr></thead>
+  <tbody>
+    <tr><td>block</td><td class="mono">burl-block-v1</td><td>id, text, optional rich spans</td><td>none</td></tr>
+    <tr><td>note</td><td class="mono">burl-note-v7 / v8</td><td>scalar fields, attachment lists, line and child counts</td><td>guidance, remarks, lines, child notes</td></tr>
+    <tr><td>root</td><td class="mono">burl-tree-v3</td><td>settings marker, top-level note count</td><td>settings, top-level notes</td></tr>
+    <tr><td>guidance</td><td class="mono">burl-guidance-v1</td><td>line count only; no note id, so two notes with the same guidance share one object</td><td>one block per guidance line</td></tr>
+    <tr><td>settings</td><td class="mono">burl-settings-v1</td><td>every pinned setting as key and value, in key order</td><td>none</td></tr>
+    <tr><td>annotations</td><td class="mono">burl-annotations-v1</td><td>remark count</td><td>one annotation per remark, in time order</td></tr>
+    <tr><td>annotation</td><td class="mono">burl-annotation-v1 / v2</td><td>id, anchor line id, author, time, line text, remark text; v2 adds the removal state</td><td>none</td></tr>
+  </tbody>
+</table>
+<p class="cite">Symbols: <code>Merkle.serialize_guidance</code>, <code>Merkle.serialize_settings</code>,
+<code>Merkle.serialize_annotations</code>, <code>Merkle.serialize_annotation</code>. Guidance lines are ordinary block
+objects, which is why the merge treats them like body lines.</p>
+
+<h3>Every object the sample produces</h3>
+<p>This is the <code>objects</code> table for the sample, which a real file holds as well. Hashes are shown in hex;
+the file stores them as 32-byte BLOBs, so queries use <code>hex(hash)</code> or <code>X'…'</code>.</p>
+<table id="objects-table"><thead><tr><th>kind</th><th>hash</th><th>body</th><th>edges (seq 0, 1, …)</th></tr></thead><tbody></tbody></table>
+
+<h2 id="check">2. Checking a hash yourself</h2>
+<p>Start from any hash in your own file. Get its kind and edges from the file, and the page recomputes the rest. This
+recipe works for every kind, with or without edges:</p>
+<pre>f=notebook.burl
+h=&lt;64 hex characters from objects.hash, via lower(hex(hash))&gt;
+{ sqlite3 -readonly "$f" "SELECT body FROM objects WHERE hash = X'$h'" | head -c -1
+  sqlite3 -readonly "$f" "SELECT lower(hex(child_hash)) FROM object_edges
+                          WHERE parent_hash = X'$h' ORDER BY seq" \
+    | while read -r c; do printf '64:%s,' "$c"; done
+} | sha256sum</pre>
+<p>The first command prints the body (<code>head -c -1</code> removes the newline <code>sqlite3</code> adds). The second
+prints each edge in order, and the loop writes each as a 64-byte netstring. The output must equal <code>$h</code>. To list
+candidates:</p>
+<pre>sqlite3 -readonly notebook.burl "SELECT lower(hex(hash)), kind, size FROM objects LIMIT 10"
+sqlite3 -readonly notebook.burl "SELECT name, kind, lower(hex(hash)) FROM merkle_roots ORDER BY created_at"</pre>
+<p>Or paste a body and its edges here. The page hashes them the same way:</p>
+<div class="two">
+  <div><textarea id="v-body" spellcheck="false" placeholder="body column of one objects row"></textarea></div>
+  <div><textarea id="v-edges" spellcheck="false" placeholder="its edges, one hash per line, in seq order (empty for a block)"></textarea></div>
+</div>
+<p>SHA-256 of body and edges: <span id="v-out" class="mono"></span> <span id="v-hit"></span></p>
+
+<h3 id="verified">What was compared against a real file</h3>
+<p id="verified-text">The 11 objects reachable from the <code>live</code> root of that real file (6 blocks, 3 notes, 1 guidance object, 1 root) are the same 11 hashes this page computes from the sample as it loads: these match a real file. Not compared with a file: remarks (the annotation objects and the <code>burl-note-v8</code> tag), pinned settings and attachment lists, which the real file did not contain. Their layouts follow the source, and the page marks no hash for them as verified.</p>
+
+<h2>3. Root kinds and their lifecycles</h2>
+<p>Objects are content-addressed and never edited in place; a change writes new objects, and garbage collection removes the ones nothing reaches. What keeps an old state of the notebook readable is a name in the table
+<code>merkle_roots(name, hash, kind, reason, created_at)</code>. Garbage collection keeps an object only if some row of that table reaches it, or it is the base, mine or theirs side (the shared earlier state, your version and the imported copy's version) of
+an unresolved merge conflict. The four kinds differ in
+when the row is written and when it goes.</p>
+<table>
+  <thead><tr><th>kind</th><th>written</th><th>removed</th></tr></thead>
+  <tbody>
+    <tr><td><span class="kind live">live</span></td><td>A single row named <code>live</code>, replaced in place on every change (<code>Merkle#publish_root!</code>).</td><td>Never.</td></tr>
+    <tr><td><span class="kind checkpoint">checkpoint</span></td><td>On every change, unless the newest checkpoint already has the same hash (<code>Merkle#checkpoint!</code>).</td><td>Thinned by age: all kept for 48 hours (<code>Database::CHECKPOINT_DENSE_HOURS</code>), then the newest of each day until 365 days (<code>CHECKPOINT_DAILY_KEEP_DAYS</code>), then the newest of each month until 3650 days (<code>CHECKPOINT_MONTHLY_KEEP_DAYS</code>), then none. <code>Database#save</code> thins when it finds the work due (<code>prune_checkpoints_if_due!</code>), and <code>Database#compact!</code> thins too.</td></tr>
+    <tr><td><span class="kind history">history</span></td><td>Just before something destructive, with a reason: deleting a note, importing a copy, and <code>Checkout.revert!</code> (<code>Merkle#retain!</code>).</td><td><code>compact!</code> keeps the newest 200 (<code>HISTORY_KEEP_COUNT</code>) and none older than 90 days (<code>HISTORY_KEEP_MAX_DAYS</code>).</td></tr>
+    <tr><td><span class="kind pin">pin</span></td><td>Three families, all written by <code>Merkle#pin!</code>; see below the table.</td><td>By the operation that uses the pin; see below the table.</td></tr>
+  </tbody>
+</table>
+
+<p>A pin has three families. A fork point, <code>fork:&lt;copy id&gt;</code>, is written when a copy is published. A merge base and the copy's tree, <code>import:&lt;id&gt;:base</code> and <code>import:&lt;id&gt;:theirs</code>, are written when an import leaves conflicts queued. A record, <code>import:&lt;id&gt;:consumed</code>, is written for each discovered source an import drains. A discovered source is a copy that was not published from this notebook, so burl finds the shared earlier state by comparing the two files.</p>
+<p>The operation that uses a pin removes it. A fork pin advances with each import from its copy. The base and theirs pins go when the last conflict of that import is resolved. A consumed record is removed after 365 days (<code>CONSUMED_KEEP_DAYS</code>).</p>
+<p>Reverting to a checkpoint exists in the code as <code>Checkout.revert!</code> in <a href="https://git.sr.ht/~ninjapanzer/burl/tree/master/item/backend/src/burl/checkout.cr"><code>backend/src/burl/checkout.cr</code></a>, which retains a history root for the tree it replaces. The app's windows, the <code>burl-backend</code> command line and the MCP server do not call it; only the specs and a playground script do. A user of burl cannot revert to a checkpoint today, and Ctrl/Cmd+Z undo is a separate mechanism.</p>
+
+<h3 id="thinning">What thinning keeps, and the disk it saves</h3>
+<p>burl writes a checkpoint on every save that changes something. The note you are typing in autosaves 1.5 seconds after
+you stop, or every 15 seconds while you keep going, so a busy day is thousands of checkpoints. Kept forever, they would
+grow the file without limit. Thinning keeps every checkpoint for 48 hours, then the last one of each day for a year, then
+the last one of each month for ten years, and none after that.</p>
+<p class="card">Saves a day: <input id="sim-per" type="number" min="1" max="5760" value="1000" style="width:6em">
+<span class="small">(5,760 is one every 15 seconds, all day)</span>
+&nbsp; Days of use: <input id="sim-days" type="number" min="1" max="4000" value="1000" style="width:6em"></p>
+<svg id="sim-svg" viewBox="0 0 1000 200" width="100%" role="img" aria-label="Checkpoints written and kept, by age"></svg>
+<table id="sim"><thead><tr><th>age</th><th>what is kept</th><th>written</th><th>kept</th></tr></thead><tbody></tbody></table>
+<div class="two" style="margin-top:14px">
+  <div class="pane"><h4>History on disk without thinning</h4><div id="disk-all" class="mono" style="font-size:20px"></div></div>
+  <div class="pane"><h4>History on disk with thinning</h4><div id="disk-kept" class="mono" style="font-size:20px"></div><div id="disk-save" class="small"></div></div>
+</div>
+<p class="small">Each checkpoint is counted at about 3.9 KB. That is what one save that rewrites a line of a 40-line note
+added to a vacuumed file, measured with burl 1.64.2: the new line, the new note and the new root, plus the note's 41 edge
+rows. A longer note costs more per save, because the note lists every line. A kept checkpoint can also hold every line
+that changed since the one kept before it, so read the thinned figure as a floor. The notebook's current text is not counted.</p>
+
+<div class="warn"><strong>The cost: under heavy editing, bring a copy made with <code>cp</code> home within 48 hours.</strong>
+An import of a plain file copy merges from the newest checkpoint both files still name. Each file thins on its own and
+keeps <em>its own</em> last checkpoint of each day, so once the day of the copy is more than 48 hours old the two files
+share nothing from it, and the merge falls back to the end of the day before. Every line edited on the day of the copy,
+before it and then again after it on either side, then comes back as a conflict. Measured: two files that merged 20 lines
+with no conflicts gave 40 conflicts once their checkpoints were aged three days and thinned. A copy made with
+<strong>Save as...</strong> is not affected: it records the moment it was made, and the merge starts from there.</div>
+
+<h2>4. Archiving</h2>
+<p>Archive a note and burl moves it under the Archive section, sets its <code>archived</code> field to
+<code>1</code>, and then calls <code>Merkle#squash_note!</code> (from <code>Archive.archive!</code>). Because
+<code>archived</code> is a field of the note object, the note's hash changes, and so does every ancestor's. Tick
+<em>archived</em> on a note above to watch it.</p>
+<p><code>squash_note!</code> deletes the note's earlier <em>note</em> objects, and only those that no named root and no
+unresolved conflict reaches. It deletes nothing else. Kept:</p>
+<ul>
+  <li>Every earlier version that a checkpoint, a history row or a pin still reaches. A fork pin holds the merge base for a
+      published copy, so archiving a note never makes a later import refuse for want of a base.</li>
+  <li>Every block and guidance object. They are removed only by garbage collection, which runs in
+      <code>Database#compact!</code> once the roots that reach them have thinned away.</li>
+</ul>
+<p>The space an archived note held therefore comes back as its checkpoints age out, at the next compaction (<code>Database#compact!</code>, which also runs garbage collection) after that.</p>
+
+<h2>5. What a merge compares beyond the general explanation</h2>
+<p>The <a href="merkle-merge-explainer.html">general explanation</a> follows lines of a body. burl's
+import compares three more things.</p>
+<ul>
+  <li><strong>Scalar fields.</strong> <code>SCALAR_FIELDS</code> is parent, sort key, title, format, extension, icon, rich spans and
+      archived; when both sides changed one differently, mine (your notebook's value) stays and theirs (the imported copy's) is queued.</li>
+  <li><strong>Guidance lines.</strong> <code>merge_guidance</code> merges them as a second set of lines with the same three tiers as the body.</li>
+  <li><strong>Remarks.</strong> <code>plan_annotations</code> and the code beside it merge remarks as a union by id, so a remark from either side
+      lands and none is queued.</li>
+</ul>
+
+<h2>References</h2>
+<dl class="words">
+  <dt>The sample notebook</dt><dd>A file made with the master build of <code>burl-mcp</code> (version 1.64.2); the comparison is described <a href="#verified">above</a>.</dd>
+  <dt>Hash serializers</dt><dd><a href="https://git.sr.ht/~ninjapanzer/burl/tree/master/item/backend/src/burl/merkle.cr"><code>backend/src/burl/merkle.cr</code></a>: <code>Merkle.serialize_block</code>, <code>.serialize_note</code>, <code>.serialize_root</code>, <code>.serialize_guidance</code>, <code>.serialize_settings</code>, <code>.serialize_annotations</code>, <code>.serialize_annotation</code>, <code>.preimage</code>, <code>.note_edges</code>.</dd>
+  <dt>Schema</dt><dd><a href="https://git.sr.ht/~ninjapanzer/burl/tree/master/item/backend/db/schema.sql"><code>backend/db/schema.sql</code></a>: tables <code>objects</code>, <code>object_edges</code>, <code>note_hashes</code>, <code>merkle_roots</code>, <code>merge_conflicts</code>.</dd>
+  <dt>Root lifecycles</dt><dd><a href="https://git.sr.ht/~ninjapanzer/burl/tree/master/item/backend/src/burl/merkle.cr"><code>backend/src/burl/merkle.cr</code></a>: <code>Merkle#publish_root!</code>, <code>#checkpoint!</code>, <code>#pin!</code>, <code>#retain!</code>, <code>#prune_history!</code>, <code>#prune_checkpoints!</code>, <code>#squash_note!</code>; <a href="https://git.sr.ht/~ninjapanzer/burl/tree/master/item/backend/src/burl/database.cr"><code>backend/src/burl/database.cr</code></a>: the <code>HISTORY_KEEP_*</code>, <code>CHECKPOINT_*</code> and <code>CONSUMED_KEEP_DAYS</code> constants, <code>#compact!</code>; <a href="https://git.sr.ht/~ninjapanzer/burl/tree/master/item/backend/src/burl/archive.cr"><code>backend/src/burl/archive.cr</code></a>: <code>Archive.archive!</code>.</dd>
+  <dt>Merge extras</dt><dd><a href="https://git.sr.ht/~ninjapanzer/burl/tree/master/item/backend/src/burl/import.cr"><code>backend/src/burl/import.cr</code></a>: <code>SCALAR_FIELDS</code>, <code>merge_guidance</code>, <code>plan_annotations</code>.</dd>
+  <dt>General merge explanation</dt><dd><a href="merkle-merge-explainer.html">Merging copies without conflicts, as a working model</a></dd>
+</dl>
+
+</div>
+<script>
+(function(){
+'use strict';
+
+// BEGIN hashing
+var K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function rotr(x,n){ return (x>>>n)|(x<<(32-n)); }
+function sha256Bytes(msg){
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var l=msg.length, padLen=((l+9+63)>>6)<<6;
+  var buf=new Uint8Array(padLen); buf.set(msg); buf[l]=0x80;
+  var dv=new DataView(buf.buffer);
+  dv.setUint32(padLen-4,(l*8)>>>0); dv.setUint32(padLen-8,Math.floor(l/0x20000000));
+  var W=new Uint32Array(64);
+  for(var off=0;off<padLen;off+=64){
+    for(var i=0;i<16;i++) W[i]=dv.getUint32(off+i*4);
+    for(i=16;i<64;i++){
+      var s0=rotr(W[i-15],7)^rotr(W[i-15],18)^(W[i-15]>>>3);
+      var s1=rotr(W[i-2],17)^rotr(W[i-2],19)^(W[i-2]>>>10);
+      W[i]=(W[i-16]+s0+W[i-7]+s1)>>>0;
+    }
+    var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(i=0;i<64;i++){
+      var S1=rotr(e,6)^rotr(e,11)^rotr(e,25), ch=(e&f)^(~e&g);
+      var t1=(h+S1+ch+K[i]+W[i])>>>0;
+      var S0=rotr(a,2)^rotr(a,13)^rotr(a,22), maj=(a&b)^(a&c)^(b&c);
+      var t2=(S0+maj)>>>0;
+      h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+    H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+  }
+  var out=''; for(i=0;i<8;i++) out+=('00000000'+H[i].toString(16)).slice(-8);
+  return out;
+}
+var enc=new TextEncoder();
+function sha(s){ return sha256Bytes(enc.encode(s)); }
+
+// Tags and layouts transcribed from Merkle in backend/src/burl/merkle.cr:
+// Merkle.net, Merkle.opt, Merkle.serialize_block, .serialize_note, .serialize_root,
+// .serialize_guidance, .serialize_annotations, .serialize_annotation, .preimage, .note_edges.
+var BLOCK_TAG='burl-block-v1', NOTE_TAG='burl-note-v7', ANNOTATED_NOTE_TAG='burl-note-v8',
+    ROOT_TAG='burl-tree-v3', GUIDANCE_TAG='burl-guidance-v1',
+    ANNOTATIONS_TAG='burl-annotations-v1', ANNOTATION_TAG='burl-annotation-v1';
+function net(s){ return enc.encode(s).length+':'+s+','; }
+function opt(s){ return (s===null||s===undefined||s==='') ? '-' : '+'+net(s); }
+
+// Each serializer returns [[label, bytes, meaning], ...]; the body is the concatenation,
+// so the table on the page and the hashed bytes cannot differ.
+function blockFields(id,text){
+  return [['tag',net(BLOCK_TAG),'kind and layout version'],['stable id',net(id),'the line’s identity'],
+          ['text',net(text),'the line, in UTF-8'],['rich spans','-','absent']];
+}
+function noteFields(n,parentSid,nBlocks,nChildren,hasGuidance,hasRemarks){
+  return [
+    ['tag',net(hasRemarks?ANNOTATED_NOTE_TAG:NOTE_TAG),hasRemarks?'v8: the note has remarks':'v7'],
+    ['stable id',net(n.stable_id),'the note’s identity'],
+    ['parent stable id',opt(parentSid),'the parent’s id, never a row id'],
+    ['sort key',net(n.sort_key),'position among siblings'],
+    ['title',net(n.title),''],['format',net(n.format),''],
+    ['extension',opt(n.extension),'absent or present'],['icon',opt(n.icon),'absent or present'],
+    ['rich spans','-','absent'],
+    ['archived',net(n.archived?'1':'0'),'1 when archived'],
+    ['guidance marker',hasGuidance?'+':'-','whether edge 0 is a guidance object'],
+    ['attached files',net('0'),'count of attached files'],['linked attachments',net('0'),'count'],
+    ['shortcuts',net('0'),'count'],
+    ['line count',net(String(nBlocks)),'how many edges are lines'],
+    ['child count',net(String(nChildren)),'how many edges are child notes']];
+}
+function rootFields(nChildren){
+  return [['tag',net(ROOT_TAG),'kind and layout version'],['settings marker','-','no pinned settings object'],
+          ['top-level count',net(String(nChildren)),'how many edges are top-level notes']];
+}
+function cat(fields){ return fields.map(function(f){ return f[1]; }).join(''); }
+// Merkle.preimage: the body, then each edge hash as a netstring of its hex.
+function preimage(body,edges){ var s=body; edges.forEach(function(e){ s+=net(e); }); return s; }
+// END hashing
+
+// --------------------------------------------------------------- the sample
+// A real file: created with burl-mcp, then read back with sqlite3. See "What was compared".
+var REAL={notes:[
+ {key:'g',parent:null,stable_id:'01a1443ef5ca761e87649c7a19fbc362',sort_key:'V3jpqQc',title:'Groceries',format:'todotxt',
+  extension:'',icon:'',archived:false,remark:false,remarkText:'check the amounts',
+  lines:[{id:'01a1443ef5cb712684599cb5e98e228c',text:'Buy milk'},{id:'01a1443ef5cc7bd682e10d16f20ed4fc',text:'Buy eggs'}],guidance:[]},
+ {key:'d',parent:'g',stable_id:'01a1443ef5e57ef1817e643e51731285',sort_key:'V3jpqQc',title:'Dairy',format:'plain',
+  extension:'',icon:'',archived:false,remark:false,remarkText:'check the amounts',
+  lines:[{id:'01a1443ef5e87d37856defcf5637a9c5',text:'Cheese'}],guidance:[]},
+ {key:'u',parent:null,stable_id:'01a1443ef5ff78e088334b2febcc1b1e',sort_key:'W3jpqQc',title:'Guided',format:'markdown',
+  extension:'',icon:'',archived:false,remark:false,remarkText:'check the amounts',
+  lines:[{id:'01a1443ef5ff77628cce1904bbbef231',text:'Hello'}],
+  guidance:[{id:'ccca4b38232741d88e1caa086f3254b2',text:'Be brief'},{id:'5a1f0fac1567423890d251234e5207e7',text:'Be kind'}]}
+]};
+var model=JSON.parse(JSON.stringify(REAL));
+
+function bySort(a,b){ return a.sort_key<b.sort_key?-1:a.sort_key>b.sort_key?1:(a.stable_id<b.stable_id?-1:1); }
+
+// ------------------------------------------------------------------ compute
+function compute(m){
+  var objs=[], per={};
+  function put(kind,body,edges,label){
+    var pre=preimage(body,edges), o={kind:kind,hash:sha(pre),body:body,edges:edges,pre:pre,label:label};
+    objs.push(o); return o;
+  }
+  function note(n){
+    var blocks=n.lines.map(function(l){ return put('block',cat(blockFields(l.id,l.text)),[],n.title+': “'+l.text+'”'); });
+    var g=null;
+    if(n.guidance.length){
+      var gb=n.guidance.map(function(l){ return put('block',cat(blockFields(l.id,l.text)),[],n.title+' guidance: “'+l.text+'”'); });
+      g=put('guidance',net(GUIDANCE_TAG)+net(String(gb.length)),gb.map(function(b){ return b.hash; }),n.title+' guidance');
+    }
+    var a=null;
+    if(n.remark && n.lines.length){
+      var l0=n.lines[0];
+      var leaf=put('annotation',net(ANNOTATION_TAG)+net('0199a0000000000000000000000000a1')+net(l0.id)+net('device-1')
+        +net('2026-01-01T00:00:00.000Z')+net(l0.text)+net(n.remarkText),[],n.title+' remark');
+      a=put('annotations',net(ANNOTATIONS_TAG)+net('1'),[leaf.hash],n.title+' remarks');
+    }
+    var kids=m.notes.filter(function(k){ return k.parent===n.key; }).sort(bySort).map(note);
+    var parent=m.notes.filter(function(k){ return k.key===n.parent; })[0];
+    var fields=noteFields(n,parent?parent.stable_id:null,blocks.length,kids.length,!!g,!!a);
+    var edges=[g,a].filter(Boolean).concat(blocks,kids).map(function(o){ return o.hash; });
+    var o=put('note',cat(fields),edges,n.title);
+    o.fields=fields; o.blocks=blocks; per[n.key]=o; return o;
+  }
+  var tops=m.notes.filter(function(k){ return k.parent===null; }).sort(bySort).map(note);
+  var rf=rootFields(tops.length);
+  var root=put('root',cat(rf),tops.map(function(o){ return o.hash; }),'root');
+  root.fields=rf;
+  return {objs:objs,per:per,root:root};
+}
+
+// ------------------------------------------------------------------ render
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function vis(s){ return esc(s).replace(/\n/g,'⏎'); }
+function fieldRows(fields){
+  return fields.map(function(f){ return '<tr><td>'+esc(f[0])+'</td><td class="bytes">'+vis(f[1])+'</td><td>'+esc(f[2])+'</td></tr>'; }).join('');
+}
+var picked='g';
+function render(){
+  var c=compute(model), n=model.notes.filter(function(k){ return k.key===picked; })[0]||model.notes[0];
+  picked=n.key;
+  var sel=$('note-pick'); sel.innerHTML=model.notes.map(function(k){ return '<option value="'+k.key+'"'+(k.key===picked?' selected':'')+'>'+esc(k.title)+'</option>'; }).join('');
+  var o=c.per[n.key];
+  $('ex-note').textContent=n.title;
+  var b=o.blocks[0];
+  $('block-fields').querySelector('tbody').innerHTML=b?fieldRows(blockFields(n.lines[0].id,n.lines[0].text)):'<tr><td colspan="3">this note has no lines</td></tr>';
+  $('block-hash').textContent=b?b.hash:'(no line)';
+  $('note-fields').querySelector('tbody').innerHTML=fieldRows(o.fields);
+  $('note-pre').innerHTML=esc(o.body)+(o.edges.length?'\n'+o.edges.map(function(e){ return '<span class="id">'+esc(net(e))+'</span>'; }).join('\n'):'');
+  $('note-hash').textContent=o.hash;
+  $('root-fields').querySelector('tbody').innerHTML=fieldRows(c.root.fields);
+  $('root-pre').innerHTML=esc(c.root.body)+'\n'+c.root.edges.map(function(e){ return '<span class="id">'+esc(net(e))+'</span>'; }).join('\n');
+  $('root-hash').textContent=c.root.hash;
+  $('objects-table').querySelector('tbody').innerHTML=c.objs.map(function(x){
+    return '<tr><td>'+x.kind+'<br><span class="small">'+esc(x.label)+'</span></td><td class="hash">'+x.hash+'</td><td class="bytes">'+vis(x.body)
+      +'</td><td class="hash">'+(x.edges.length?x.edges.map(function(e,i){ return i+': '+e; }).join('<br>'):'none')+'</td></tr>';
+  }).join('');
+  last=c; checkPaste();
+}
+var last=null;
+
+// ------------------------------------------------------------------ editor
+function edBuild(){
+  var ed=$('editor'); ed.innerHTML='';
+  model.notes.forEach(function(n,ni){
+    var d=document.createElement('div'); d.className='card';
+    var parentOpts='<option value="">(top level)</option>'+model.notes.filter(function(k){ return k.key!==n.key; }).map(function(k){ return '<option value="'+k.key+'"'+(n.parent===k.key?' selected':'')+'>'+esc(k.title)+'</option>'; }).join('');
+    d.innerHTML='<h4>'+esc(n.title)+'</h4>'
+      +'<label>title <input type="text" data-f="title" size="14"></label>'
+      +'<label>format <select data-f="format">'+['plain','markdown','todotxt','richtext','code'].map(function(f){ return '<option'+(n.format===f?' selected':'')+'>'+f+'</option>'; }).join('')+'</select></label>'
+      +'<label>parent <select data-f="parent">'+parentOpts+'</select></label>'
+      +'<label>sort key <input type="text" data-f="sort_key" size="9"></label>'
+      +'<label>extension <input type="text" data-f="extension" size="6"></label>'
+      +'<label>icon <input type="text" data-f="icon" size="2"></label>'
+      +'<label><input type="checkbox" data-f="archived"> archived</label>'
+      +'<label><input type="checkbox" data-f="remark"> add a sample remark on line 1</label>'
+      +'<br><label>stable id <input type="text" data-f="stable_id" size="34"></label>'
+      +'<div data-lines="lines"><div class="small">lines (id, text)</div></div>'
+      +'<div data-lines="guidance"><div class="small">guidance lines (id, text)</div></div>';
+    d.querySelectorAll('[data-f]').forEach(function(el){
+      var f=el.getAttribute('data-f');
+      if(el.type==='checkbox') el.checked=!!n[f]; else if(el.tagName==='INPUT') el.value=n[f]||'';
+      el.addEventListener('input',function(){
+        n[f]=el.type==='checkbox'?el.checked:(f==='parent'&&el.value===''?null:el.value);
+        render();
+      });
+    });
+    ['lines','guidance'].forEach(function(set){
+      var box=d.querySelector('[data-lines="'+set+'"]');
+      n[set].forEach(function(l,li){
+        var r=document.createElement('div'); r.className='lrow';
+        r.innerHTML='<input class="lid" type="text"><input class="ltx" type="text"><button type="button">remove</button>';
+        r.children[0].value=l.id; r.children[1].value=l.text;
+        r.children[0].addEventListener('input',function(){ l.id=this.value; render(); });
+        r.children[1].addEventListener('input',function(){ l.text=this.value; render(); });
+        r.children[2].addEventListener('click',function(){ n[set].splice(li,1); edBuild(); render(); });
+        box.appendChild(r);
+      });
+      var add=document.createElement('button'); add.type='button'; add.textContent='add '+(set==='lines'?'a line':'a guidance line');
+      add.addEventListener('click',function(){ n[set].push({id:rid(),text:''}); edBuild(); render(); });
+      box.appendChild(add);
+    });
+    ed.appendChild(d);
+  });
+}
+// A fresh 32-hex id. burl uses time-ordered UUIDv7; any 32 hex characters hash the same way.
+function rid(){ var a=new Uint8Array(16); (window.crypto&&crypto.getRandomValues)?crypto.getRandomValues(a):a.forEach(function(_,i){ a[i]=Math.floor(Math.random()*256); });
+  return Array.prototype.map.call(a,function(x){ return ('0'+x.toString(16)).slice(-2); }).join(''); }
+$('reset').addEventListener('click',function(){ model=JSON.parse(JSON.stringify(REAL)); edBuild(); render(); });
+$('note-pick').addEventListener('change',function(){ picked=this.value; render(); });
+
+// ------------------------------------------------------------- paste checker
+function checkPaste(){
+  var body=$('v-body').value, edges=$('v-edges').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+  if(!body){ $('v-out').textContent=''; $('v-hit').textContent=''; return; }
+  var h=sha(preimage(body,edges)); $('v-out').textContent=h;
+  var hit=last&&last.objs.filter(function(o){ return o.hash===h; })[0];
+  $('v-hit').innerHTML=hit?'<span class="match">= the sample’s '+hit.kind+' “'+esc(hit.label)+'”</span>':'<span class="small">(not an object of the sample as edited)</span>';
+}
+$('v-body').addEventListener('input',checkPaste); $('v-edges').addEventListener('input',checkPaste);
+
+// ------------------------------------------------------- checkpoint thinning
+// Mirrors Merkle#prune_checkpoints_now!: pass 1 keeps the newest checkpoint per UTC day among those
+// older than the dense window; pass 2 keeps the newest per month among pass 1's survivors older than
+// the daily limit; pass 3 drops those older than the monthly limit. Saves are spread evenly, newest
+// at "now", so a day's newest save is found by arithmetic rather than by listing every save.
+var DENSE_H=48, DAILY_D=365, MONTHLY_D=3650, KB_PER_CHECKPOINT=3.9;
+function sim(){
+  var per=Math.max(1,Math.min(5760,parseInt($('sim-per').value,10)||1)), days=Math.max(1,Math.min(4000,parseInt($('sim-days').value,10)||1));
+  var H=3600e3, D=24*H, now=Date.UTC(2026,9,16,12,0,0), step=D/per, N=per*days, oldest=now-(N-1)*step;
+  // Newest save at or before time t (null if none in [lo, t]).
+  function newestAtOrBefore(t,lo){ if(t<oldest) return null; var k=Math.max(0,Math.floor((now-t)/step)); if(now-k*step>t+1e-3) k++; var s=now-k*step; return (s>=lo&&s>=oldest)?s:null; }
+  var kept=[];                                                       // ages in ms
+  // burl prunes only rows strictly older than each limit, so a checkpoint exactly 48 hours old is kept.
+  var dense=Math.min(N,Math.floor(DENSE_H*H/step+1e-9)+1);
+  for(var i=0;i<dense;i++) kept.push(i*step);
+  // Pass 1: one per UTC day, among saves older than the dense window.
+  var cut1=now-dense*step, daySurv=[];
+  for(var dStart=Math.floor(cut1/D)*D; dStart+D>oldest; dStart-=D){
+    var s=newestAtOrBefore(Math.min(dStart+D-1,cut1),dStart); if(s!==null) daySurv.push(s);
+  }
+  // Pass 2: one per UTC month, among day survivors older than the daily limit.
+  var seenM={};
+  daySurv.forEach(function(s){
+    if(now-s<=DAILY_D*D){ kept.push(now-s); return; }
+    var m=new Date(s).toISOString().slice(0,7); if(seenM[m]) return; seenM[m]=1;
+    if(now-s<=MONTHLY_D*D) kept.push(now-s);                        // pass 3
+  });
+  // Counts by band.
+  var bands=[['under 48 hours','every save',0,DENSE_H*H],['48 hours to 1 year','last save of each day',DENSE_H*H,DAILY_D*D],
+             ['1 to 10 years','last save of each month',DAILY_D*D,MONTHLY_D*D],['over 10 years','nothing',MONTHLY_D*D,Infinity]];
+  function written(lo,hi){ var a=Math.max(lo,0), b=Math.min(hi,(N-1)*step+1); return b<=a?0:Math.ceil(b/step)-Math.ceil(a/step); }
+  function keptIn(lo,hi){ var c=0; kept.forEach(function(a){ if(a>=lo&&a<hi) c++; }); return c; }
+  var fmt=function(n){ return n.toLocaleString('en-US'); };
+  $('sim').querySelector('tbody').innerHTML=bands.map(function(b){
+    return '<tr><td>'+b[0]+'</td><td>'+b[1]+'</td><td>'+fmt(written(b[2],b[3]))+'</td><td>'+fmt(keptIn(b[2],b[3]))+'</td></tr>';
+  }).join('')+'<tr><td colspan="2"><strong>total</strong></td><td><strong>'+fmt(N)+'</strong></td><td><strong>'+fmt(kept.length)+'</strong></td></tr>';
+  function size(kb){ return kb<1024?Math.round(kb)+' KB':kb<1024*1024?(kb/1024).toFixed(1)+' MB':(kb/1024/1024).toFixed(2)+' GB'; }
+  $('disk-all').textContent=size(N*KB_PER_CHECKPOINT);
+  $('disk-kept').textContent=size(kept.length*KB_PER_CHECKPOINT);
+  $('disk-save').textContent=N>kept.length?(100*(1-kept.length/N)).toFixed(1)+'% less, '+fmt(N-kept.length)+' checkpoints retired':'nothing retired yet';
+  drawTimeline(N,step,kept,bands);
+}
+
+// The timeline: age on a log scale, newest at the left. Each column is a slice of time; the grey
+// bar is how many checkpoints were written in it and the blue bar how many are kept, both on one
+// log scale, so the gap between them is what thinning removes.
+function drawTimeline(N,step,kept,bands){
+  var L=20, R=990, TOP=26, BASE=150, MIN=60e3, D=864e5, span=Math.max((N-1)*step,MIN*2), MAX=Math.max(span,MONTHLY_D*D)*1.15;
+  var lmin=Math.log(MIN), lmax=Math.log(MAX);
+  function x(age){ return L+(R-L)*(Math.log(Math.max(age,MIN))-lmin)/(lmax-lmin); }
+  function age(px){ return Math.exp(lmin+(px-L)/(R-L)*(lmax-lmin)); }
+  var COL=4, cols=Math.floor((R-L)/COL), wr=new Array(cols).fill(0), kp=new Array(cols).fill(0);
+  for(var c=0;c<cols;c++){
+    var a=c===0?0:age(L+c*COL), b=Math.min(age(L+(c+1)*COL),span+1);
+    if(b>a) wr[c]=Math.max(0,Math.ceil(b/step)-Math.ceil(a/step));
+  }
+  kept.forEach(function(a){ var c=Math.floor((x(a)-L)/COL); if(c>=0&&c<cols) kp[c]++; });
+  var maxc=Math.max(1,Math.max.apply(null,wr));
+  function h(n){ return n<=0?0:(BASE-TOP)*Math.log(1+n)/Math.log(1+maxc); }
+  var zone=['#eef8fd','#e9f2e6','#eef3dc','#e0e0e0'], name=['every save','one a day','one a month','none'], s='';
+  bands.forEach(function(b,i){
+    var x0=x(Math.max(b[2],MIN)), x1=b[3]===Infinity?R:x(b[3]);
+    s+='<rect x="'+x0.toFixed(1)+'" y="'+TOP+'" width="'+(x1-x0).toFixed(1)+'" height="'+(BASE-TOP)+'" fill="'+zone[i]+'"/>';
+    if(x1-x0>70) s+='<text x="'+((x0+x1)/2).toFixed(1)+'" y="'+(TOP-8)+'" font-size="12" text-anchor="middle" fill="#2b2b2b">kept: '+name[i]+'</text>';
+  });
+  for(c=0;c<cols;c++){
+    var hw=h(wr[c]), hk=h(kp[c]), cx=L+c*COL;
+    if(hw) s+='<rect x="'+cx+'" y="'+(BASE-hw).toFixed(1)+'" width="'+(COL-1)+'" height="'+hw.toFixed(1)+'" fill="#a9a9a9"/>';
+    if(hk) s+='<rect x="'+cx+'" y="'+(BASE-hk).toFixed(1)+'" width="'+(COL-1)+'" height="'+hk.toFixed(1)+'" fill="#0492c7"/>';
+  }
+  [[MIN,'1 min'],[3600e3,'1 hour'],[2*D,'48 hours'],[30*D,'1 month'],[365*D,'1 year'],[3650*D,'10 years']].forEach(function(t){
+    if(t[0]>MAX) return; var tx=x(t[0]).toFixed(1);
+    s+='<line x1="'+tx+'" y1="'+BASE+'" x2="'+tx+'" y2="'+(BASE+6)+'" stroke="#838383"/><text x="'+tx+'" y="'+(BASE+20)+'" font-size="11" text-anchor="middle" fill="#5c5c5c">'+t[1]+'</text>';
+  });
+  s+='<line x1="'+L+'" y1="'+BASE+'" x2="'+R+'" y2="'+BASE+'" stroke="#838383"/>';
+  s+='<rect x="'+L+'" y="'+(BASE+30)+'" width="10" height="10" fill="#a9a9a9"/><text x="'+(L+15)+'" y="'+(BASE+39)+'" font-size="11" fill="#2b2b2b">written</text>';
+  s+='<rect x="'+(L+75)+'" y="'+(BASE+30)+'" width="10" height="10" fill="#0492c7"/><text x="'+(L+90)+'" y="'+(BASE+39)+'" font-size="11" fill="#2b2b2b">kept</text>';
+  s+='<text x="'+R+'" y="'+(BASE+39)+'" font-size="11" text-anchor="end" fill="#5c5c5c">age of the checkpoint, log scale; bar height is the count in that slice, log scale</text>';
+  $('sim-svg').innerHTML=s;
+}
+$('sim-per').addEventListener('input',sim); $('sim-days').addEventListener('input',sim);
+
+// ---------------------------------------------------------------- self-test
+(function selfTest(){
+  var el=$('selftest'), ok=true, msgs=[];
+  var v={'':'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+         'abc':'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+         'abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq':'248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1'};
+  Object.keys(v).forEach(function(k){ if(sha(k)!==v[k]){ ok=false; msgs.push('FIPS vector '+JSON.stringify(k)+' mismatched'); } });
+  if(ok) msgs.push('JS SHA-256 agrees with the three FIPS 180-4 vectors');
+  var rb=compute(REAL).root.pre;
+  if(window.crypto && crypto.subtle && crypto.subtle.digest){
+    crypto.subtle.digest('SHA-256',enc.encode(rb)).then(function(buf){
+      var hex=Array.from(new Uint8Array(buf)).map(function(b){ return ('0'+b.toString(16)).slice(-2); }).join('');
+      var same=hex===sha(rb);
+      el.textContent=msgs.join('; ')+'; '+(same?'crypto.subtle agrees on the root preimage':'crypto.subtle DISAGREES on the root preimage, do not trust this page');
+      el.className='status'+(ok&&same?'':' bad');
+    }).catch(function(){ el.textContent=msgs.join('; ')+'; crypto.subtle unavailable here, JS implementation only'; el.className='status'+(ok?'':' bad'); });
+  } else { el.textContent=msgs.join('; ')+'; crypto.subtle not present, JS implementation only'; el.className='status'+(ok?'':' bad'); }
+})();
+
+edBuild(); render(); sim();
+})();
+</script>
+</body>
+</html>
